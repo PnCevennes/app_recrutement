@@ -33,7 +33,7 @@ def get_services():
     '''
     retourne la liste des différents services
     '''
-    return get_thesaurus(4)
+    return get_thesaurus(2)
 
 
 @routes.route('/lieux')
@@ -50,7 +50,7 @@ def get_logements():
     '''
     retourne la liste des options d'hébergement
     '''
-    return get_thesaurus(10)
+    return get_thesaurus(3)
 
 @routes.route('/contrats')
 @json_resp
@@ -58,4 +58,4 @@ def get_contrats():
     '''
     retourne les différents types de contrats
     '''
-    return get_thesaurus(14)
+    return get_thesaurus(4)

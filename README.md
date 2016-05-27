@@ -30,10 +30,21 @@ Création du virtualenv et téléchargement des dépendances
 ```
     virtualenv venv -p /usr/bin/python3
     source venv/bin/activate
-    pip install flask
-    pip install flask-sqlalchemy
-    pip install flask-mail
+    pip install -r requirements.txt 
     git clone https://github.com/PnCevennes/app_recrutement.git
+```
+
+
+Initialisation
+--------------
+
+
+Crée la base de données avec des données de test
+
+```
+    cd app_recrutement
+    python alt_serv.py shell
+    >import bootstrap
 ```
 
 
@@ -42,6 +53,5 @@ Démarrage du serveur en mode debug
 
 
 ```
-    cd app_recrutement
     python server.py
 ```
