@@ -30,8 +30,9 @@ Création du virtualenv et téléchargement des dépendances
 ```
     virtualenv venv -p /usr/bin/python3
     source venv/bin/activate
-    pip install -r requirements.txt 
     git clone https://github.com/PnCevennes/app_recrutement.git
+    cd app_recrutement
+    pip install -r requirements.txt 
 ```
 
 
@@ -42,7 +43,6 @@ Initialisation
 Crée la base de données avec des données de test
 
 ```
-    cd app_recrutement
     python alt_serv.py shell
     >import bootstrap
 ```
