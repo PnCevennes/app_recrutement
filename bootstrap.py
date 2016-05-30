@@ -5,7 +5,7 @@ Crée les éléments de test
 '''
 
 from server import db
-from modules.agents.models import Agent
+from modules.agents.models import AgentDetail
 from modules.thesaurus.models import Thesaurus
 import datetime
 
@@ -77,7 +77,7 @@ cont = db.session.query(Thesaurus).filter(Thesaurus.label=='Stage').one()
 
 
 #Création agent test
-ag = Agent(
+ag = AgentDetail(
     nom='Hochon', 
     prenom='Paul', 
     service_id=serv.id,
