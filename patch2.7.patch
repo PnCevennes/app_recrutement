@@ -1,0 +1,31 @@
+diff --git a/bootstrap.py b/bootstrap.py
+index a1d1711..147ac0b 100644
+--- a/bootstrap.py
++++ b/bootstrap.py
+@@ -51,7 +51,7 @@ db.session.add_all(services)
+ logements = [
+     Thesaurus(id_ref=t3.id, label='Logement perso'),
+     Thesaurus(id_ref=t3.id, label='Logement fonction'),
+-    Thesaurus(id_ref=t3.id, label='Grézo'),
++    Thesaurus(id_ref=t3.id, label=u'Grézo'),
+     Thesaurus(id_ref=t3.id, label='Autre')
+     ]
+ 
+@@ -71,7 +71,7 @@ db.session.commit()
+ #récupération elems thesaurus
+ lieu = db.session.query(Thesaurus).filter(Thesaurus.label=='Florac').one()
+ serv = db.session.query(Thesaurus).filter(Thesaurus.label=='SG').one()
+-loge = db.session.query(Thesaurus).filter(Thesaurus.label=='Grézo').one()
++loge = db.session.query(Thesaurus).filter(Thesaurus.label==u'Grézo').one()
+ cont = db.session.query(Thesaurus).filter(Thesaurus.label=='Stage').one()
+ 
+ 
+@@ -84,7 +84,7 @@ ag = AgentDetail(
+     lieu=lieu.id,
+     type_contrat=cont.id,
+     logement=loge.id,
+-    arrivee=datetime.date(2016, 6, 1),
++    arrivee=datetime.date(2016, 6, 10),
+     depart=datetime.date(2016, 8, 31)
+     )
+ 
