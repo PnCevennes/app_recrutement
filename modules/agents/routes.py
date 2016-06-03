@@ -7,7 +7,7 @@ import datetime
 from flask import Blueprint, request
 from sqlalchemy.orm.exc import NoResultFound
 from .models import Agent, AgentDetail
-from ..utils import normalize, json_resp
+from ..utils import normalize, json_resp, send_mail
 from server import db
 
 routes = Blueprint('ag_routes', __name__)
@@ -19,13 +19,18 @@ def get_agents():
     '''
     retourne la liste des agents en cours de recrutement
     '''
-    ag_list = Agent.query.filter(Agent.arrivee>datetime.date.today())\
-                .order_by(db.asc(Agent.arrivee)).all()
+    get_old = request.args.get('old', False)
+    if(get_old and get_old=='true'):
+        qr = Agent.query
+    else:
+        qr = Agent.query.filter(Agent.arrivee>datetime.date.today())
+
+    ag_list = qr.order_by(db.asc(Agent.arrivee)).all()
     out = []
     for item in ag_list:
         out.append(normalize(item))
     if not out:
-        return ['rien']
+        return []
     return out
 
 
@@ -56,6 +61,20 @@ def create_agent():
         agent = AgentDetail(**ag)
         db.session.add(agent)
         db.session.commit()
+
+        send_mail(
+            '[recrutement] Une nouvelle fiche de recrutement a été créée',
+            '''
+            La fiche de recrutement de %s %s a été crée le %s.
+            Vous pouvez vous connecter à <serveur>%s pour voir les détails de cette fiche.
+            ''' % (
+                agent.prenom,
+                agent.nom,
+                datetime.datetime.today().strftime('%d/%m/%Y'),
+                agent.id
+                )
+            )
+
         return normalize(agent)
     except Exception as e:
         print(e)
@@ -79,6 +98,24 @@ def update_agent(id_agent):
         for col in ag:
             setattr(agent, col, ag[col])
         db.session.commit()
+
+        app = get_app()
+
+        send_mail(
+            '[recrutement] Une fiche de recrutement a été modifiée',
+             '''
+            La fiche de recrutement de %s %s a été modifiée le %s.
+            Vous pouvez vous connecter à <serveur>%s pour voir les détails de cette fiche.
+            ''' % (
+                agent.prenom,
+                agent.nom,
+                datetime.datetime.today().strftime('%d/%m/%Y'),
+                agent.id
+                )
+            )
+        with app.app_context():
+            mail.send(msg)
+
         return normalize(agent)
     except Exception as e:
         print(e)
@@ -97,4 +134,15 @@ def delete_agent(id_agent):
         return [], 404
     db.session.delete(agent)
     db.session.commit()
+    send_mail(
+        'Une fiche de recrutement a été supprimée',
+        '''
+        La fiche de recrutement de %s %s a été supprimée le %s.
+        Vous pouvez vous connecter à <serveur> pour voir la liste des recrutements en cours.
+        ''' % (
+            agent.prenom,
+            agent.nom,
+            datetime.datetime.today().strftime('%d/%m/%Y')
+            )
+        )
     return []

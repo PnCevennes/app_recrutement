@@ -39,6 +39,12 @@ Création du virtualenv et téléchargement des dépendances
 Initialisation
 --------------
 
+Crée la configuration de base de l'application
+
+```
+    cp config.py.sample config.py
+```
+
 
 Crée la base de données avec des données de test
 

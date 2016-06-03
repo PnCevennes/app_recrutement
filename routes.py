@@ -4,7 +4,7 @@
 Routes de base
 '''
 
-from flask import Blueprint
+from flask import Blueprint, g
 
 main = Blueprint('main', __name__)
 

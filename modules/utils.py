@@ -3,9 +3,10 @@
 Fonctions utilitaires
 '''
 
-from server import db
+from server import db, mail, get_app
 from functools import wraps
 from flask import Response
+from flask.ext.mail import Message
 import json
 
 
@@ -58,3 +59,21 @@ def json_resp(fn):
                 status=status, mimetype='application/json')
     return _json_resp
 
+
+
+def send_mail(subject, msg_body):
+    '''
+    envoie un mail aux administrateurs de l'application
+    '''
+    app = get_app()
+    if not app.config['SEND_MAIL']:
+        return
+
+    msg = Message('[recrutement] %s' % subject,
+            sender='admin_si@cevennes-parcnational.fr',
+            recipients=app.config['MAIL_DESTS']
+            )
+    msg.body = msg_body
+
+    with app.app_context():
+        mail.send(msg)
