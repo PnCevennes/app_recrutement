@@ -6,11 +6,12 @@ Routes relatives au thésurus
 
 from flask import Blueprint
 from . import models
-from ..utils import normalize, json_resp
+from ..utils import normalize, json_resp, register_module
 
 
 routes = Blueprint('th_routes', __name__)
 
+register_module('/thesaurus', routes)
 
 
 

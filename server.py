@@ -14,6 +14,7 @@ mail = Mail()
 
 app_globals = {}
 
+
 def get_app():
     if app_globals.get('app', False):
         return app_globals['app']
@@ -26,11 +27,9 @@ def get_app():
     import routes
     app.register_blueprint(routes.main)
 
-    from modules.thesaurus import routes as routes_th
-    app.register_blueprint(routes_th.routes, url_prefix='/thesaurus')
-
-    from modules.agents import routes as  routes_ag
-    app.register_blueprint(routes_ag.routes, url_prefix='/agents')
+    from modules.utils import registered_modules
+    for prefix, blueprint in registered_modules.items():
+        app.register_blueprint(blueprint, url_prefix=prefix)
 
     app_globals['app'] = app
 

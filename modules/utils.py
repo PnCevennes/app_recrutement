@@ -10,6 +10,14 @@ from flask.ext.mail import Message
 import json
 
 
+registered_modules = {}
+
+def register_module(prefix, blueprint):
+    '''
+    Importe les routes d'un module dans l'application
+    '''
+    registered_modules[prefix] = blueprint
+
 
 def _normalize(obj, columns):
     '''
@@ -70,7 +78,7 @@ def send_mail(subject, msg_body):
         return
 
     msg = Message('[recrutement] %s' % subject,
-            sender='admin_si@cevennes-parcnational.fr',
+            sender=app.config['MAIL_SENDER'],
             recipients=app.config['MAIL_DESTS']
             )
     msg.body = msg_body
