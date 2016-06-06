@@ -59,8 +59,10 @@ def create_agent():
     try:
         ag = request.json
         ag['arrivee'] = datetime.datetime.strptime(ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ') 
-        if ag['depart']:
+        if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):
             ag['depart'] = datetime.datetime.strptime(ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ') 
+        else:
+            ag.pop('depart')
         agent = AgentDetail(**ag)
         db.session.add(agent)
         db.session.commit()
@@ -94,8 +96,10 @@ def update_agent(id_agent):
     try:
         ag = request.json
         ag['arrivee'] = datetime.datetime.strptime(ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ') 
-        if ag['depart']:
+        if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):
             ag['depart'] = datetime.datetime.strptime(ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ') 
+        else:
+            ag.pop('depart')
         agent = AgentDetail.query.get(id_agent)
         if not agent:
             return [], 404
