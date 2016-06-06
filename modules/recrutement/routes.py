@@ -107,8 +107,6 @@ def update_agent(id_agent):
             setattr(agent, col, ag[col])
         db.session.commit()
 
-        app = get_app()
-
         send_mail(
             '[recrutement] Une fiche de recrutement a été modifiée',
              '''
@@ -121,8 +119,6 @@ def update_agent(id_agent):
                 agent.id
                 )
             )
-        with app.app_context():
-            mail.send(msg)
 
         return normalize(agent)
     except Exception as e:
