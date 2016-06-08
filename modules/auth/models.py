@@ -17,6 +17,8 @@ class User(db.Model):
     login = db.Column(db.Unicode)
     _password = db.Column('password', db.Unicode)
     email = db.Column(db.Unicode)
+    token = db.Column(db.Unicode)
+    applications = db.relationship('AppUser', lazy='joined')
 
     @property
     def password(self):
@@ -27,7 +29,24 @@ class User(db.Model):
         self._password = hashlib.sha256(pwd.encode('utf8')).hexdigest() 
 
     def check_password(self, pwd):
+        print(pwd)
         return self._password == hashlib.sha256(pwd.encode('utf8')).hexdigest() 
+
+    def to_json(self):
+        out = {
+                'id': self.id,
+                'login': self.login,
+                'email': self.email,
+                'applications': []
+                }
+        for app_data in self.applications:
+            app = {
+                    'id': app_data.application_id,
+                    'nom': app_data.application.nom,
+                    'niveau': app_data.niveau
+                    }
+            out['applications'].append(app)
+        return out
 
 
 

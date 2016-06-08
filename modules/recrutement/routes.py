@@ -7,16 +7,19 @@ import datetime
 from flask import Blueprint, request
 from sqlalchemy.orm.exc import NoResultFound
 from .models import Agent, AgentDetail
-from ..utils import normalize, json_resp, send_mail, register_module
+from ..utils import normalize, json_resp, send_mail, register_module, registered_funcs
 from server import db
 
 routes = Blueprint('recrutement', __name__)
 
 register_module('/recrutement', routes)
 
+check_auth = registered_funcs['check_auth']
+
 
 @routes.route('/')
 @json_resp
+@check_auth(1, 6)
 def get_agents():
     '''
     retourne la liste des agents en cours de recrutement

@@ -11,6 +11,7 @@ import json
 
 
 registered_modules = {}
+registered_funcs = {}
 
 def register_module(prefix, blueprint):
     '''
@@ -43,7 +44,7 @@ def normalize(obj, *parents):
     '''
     try:
         return obj.to_json()
-    except AttributeError:
+    except AttributeError as e:
         out = _normalize(obj, obj.__table__.columns)
         for p in parents:
             out.update(_normalize(obj, p().__table__.columns))
