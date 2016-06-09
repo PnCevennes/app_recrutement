@@ -70,7 +70,7 @@ def json_resp(fn):
 
 
 
-def send_mail(subject, msg_body):
+def send_mail(id_app, niveau, subject, msg_body):
     '''
     envoie un mail aux administrateurs de l'application
     '''
@@ -78,9 +78,19 @@ def send_mail(subject, msg_body):
     if not app.config['SEND_MAIL']:
         return
 
+    from .auth.models import AppUser
+
+    rels = AppUser.query\
+            .filter(AppUser.niveau>=niveau)\
+            .filter(AppUser.application_id==id_app)\
+            .all()
+    dests = [rel.user.email for rel in rels]
+
+
+
     msg = Message('[recrutement] %s' % subject,
             sender=app.config['MAIL_SENDER'],
-            recipients=app.config['MAIL_DESTS']
+            recipients=dests
             )
     msg.body = msg_body
 

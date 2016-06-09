@@ -45,6 +45,18 @@ registered_funcs['check_auth'] = check_auth
 
 
 
+@routes.route('/reconnect', methods=['GET'])
+@json_resp
+def reconnect():
+    try:
+        user = models.User.query\
+                .filter(models.User.token==request.cookies['token'])\
+                .one()
+        return normalize(user)
+    except Exception as e:
+        return [], 403
+
+
 @routes.route('/login', methods=['POST'])
 def login():
     try:

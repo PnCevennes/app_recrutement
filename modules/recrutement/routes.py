@@ -19,7 +19,7 @@ check_auth = registered_funcs['check_auth']
 
 @routes.route('/')
 @json_resp
-@check_auth(1, 6)
+@check_auth(1, 2)
 def get_agents():
     '''
     retourne la liste des agents en cours de recrutement
@@ -42,6 +42,7 @@ def get_agents():
 
 @routes.route('/<id_agent>', methods=['GET'])
 @json_resp
+@check_auth(1, 2)
 def get_agent(id_agent):
     '''
     retourne l'agent identifié par `id_agent`
@@ -55,6 +56,7 @@ def get_agent(id_agent):
 
 @routes.route('/', methods=['POST', 'PUT'])
 @json_resp
+@check_auth(1, 2)
 def create_agent():
     '''
     crée un nouvel agent
@@ -71,7 +73,9 @@ def create_agent():
         db.session.commit()
 
         send_mail(
-            '[recrutement] Une nouvelle fiche de recrutement a été créée',
+            1,
+            6,
+            'Une nouvelle fiche de recrutement a été créée',
             '''
             La fiche de recrutement de %s %s a été crée le %s.
             Vous pouvez vous connecter à <serveur>%s pour voir les détails de cette fiche.
@@ -92,6 +96,7 @@ def create_agent():
 
 @routes.route('/<id_agent>', methods=['POST', 'PUT'])
 @json_resp
+@check_auth(1, 2)
 def update_agent(id_agent):
     '''
     met à jour un agent
@@ -111,7 +116,9 @@ def update_agent(id_agent):
         db.session.commit()
 
         send_mail(
-            '[recrutement] Une fiche de recrutement a été modifiée',
+            1,
+            6,
+            'Une fiche de recrutement a été modifiée',
              '''
             La fiche de recrutement de %s %s a été modifiée le %s.
             Vous pouvez vous connecter à <serveur>%s pour voir les détails de cette fiche.
@@ -132,6 +139,7 @@ def update_agent(id_agent):
 
 @routes.route('/<id_agent>', methods=['DELETE'])
 @json_resp
+@check_auth(1, 2)
 def delete_agent(id_agent):
     '''
     annule un recrutement en cours
@@ -142,6 +150,8 @@ def delete_agent(id_agent):
     db.session.delete(agent)
     db.session.commit()
     send_mail(
+        1,
+        6,
         'Une fiche de recrutement a été supprimée',
         '''
         La fiche de recrutement de %s %s a été supprimée le %s.
