@@ -23,7 +23,6 @@ def check_auth(app_id, level, final=True):
     def _check_auth(fn):
         @wraps(fn)
         def __check_auth(*args, **kwargs):
-            print('check auth')
             g.user_is_authorized = True
             try:
                 user = models.User.query\
@@ -51,21 +50,16 @@ def login():
     try:
         user_data = request.json
         user = models.User.query.filter(models.User.login==user_data['login']).one()
-        print('user OK')
         if not user.check_password(user_data['password']):
-            print('mauvais pass')
             raise
         token = uuid.uuid4().hex
         print(token)
         user.token = token
         db.session.commit()
-        print('user update')
         cookie_exp = datetime.datetime.now() + datetime.timedelta(days=1)
 
-        print('date ok')
-        resp = Response(json.dumps({'login':True}))
+        resp = Response(json.dumps({'login':True, 'user': normalize(user)}))
         resp.set_cookie('token', token, expires=cookie_exp)
-        print('response OK')
         return resp
     except Exception as e:
         print(e)
@@ -77,7 +71,7 @@ def login():
 @routes.route('/logout')
 def logout():
     resp = Response(json.dumps({'logout': True}))
-    resp.set_cookie('token', None)
+    resp.set_cookie('token', '')
     return resp
 
 
