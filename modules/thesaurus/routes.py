@@ -68,3 +68,12 @@ def get_contrats():
     retourne les différents types de contrats
     '''
     return get_thesaurus(4)
+
+
+@routes.route('/ref/<id_ref>')
+@json_resp
+def get_materiel(id_ref):
+    '''
+    retourne les différents types de matériel
+    '''
+    return get_thesaurus(id_ref)

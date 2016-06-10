@@ -7,6 +7,7 @@ import datetime
 from flask import Blueprint, request
 from sqlalchemy.orm.exc import NoResultFound
 from .models import Agent, AgentDetail
+from ..thesaurus.models import Thesaurus
 from ..utils import normalize, json_resp, send_mail, register_module, registered_funcs
 from server import db
 
@@ -42,7 +43,6 @@ def get_agents():
 
 @routes.route('/<id_agent>', methods=['GET'])
 @json_resp
-@check_auth(1, 2)
 def get_agent(id_agent):
     '''
     retourne l'agent identifié par `id_agent`
@@ -63,11 +63,18 @@ def create_agent():
     '''
     try:
         ag = request.json
-        ag['arrivee'] = datetime.datetime.strptime(ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ') 
+        ag['arrivee'] = datetime.datetime.strptime(
+                ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ')
         if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):
-            ag['depart'] = datetime.datetime.strptime(ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ') 
+            ag['depart'] = datetime.datetime.strptime(
+                    ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ')
         else:
-            ag.pop('depart')
+            ag.pop('depart', None)
+
+        ag['materiel'] = [Thesaurus.query.get(item_id)
+                for item_id in ag.get('materiel', [])]
+
+
         agent = AgentDetail(**ag)
         db.session.add(agent)
         db.session.commit()
@@ -89,7 +96,6 @@ def create_agent():
 
         return normalize(agent)
     except Exception as e:
-        print(e)
         return [], 400
 
 
@@ -111,8 +117,15 @@ def update_agent(id_agent):
         agent = AgentDetail.query.get(id_agent)
         if not agent:
             return [], 404
+
+
+        ag['materiel'] = [Thesaurus.query.get(item_id)
+                for item_id in ag.get('materiel', [])]
+
+
         for col in ag:
             setattr(agent, col, ag[col])
+
         db.session.commit()
 
         send_mail(
@@ -132,7 +145,6 @@ def update_agent(id_agent):
 
         return normalize(agent)
     except Exception as e:
-        print(e)
         return [], 400
 
 

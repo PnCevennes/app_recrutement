@@ -46,15 +46,25 @@ registered_funcs['check_auth'] = check_auth
 
 
 @routes.route('/reconnect', methods=['GET'])
-@json_resp
 def reconnect():
     try:
         user = models.User.query\
                 .filter(models.User.token==request.cookies['token'])\
                 .one()
-        return normalize(user)
+        token = uuid.uuid4().hex
+        user.token = token
+        db.session.commit()
+        cookie_exp = datetime.datetime.now() + datetime.timedelta(days=1)
+
+        resp = Response(
+                json.dumps({'login':True, 'user': normalize(user)}),
+                mimetype='application/json'
+                )
+        resp.set_cookie('token', token, expires=cookie_exp)
+        return resp
     except Exception as e:
-        return [], 403
+        resp = Response(json.dumps({'login': False}), status=403)
+        return resp
 
 
 @routes.route('/login', methods=['POST'])
@@ -65,16 +75,17 @@ def login():
         if not user.check_password(user_data['password']):
             raise
         token = uuid.uuid4().hex
-        print(token)
         user.token = token
         db.session.commit()
         cookie_exp = datetime.datetime.now() + datetime.timedelta(days=1)
 
-        resp = Response(json.dumps({'login':True, 'user': normalize(user)}))
+        resp = Response(
+                json.dumps({'login':True, 'user': normalize(user)}),
+                mimetype='application/json'
+                )
         resp.set_cookie('token', token, expires=cookie_exp)
         return resp
     except Exception as e:
-        print(e)
         resp = Response(json.dumps({'login': False}), status=403)
         return resp
 

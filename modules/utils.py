@@ -37,7 +37,7 @@ def _normalize(obj, columns):
 
 def normalize(obj, *parents):
     '''
-    Prend un objet mappé SQLAlchemy et le transforme en dictionnaire pour 
+    Prend un objet mappé SQLAlchemy et le transforme en dictionnaire pour
     être sérialisé en JSON.
     Le second paramêtre `parents` permet de compléter la normalisation
     avec les données des tables liées par une relation d'héritage.
@@ -64,7 +64,7 @@ def json_resp(fn):
             res, status = res
         else:
             status = 200
-        return Response(json.dumps(res), 
+        return Response(json.dumps(res),
                 status=status, mimetype='application/json')
     return _json_resp
 
