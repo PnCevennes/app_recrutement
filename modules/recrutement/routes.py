@@ -50,7 +50,7 @@ def get_agent(id_agent):
     agent = AgentDetail.query.get(id_agent)
     if not agent:
         return [], 404
-    return normalize(agent, Agent)
+    return normalize(agent)
 
 
 
@@ -79,22 +79,23 @@ def create_agent():
         db.session.add(agent)
         db.session.commit()
 
+        out = normalize(agent)
         send_mail(
             1,
             6,
             'Une nouvelle fiche de recrutement a été créée',
             '''
-            La fiche de recrutement de %s %s a été crée le %s.
-            Vous pouvez vous connecter à <serveur>%s pour voir les détails de cette fiche.
+            La fiche de recrutement de %s %s a été créée le %s.
+            Vous pouvez vous connecter http://192.168.10.10/recrutement/app.htm pour voir les détails de cette fiche.
             ''' % (
                 agent.prenom,
                 agent.nom,
                 datetime.datetime.today().strftime('%d/%m/%Y'),
-                agent.id
                 )
             )
 
-        return normalize(agent)
+        return out
+
     except Exception as e:
         return [], 400
 
@@ -118,7 +119,6 @@ def update_agent(id_agent):
         if not agent:
             return [], 404
 
-
         ag['materiel'] = [Thesaurus.query.get(item_id)
                 for item_id in ag.get('materiel', [])]
 
@@ -128,23 +128,23 @@ def update_agent(id_agent):
 
         db.session.commit()
 
+        out = normalize(agent)
         send_mail(
             1,
             6,
             'Une fiche de recrutement a été modifiée',
              '''
             La fiche de recrutement de %s %s a été modifiée le %s.
-            Vous pouvez vous connecter à <serveur>%s pour voir les détails de cette fiche.
+            Vous pouvez vous connecter à http://192.168.10.10/recrutement/app.htm pour voir les détails de cette fiche.
             ''' % (
                 agent.prenom,
                 agent.nom,
                 datetime.datetime.today().strftime('%d/%m/%Y'),
-                agent.id
                 )
             )
-
-        return normalize(agent)
+        return out
     except Exception as e:
+        print(e)
         return [], 400
 
 
@@ -167,7 +167,7 @@ def delete_agent(id_agent):
         'Une fiche de recrutement a été supprimée',
         '''
         La fiche de recrutement de %s %s a été supprimée le %s.
-        Vous pouvez vous connecter à <serveur> pour voir la liste des recrutements en cours.
+        Vous pouvez vous connecter à http://192.168.10.10/recrutement/app.htm pour voir la liste des recrutements en cours.
         ''' % (
             agent.prenom,
             agent.nom,

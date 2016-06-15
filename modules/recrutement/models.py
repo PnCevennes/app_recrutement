@@ -10,8 +10,8 @@ from server import db
 class Agent(db.Model):
     __tablename__ = 'agent'
     id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.Unicode)
-    prenom = db.Column(db.Unicode)
+    nom = db.Column(db.Unicode(length=100))
+    prenom = db.Column(db.Unicode(length=100))
     service_id = db.Column(db.Integer) #TH ref 4
     arrivee = db.Column(db.Date)
     depart = db.Column(db.Date)
@@ -25,6 +25,7 @@ class AgentDetail(Agent):
     type_contrat = db.Column(db.Integer) #TH ref 14
     lieu = db.Column(db.Integer) #TH ref 1
     logement = db.Column(db.Integer) #TH ref 10
+    referent = db.Column(db.UnicodeText)
     materiel = db.relationship(
             'Thesaurus',
             secondary='rel_agent_thesaurus_materiel',

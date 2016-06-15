@@ -14,10 +14,10 @@ class User(db.Model):
     '''
     __tablename__ = 'utilisateur'
     id = db.Column(db.Integer, primary_key=True)
-    login = db.Column(db.Unicode)
-    _password = db.Column('password', db.Unicode)
-    email = db.Column(db.Unicode)
-    token = db.Column(db.Unicode)
+    login = db.Column(db.Unicode(length=100))
+    _password = db.Column('password', db.Unicode(length=100))
+    email = db.Column(db.Unicode(length=250))
+    token = db.Column(db.Unicode(length=100))
     applications = db.relationship('AppUser', lazy='joined')
 
     @property
@@ -57,7 +57,7 @@ class Application(db.Model):
     '''
     __tablename__ = 'application'
     id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.Unicode)
+    nom = db.Column(db.Unicode(length=100))
 
 
 

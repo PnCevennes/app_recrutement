@@ -8,6 +8,7 @@ from functools import wraps
 from flask import Response
 from flask.ext.mail import Message
 import json
+import threading
 
 
 registered_modules = {}
@@ -69,6 +70,9 @@ def json_resp(fn):
     return _json_resp
 
 
+def _send_async(app, msg):
+    with app.app_context():
+        mail.send(msg)
 
 def send_mail(id_app, niveau, subject, msg_body):
     '''
@@ -94,5 +98,5 @@ def send_mail(id_app, niveau, subject, msg_body):
             )
     msg.body = msg_body
 
-    with app.app_context():
-        mail.send(msg)
+    thr = threading.Thread(target=_send_async, args=[app, msg])
+    thr.start()
