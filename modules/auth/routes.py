@@ -238,6 +238,8 @@ def delete_user(id_user):
     user = models.User.query.get(id_user)
     if not user:
         return [], 404
+    for rel in user.relations:
+        db.session.delete(rel)
     db.session.delete(user)
     db.session.commit()
     return []
