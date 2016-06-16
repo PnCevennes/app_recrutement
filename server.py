@@ -19,7 +19,6 @@ def get_app():
     if app_globals.get('app', False):
         return app_globals['app']
     app = flask.Flask(__name__)
-    #app.config.from_pyfile('/home/fred/devel/python/recrutement/app_recrutement/config.py')
     app.config.from_pyfile('./config.py')
     db.init_app(app)
     mail.init_app(app)

@@ -180,9 +180,22 @@ def get_user(id_user):
 def create_user():
     try:
         user_data = request.json
+        print(user_data)
+        apps = user_data.pop('applications', [])
+        is_admin = user_data.pop('admin', False)
         user = models.User(**user_data)
         db.session.add(user)
+        rels = []
+        for app in apps:
+            rels.append(models.AppUser(
+                    application_id=app['id'],
+                    user=user,
+                    niveau=app['niveau']))
+        db.session.add_all(rels)
         db.session.commit()
+
+
+
         return normalize(user)
     except:
         return [], 400
@@ -193,19 +206,38 @@ def create_user():
 def update_user(id_user):
     try:
         user_data = request.json
+        apps = user_data.pop('applications', [])
+        id_admin = user_data.pop('admin', False)
         user = models.User.query.get(user_data['id'])
         if not user:
             return [], 404
         for key, value in user_data.items():
             setattr(user, key, value)
+        rels = []
+        for app in apps:
+            rel = list(filter(lambda x: x.application_id==app['id'], user.relations))
+            if not len(rel):
+                apprel = models.AppUser(
+                        application_id=app['id'],
+                        user=user,
+                        niveau=app['niveau'])
+                db.session.add(apprel)
+            else:
+                rel[0].niveau = app['niveau']
+
         db.session.commit()
         return normalize(user)
-    except:
+    except Exception as e:
+        print(e)
         return [], 400
 
 
 @routes.route('/user/<id_user>', methods=['DELETE'])
 @json_resp
-def delete_user():
-    #TODO
+def delete_user(id_user):
+    user = models.User.query.get(id_user)
+    if not user:
+        return [], 404
+    db.session.delete(user)
+    db.session.commit()
     return []
