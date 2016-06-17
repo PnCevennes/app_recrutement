@@ -52,7 +52,7 @@ db.session.add_all(logements)
 
 #Création types de contrat
 contrats = [
-    Thesaurus(id_ref=t4.id, label='CDI'),
+    Thesaurus(id_ref=t4.id, label='Permanent'),
     Thesaurus(id_ref=t4.id, label='CDD'),
     Thesaurus(id_ref=t4.id, label='Saisonnier'),
     Thesaurus(id_ref=t4.id, label='Stage')
@@ -62,7 +62,7 @@ db.session.add_all(contrats)
 
 materiel = [
     Thesaurus(id_ref=0, label='Matériel'),
-    Thesaurus(id_ref=26, label='Véhicule'),
+    Thesaurus(id_ref=26, label='Véhicule de service'),
     Thesaurus(id_ref=26, label='Ordinateur fixe'),
     Thesaurus(id_ref=26, label='Ordinateur portable'),
     Thesaurus(id_ref=26, label='Téléphone fixe'),
@@ -70,6 +70,26 @@ materiel = [
     ]
 
 db.session.add_all(materiel)
+
+temps_travail = [
+    Thesaurus(id_ref=0, label='Temps de travail'),
+    Thesaurus(id_ref=32, label='100%'),
+    Thesaurus(id_ref=32, label='90%'),
+    Thesaurus(id_ref=32, label='80%'),
+    Thesaurus(id_ref=32, label='50%'),
+    Thesaurus(id_ref=32, label='Autre')
+    ]
+
+db.session.add_all(temps_travail)
+
+categories = [
+    Thesaurus(id_ref=0, label='Catégorie'),
+    Thesaurus(id_ref=38, label='A'),
+    Thesaurus(id_ref=38, label='B'),
+    Thesaurus(id_ref=38, label='C'),
+    ]
+
+db.session.add_all(categories)
 
 
 db.session.commit()

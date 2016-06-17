@@ -25,7 +25,12 @@ class AgentDetail(Agent):
     type_contrat = db.Column(db.Integer) #TH ref 14
     lieu = db.Column(db.Integer) #TH ref 1
     logement = db.Column(db.Integer) #TH ref 10
+    categorie = db.Column(db.Integer) #TH ref 38
     referent = db.Column(db.UnicodeText)
+    gratification = db.Column(db.Integer)
+    temps_travail = db.Column(db.Integer) #TH ref 33
+    temps_travail_autre = db.Column(db.Unicode(length=100))
+    residence_administrative = db.Column(db.Unicode(length=100))
     materiel = db.relationship(
             'Thesaurus',
             secondary='rel_agent_thesaurus_materiel',
