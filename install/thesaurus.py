@@ -59,5 +59,18 @@ contrats = [
     ]
 
 db.session.add_all(contrats)
+
+materiel = [
+    Thesaurus(id_ref=0, label='Matériel'),
+    Thesaurus(id_ref=26, label='Véhicule'),
+    Thesaurus(id_ref=26, label='Ordinateur fixe'),
+    Thesaurus(id_ref=26, label='Ordinateur portable'),
+    Thesaurus(id_ref=26, label='Téléphone fixe'),
+    Thesaurus(id_ref=26, label='Téléphone portable'),
+    ]
+
+db.session.add_all(materiel)
+
+
 db.session.commit()
 
