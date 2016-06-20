@@ -20,7 +20,6 @@ check_auth = registered_funcs['check_auth']
 
 @routes.route('/')
 @json_resp
-@check_auth(1, 2)
 def get_agents():
     '''
     retourne la liste des agents en cours de recrutement
@@ -57,7 +56,6 @@ def get_agent(id_agent):
 
 @routes.route('/', methods=['POST', 'PUT'])
 @json_resp
-@check_auth(1, 2)
 def create_agent():
     '''
     crée un nouvel agent
@@ -104,7 +102,6 @@ def create_agent():
 
 @routes.route('/<id_agent>', methods=['POST', 'PUT'])
 @json_resp
-@check_auth(1, 2)
 def update_agent(id_agent):
     '''
     met à jour un agent
@@ -152,7 +149,6 @@ def update_agent(id_agent):
 
 @routes.route('/<id_agent>', methods=['DELETE'])
 @json_resp
-@check_auth(1, 2)
 def delete_agent(id_agent):
     '''
     annule un recrutement en cours
