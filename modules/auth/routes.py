@@ -9,6 +9,7 @@ import uuid
 import datetime
 from functools import wraps
 from flask import Blueprint, request, g, Response
+from sqlalchemy.orm.exc import NoResultFound
 from itsdangerous import (
         TimedJSONWebSignatureSerializer as Serializer,
         SignatureExpired,
@@ -74,7 +75,7 @@ def login():
         user_data = request.json
         user = models.User.query.filter(models.User.login==user_data['login']).one()
         if not user.check_password(user_data['password']):
-            raise
+            raise InvalidAuth
         serializer = Serializer(get_app().config['SECRET_KEY'])
         cookie_data = serializer.dumps(user.to_json())
         cookie_exp = datetime.datetime.now() + datetime.timedelta(days=1)
@@ -85,9 +86,21 @@ def login():
                 )
         resp.set_cookie('token', cookie_data, expires=cookie_exp)
         return resp
+    except NoResultFound as e:
+        return Response(
+                json.dumps(
+                    {'login': False, 'msg': 'Utilisateur inconnu'}),
+                    status=403)
+    except InvalidAuth as e:
+        return Response(
+                json.dumps(
+                    {'login': False, 'msg': 'Utilisateur inconnu'}),
+                    status=403)
     except Exception as e:
-        resp = Response(json.dumps({'login': False}), status=403)
-        return resp
+        return Response(
+                json.dumps(
+                    {'login': False, 'msg': 'Données corrompues'}),
+                    status=400)
 
 
 
