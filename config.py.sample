@@ -4,6 +4,9 @@ Fichier de configuration générale de l'application
 
 SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
 
+#clé de chiffrage et de signature des cookies
+SECRET_KEY = 'cleSecreteAChanger'
+
 SEND_MAIL = False
 
 MAIL_SERVER = 'localhost'

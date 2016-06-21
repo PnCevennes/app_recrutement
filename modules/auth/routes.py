@@ -9,10 +9,17 @@ import uuid
 import datetime
 from functools import wraps
 from flask import Blueprint, request, g, Response
-from server import db
+from itsdangerous import (
+        TimedJSONWebSignatureSerializer as Serializer,
+        SignatureExpired,
+        BadSignature)
+from server import db, get_app
 from . import models
 from ..utils import normalize, json_resp, register_module, registered_funcs
 
+
+class InvalidAuth(Exception):
+    pass
 
 routes = Blueprint('auth', __name__)
 
@@ -25,46 +32,40 @@ def check_auth(app_id, level, final=True):
         def __check_auth(*args, **kwargs):
             g.user_is_authorized = True
             try:
-                user = models.User.query\
-                        .filter(models.User.token==request.cookies['token'])\
-                        .one()
+                serializer = Serializer(get_app().config['SECRET_KEY'])
+                user = serializer.loads(request.cookies['token'])
                 app = list(filter(lambda x: x.application_id == app_id,
                         user.applications))
                 if app[0].niveau<level:
                     if final:
-                        raise
+                        raise InvalidAuth
                     else:
                         g.user_is_authorized = False
                 g.authenticated_user = user
                 return fn(*args, **kwargs)
-            except Exception as e:
+            except SignatureExpired as e:
+                return [], 403
+            except BadSignature as e:
+                return [], 403
+            except InvalidAuth as e:
                 return [], 403
         return __check_auth
     return _check_auth
 registered_funcs['check_auth'] = check_auth
 
 
-
 @routes.route('/reconnect', methods=['GET'])
+@json_resp
 def reconnect():
     try:
-        user = models.User.query\
-                .filter(models.User.token==request.cookies['token'])\
-                .one()
-        token = uuid.uuid4().hex
-        user.token = token
-        db.session.commit()
-        cookie_exp = datetime.datetime.now() + datetime.timedelta(days=1)
+        serializer = Serializer(get_app().config['SECRET_KEY'])
+        user = serializer.loads(request.cookies['token'])
+        return {'user': user}
+    except SignatureExpired as e:
+        return [], 403
+    except BadSignature as e:
+        return [], 403
 
-        resp = Response(
-                json.dumps({'login':True, 'user': normalize(user)}),
-                mimetype='application/json'
-                )
-        resp.set_cookie('token', token, expires=cookie_exp)
-        return resp
-    except Exception as e:
-        resp = Response(json.dumps({'login': False}), status=403)
-        return resp
 
 
 @routes.route('/login', methods=['POST'])
@@ -74,16 +75,15 @@ def login():
         user = models.User.query.filter(models.User.login==user_data['login']).one()
         if not user.check_password(user_data['password']):
             raise
-        token = uuid.uuid4().hex
-        user.token = token
-        db.session.commit()
+        serializer = Serializer(get_app().config['SECRET_KEY'])
+        cookie_data = serializer.dumps(user.to_json())
         cookie_exp = datetime.datetime.now() + datetime.timedelta(days=1)
 
         resp = Response(
                 json.dumps({'login':True, 'user': normalize(user)}),
                 mimetype='application/json'
                 )
-        resp.set_cookie('token', token, expires=cookie_exp)
+        resp.set_cookie('token', cookie_data, expires=cookie_exp)
         return resp
     except Exception as e:
         resp = Response(json.dumps({'login': False}), status=403)
