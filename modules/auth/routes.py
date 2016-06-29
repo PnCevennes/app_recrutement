@@ -34,7 +34,7 @@ def check_auth(app_id, level, final=True):
             g.user_is_authorized = True
             try:
                 serializer = Serializer(get_app().config['SECRET_KEY'])
-                user = serializer.loads(request.cookies['token'])
+                user = serializer.loads(request.cookies.get('token', {}))
                 app = list(filter(lambda x: x.application_id == app_id,
                         user.applications))
                 if app[0].niveau<level:
@@ -60,7 +60,7 @@ registered_funcs['check_auth'] = check_auth
 def reconnect():
     try:
         serializer = Serializer(get_app().config['SECRET_KEY'])
-        user = serializer.loads(request.cookies['token'])
+        user = serializer.loads(request.cookies.get('token', {}))
         return {'user': user}
     except SignatureExpired as e:
         return [], 403
