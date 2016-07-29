@@ -8,7 +8,7 @@ from server import db
 
 
 class Agent(db.Model):
-    __tablename__ = 'agent'
+    __tablename__ = 'recr_agent'
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.Unicode(length=100))
     prenom = db.Column(db.Unicode(length=100))
@@ -19,8 +19,8 @@ class Agent(db.Model):
 
 
 class AgentDetail(Agent):
-    __tablename__ = 'agent_detail'
-    id_agent = db.Column(db.Integer, db.ForeignKey('agent.id'), primary_key=True)
+    __tablename__ = 'recr_agent_detail'
+    id_agent = db.Column(db.Integer, db.ForeignKey('recr_agent.id'), primary_key=True)
     desc_mission = db.Column(db.UnicodeText)
     type_contrat = db.Column(db.Integer) #TH ref 14
     lieu = db.Column(db.Integer) #TH ref 1
@@ -35,7 +35,7 @@ class AgentDetail(Agent):
     meta_update = db.Column(db.Date)
     materiel = db.relationship(
             'Thesaurus',
-            secondary='rel_agent_thesaurus_materiel',
+            secondary='recr_rel_agent_thesaurus_materiel',
             lazy='joined')
 
     def to_json(self):
@@ -59,13 +59,13 @@ class AgentDetail(Agent):
 
 
 class RelAgentMateriel(db.Model):
-    __tablename__ = 'rel_agent_thesaurus_materiel'
+    __tablename__ = 'recr_rel_agent_thesaurus_materiel'
     id_agent = db.Column(
             db.Integer,
-            db.ForeignKey('agent.id'),
+            db.ForeignKey('recr_agent.id'),
             primary_key=True)
     id_thesaurus = db.Column(
             db.Integer,
-            db.ForeignKey('thesaurus.id'),
+            db.ForeignKey('th_thesaurus.id'),
             primary_key=True)
 

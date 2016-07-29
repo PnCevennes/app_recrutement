@@ -26,6 +26,8 @@ def _normalize(obj, columns):
     Retourne un dictionnaire dont les clés sont le tableau de colonnes
     fourni (`columns`) et les valeurs sont issues de l'objet `obj` fourni.
     '''
+    if hasattr(obj, 'to_json'):
+        return obj.to_json()
     out = {}
     for col in columns:
         if isinstance(col.type, db.Date):

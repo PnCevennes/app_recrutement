@@ -24,7 +24,8 @@ ag = AgentDetail(
     type_contrat=cont.id,
     logement=loge.id,
     arrivee=datetime.date(2016, 7, 1),
-    depart=datetime.date(2016, 8, 31)
+    depart=datetime.date(2016, 8, 31),
+    meta_create=datetime.datetime.today()
     )
 
 db.session.add(ag)

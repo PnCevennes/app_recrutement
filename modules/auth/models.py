@@ -12,7 +12,7 @@ class User(db.Model):
     '''
     Représente un utilisateur
     '''
-    __tablename__ = 'utilisateur'
+    __tablename__ = 'auth_utilisateur'
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.Unicode(length=100))
     _password = db.Column('password', db.Unicode(length=100))
@@ -55,7 +55,7 @@ class Application(db.Model):
     '''
     Représente une application ou un module
     '''
-    __tablename__ = 'application'
+    __tablename__ = 'auth_application'
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.Unicode(length=100))
 
@@ -66,11 +66,11 @@ class AppUser(db.Model):
     '''
     Relations entre applications et utilisateurs
     '''
-    __tablename__ = 'rel_app_user'
+    __tablename__ = 'auth_rel_app_user'
     user_id = db.Column(db.Integer, 
-            db.ForeignKey('utilisateur.id'), primary_key=True)
+            db.ForeignKey('auth_utilisateur.id'), primary_key=True)
     application_id = db.Column(db.Integer,
-            db.ForeignKey('application.id'), primary_key=True)
+            db.ForeignKey('auth_application.id'), primary_key=True)
     niveau = db.Column(db.Integer)
     user = db.relationship('User', 
             backref='relations', lazy='joined')
