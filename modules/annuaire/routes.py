@@ -31,7 +31,7 @@ def get_entites():
         entites = Entite.query.all()
     else:
         entites = get_entites_by_parent(entite_ids)
-    return [normalize(e) for e in entites if isinstance(e, (Commune, Correspondant))]
+    return [normalize(e) for e in entites]# if isinstance(e, (Commune, Correspondant))]
 
 
 def get_entites_by_parent(entite_ids):
