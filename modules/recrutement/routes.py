@@ -25,11 +25,17 @@ def get_agents():
     retourne la liste des agents en cours de recrutement
     '''
     today = datetime.date.today()
-    get_old = request.args.get('old', False)
-    if(get_old and get_old=='true'):
-        qr = Agent.query.filter(Agent.arrivee>datetime.datetime(today.year, 1, 1))
-    else:
-        qr = Agent.query.filter(Agent.arrivee>today)
+    try:
+        annee = request.args.get('annee', False)
+        if not annee:
+            annee = today.year
+        else:
+            annee = int(annee)
+    except ValueError:
+        return [], 400
+    annee_deb = datetime.date(annee, 1, 1)
+    annee_fin = datetime.date(annee, 12, 31)
+    qr = Agent.query.filter(Agent.arrivee.between(annee_deb, annee_fin))
 
     ag_list = qr.order_by(db.asc(Agent.arrivee)).all()
     out = []
