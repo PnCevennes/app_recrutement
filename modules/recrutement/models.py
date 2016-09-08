@@ -31,8 +31,10 @@ class AgentDetail(Agent):
     temps_travail = db.Column(db.Integer) #TH ref 33
     temps_travail_autre = db.Column(db.Unicode(length=100))
     residence_administrative = db.Column(db.Unicode(length=100))
+    observations = db.Column(db.UnicodeText)
     meta_create = db.Column(db.Date)
     meta_update = db.Column(db.Date)
+    meta_createur_fiche = db.Column(db.Unicode(length=100))
     materiel = db.relationship(
             'Thesaurus',
             secondary='recr_rel_agent_thesaurus_materiel',
