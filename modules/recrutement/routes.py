@@ -87,7 +87,7 @@ def create_agent():
 
         out = normalize(agent)
         send_mail(
-            1,
+            3,
             6,
             'Nouvelle fiche de recrutement',
             '''
@@ -138,7 +138,7 @@ def update_agent(id_agent):
 
         out = normalize(agent)
         send_mail(
-            1,
+            3,
             6,
             "Modification d'une fiche de recrutement",
              '''
@@ -170,7 +170,7 @@ def delete_agent(id_agent):
     db.session.delete(agent)
     db.session.commit()
     send_mail(
-        1,
+        3,
         6,
         "Suppression d'une fiche de recrutement",
         '''
