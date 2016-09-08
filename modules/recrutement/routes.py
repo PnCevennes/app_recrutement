@@ -92,11 +92,12 @@ def create_agent():
             'Nouvelle fiche de recrutement',
             '''
             La fiche de recrutement de %s %s a été créée le %s.
-            Vous pouvez vous connecter http://192.168.10.10/recrutement/app.htm#/agent/%s pour voir les détails de cette fiche.
+            Vous pouvez vous connecter sur http://192.168.10.10/recrutement/app.htm#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
             ''' % (
                 agent.prenom,
                 agent.nom,
                 datetime.datetime.today().strftime('%d/%m/%Y'),
+                agent.arrivee.year,
                 agent.id
                 )
             )
@@ -143,11 +144,12 @@ def update_agent(id_agent):
             "Modification d'une fiche de recrutement",
              '''
             La fiche de recrutement de %s %s a été modifiée le %s.
-            Vous pouvez vous connecter à http://192.168.10.10/recrutement/app.htm#/agent/%s pour voir les détails de cette fiche.
+            Vous pouvez vous connecter à http://192.168.10.10/recrutement/app.htm#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
             ''' % (
                 agent.prenom,
                 agent.nom,
                 datetime.datetime.today().strftime('%d/%m/%Y'),
+                agent.arrivee.year,
                 agent.id
                 )
             )
@@ -175,7 +177,7 @@ def delete_agent(id_agent):
         "Suppression d'une fiche de recrutement",
         '''
         La fiche de recrutement de %s %s a été supprimée le %s.
-        Vous pouvez vous connecter à http://192.168.10.10/recrutement/app.htm pour voir la liste des recrutements en cours.
+        Vous pouvez vous connecter à http://192.168.10.10/recrutement/app.htm#/recrutement pour voir la liste des recrutements en cours.
         ''' % (
             agent.prenom,
             agent.nom,
