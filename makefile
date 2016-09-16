@@ -5,7 +5,7 @@ WORKERS=4
 
 
 develop:
-	@/bin/bash -c "source ../$(VENV)/bin/activate&&python alt_serv.py runserver -d -r -h $(HOST) -p $(PORT)"
+	@/bin/bash -c "source ../$(VENV)/bin/activate&&python server.py runserver -d -r -h $(HOST) -p $(PORT)"
 
 
 prod:
@@ -17,4 +17,4 @@ prod-stop:
 
 
 shell:
-	@/bin/bash -c "source ../$(VENV)/bin/activate&&python alt_serv.py shell"
+	@/bin/bash -c "source ../$(VENV)/bin/activate&&python server.py shell"
