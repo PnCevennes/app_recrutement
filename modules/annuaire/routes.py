@@ -109,7 +109,7 @@ def get_vcard(id_entite):
         entite.prenom,
         entite.label,
         format_phone(entite.telephone),
-        'TEL;CELL;VOICE:%s' % format_phone(entite.mobile) if entite.mobile else '',
+        "\nTEL;CELL;VOICE:%s" % format_phone(entite.mobile) if entite.mobile else '',
         entite.email,
         dtime.strftime('%Y%m%dT%H%m%SZ')
         )
