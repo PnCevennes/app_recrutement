@@ -37,8 +37,7 @@ vcard_tpl = '''BEGIN:VCARD
 VERSION:2.1
 N:%s;%s
 FN:%s
-TEL;WORK;VOICE:%s
-%s
+TEL;WORK;VOICE:%s%s
 EMAIL;PREF;INTERNET:%s
 REV:%s
 END:VCARD'''
@@ -104,7 +103,7 @@ def get_vcard(id_entite):
     dtime = datetime.datetime.now()
     headers = Headers()
     headers.add('Content-Type', 'text/plain')
-    headers.add('Content-Disposition', 'attachment', filename=entite.label+'.vcf')
+    headers.add('Content-Disposition', 'attachment', filename=entite.label.encode('ascii', 'ignore')+b'.vcf')
     vcard = vcard_tpl % (
         entite.nom,
         entite.prenom,

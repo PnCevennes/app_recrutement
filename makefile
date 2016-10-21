@@ -9,7 +9,7 @@ develop:
 
 
 prod:
-	@/bin/bash -c "source ../$(VENV)/bin/activate&&gunicorn --daemon -w $(WORKERS) -b '$(HOST):$(PORT)' -n 'tizoutis' server:app"&&echo "Serveur activé sur '$(HOST):$(PORT)'"
+	@/bin/bash -c "source ../$(VENV)/bin/activate&&gunicorn --daemon --error-log ../errors.log -w $(WORKERS) -b '$(HOST):$(PORT)' -n 'tizoutis' server:app"&&echo "Serveur activé sur '$(HOST):$(PORT)'"
 
 
 prod-stop:
