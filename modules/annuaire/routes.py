@@ -3,7 +3,8 @@
 '''
 routes relatives à l'annuaire
 '''
-from flask import Blueprint, request
+from flask import Blueprint, request, Response
+from werkzeug.datastructures import Headers
 from sqlalchemy.orm.exc import NoResultFound
 from .models import (
         Entite, EntiteValidateur, 
@@ -12,6 +13,7 @@ from .models import (
         RelationEntite)
 from ..utils import normalize, json_resp, register_module
 from server import db
+import datetime
 
 routes = Blueprint('annuaire', __name__)
 
@@ -31,7 +33,15 @@ VALIDATEURS_E = {
         'correspondant': CorrespondantValidateur,
         }
 
-
+vcard_tpl = '''BEGIN:VCARD
+VERSION:2.1
+N:%s;%s
+FN:%s
+TEL;WORK;VOICE:%s
+TEL;CELL;VOICE:%s
+EMAIL;PREF;INTERNET:%s
+REV:%s
+END:VCARD'''
 
 @routes.route('/entites')
 @json_resp
@@ -70,6 +80,43 @@ def get_entite(id_entite):
     if not entite:
         return {'errmsg': 'Donnée inexistante'}, 404
     return normalize(entite)
+
+
+def format_phone(tel):
+    '''
+    formate un noméro de téléphone
+    '''
+    try:
+        return ' '.join(a+b for a,b in zip([x for x in tel[::2]], [y for y in tel[1::2]]))
+    except:
+        return tel
+
+
+@routes.route('/vcard/<id_entite>')
+def get_vcard(id_entite):
+    '''
+    retourne la vcard de l'entité
+    '''
+    entite_type = request.args.get('type', 'entite')
+    entite = TYPES_E[entite_type].query.get(id_entite)
+    if not entite:
+        return Response('', status=404)
+    dtime = datetime.datetime.now()
+    headers = Headers()
+    headers.add('Content-Type', 'text/plain')
+    headers.add('Content-Disposition', 'attachment', filename=entite.label+'.vcf')
+    vcard = vcard_tpl % (
+        entite.nom,
+        entite.prenom,
+        entite.label,
+        format_phone(entite.telephone),
+        format_phone(entite.mobile),
+        entite.email,
+        dtime.strftime('%Y%m%dT%H%m%SZ')
+        )
+    return Response(vcard, headers=headers)
+
+
 
 @routes.route('/entites/<nom>')
 @json_resp
