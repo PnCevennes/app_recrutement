@@ -41,7 +41,7 @@ class EntiteValidateur(Validateur):
                 'type_entite': lambda x: True,
                 'observations': lambda x: True
                 }
-    
+
 
 
 class Entite(db.Model):
@@ -110,11 +110,11 @@ class Entite(db.Model):
             db.session.delete(r)
         for p in parents:
             db.session.delete(p)
-        
+
 
 
     def to_json(self):
-        fields = ['id', 'nom', 'observations', 'type_entite', 
+        fields = ['id', 'nom', 'observations', 'type_entite',
                 'relations', 'label', 'parents']
         out = {field: getattr(self, field) for field in fields}
         return out
@@ -133,7 +133,7 @@ class CommuneValidateur(Validateur):
                 'email': lambda x: True,
                 'site_internet': lambda x: True,
                 }
-    
+
 
 
 class Commune(Entite):
@@ -173,6 +173,7 @@ class CorrespondantValidateur(Validateur):
 class Correspondant(Entite):
     __tablename__ = 'ann_correspondant'
     id_entite = db.Column(db.Integer, db.ForeignKey('ann_entite.id'), primary_key=True)
+    civilite = db.Column(db.Unicode(length=50))
     _prenom = db.Column('prenom', db.Unicode(length=100))
     adresse = db.Column(db.Unicode(length=255))
     telephone = db.Column(db.Unicode(length=20))
@@ -206,9 +207,9 @@ class Correspondant(Entite):
         self._label = '%s %s' % (self.nom, val)
 
     def to_json(self):
-        fields = ['id', 'nom', 'observations', 'prenom', 'fonction', 
-                'adresse', 'telephone', 'mobile', 'email', 'type_entite', 
-                'relations', 'parents', 'label']
+        fields = ['id', 'nom', 'observations', 'prenom', 'fonction',
+                'adresse', 'telephone', 'mobile', 'email', 'type_entite',
+                'relations', 'parents', 'label', 'civilite']
         return {field: getattr(self, field) for field in fields}
 
 
@@ -216,10 +217,10 @@ class Correspondant(Entite):
 class RelationEntite(db.Model):
     __tablename__ = 'ann_relations'
     id_parent = db.Column(
-            db.Integer, 
-            db.ForeignKey('ann_entite.id'), 
+            db.Integer,
+            db.ForeignKey('ann_entite.id'),
             primary_key=True)
     id_enfant = db.Column(
-            db.Integer, 
-            db.ForeignKey('ann_entite.id'), 
+            db.Integer,
+            db.ForeignKey('ann_entite.id'),
             primary_key=True)

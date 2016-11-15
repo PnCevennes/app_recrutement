@@ -42,6 +42,62 @@ EMAIL;PREF;INTERNET:%s
 REV:%s
 END:VCARD'''
 
+
+def format_vcard(entite):
+    '''
+    retourne une vcard formatee selon les donnees de l'entite fournie
+    '''
+    dtime = datetime.datetime.now()
+    return vcard_tpl % (
+        entite.nom,
+        entite.prenom,
+        entite.label,
+        format_phone(entite.telephone),
+        "\nTEL;CELL;VOICE:%s" % format_phone(entite.mobile) if entite.mobile else '',
+        entite.email,
+        dtime.strftime('%Y%m%dT%H%m%SZ')
+        )
+
+
+def format_csv(corresps):
+    '''
+    retourne une liste de correspondants sous format tabulaire CSV
+    '''
+    print(corresps)
+    return 'civilite,nom,prenom,adresse,fonction\r\n' + '\r\n'.join([','.join((
+            corresp.civilite or '',
+            corresp.nom or '',
+            corresp.prenom or '',
+            corresp.adresse or '',
+            corresp.fonction or '')) for corresp in corresps])
+
+
+
+
+
+def get_entites_by_parent(entite_ids):
+    '''
+    retourne une liste d'entites "enfants" de la liste d'ID fournie
+    '''
+    rels = RelationEntite.query.filter(RelationEntite.id_parent.in_(entite_ids)).all()
+    all_ids = [item.id_enfant for item in rels]
+    ids = set(filter(lambda x: all_ids.count(x)==len(entite_ids), all_ids))
+    ids = ids | set(entite_ids)
+    return Entite.query.filter(Entite.id.in_(ids)).order_by(Entite.type_entite).order_by(Entite.label).all()
+
+
+def format_phone(tel):
+    '''
+    formate un noméro de téléphone
+    '''
+    try:
+        return ' '.join(a+b for a,b in zip([x for x in tel[::2]], [y for y in tel[1::2]]))
+    except:
+        return tel
+
+
+
+
 @routes.route('/entites')
 @json_resp
 def get_entites():
@@ -54,17 +110,6 @@ def get_entites():
     else:
         entites = get_entites_by_parent(entite_ids)
     return [normalize(e) for e in entites]# if isinstance(e, (Commune, Correspondant))]
-
-
-def get_entites_by_parent(entite_ids):
-    '''
-    retourne une liste d'entites "enfants" de la liste d'ID fournie
-    '''
-    rels = RelationEntite.query.filter(RelationEntite.id_parent.in_(entite_ids)).all()
-    all_ids = [item.id_enfant for item in rels]
-    ids = set(filter(lambda x: all_ids.count(x)==len(entite_ids), all_ids))
-    ids = ids | set(entite_ids)
-    return Entite.query.filter(Entite.id.in_(ids)).order_by(Entite.type_entite).order_by(Entite.label).all()
 
 
 
@@ -81,14 +126,22 @@ def get_entite(id_entite):
     return normalize(entite)
 
 
-def format_phone(tel):
+@routes.route('/vcards')
+def get_vcards():
     '''
-    formate un noméro de téléphone
+    retourne la liste des correspondants au format VCARD
     '''
-    try:
-        return ' '.join(a+b for a,b in zip([x for x in tel[::2]], [y for y in tel[1::2]]))
-    except:
-        return tel
+    entite_ids = request.args.getlist('params')
+    if not entite_ids:
+        entites = Entite.query.all()
+    else:
+        entites = get_entites_by_parent(entite_ids)
+    headers = Headers()
+    headers.add('Content-Type', 'text/plain')
+    headers.add('Content-Disposition', 'attachment', filename='export.vcf')
+    vcards = '\r\n'.join([format_vcard(e) for e in entites
+        if isinstance(e, Correspondant)])
+    return Response(vcards, headers=headers)
 
 
 @routes.route('/vcard/<id_entite>')
@@ -100,21 +153,28 @@ def get_vcard(id_entite):
     entite = TYPES_E[entite_type].query.get(id_entite)
     if not entite:
         return Response('', status=404)
-    dtime = datetime.datetime.now()
     headers = Headers()
     headers.add('Content-Type', 'text/plain')
     headers.add('Content-Disposition', 'attachment', filename=entite.label.encode('ascii', 'ignore')+b'.vcf')
-    vcard = vcard_tpl % (
-        entite.nom,
-        entite.prenom,
-        entite.label,
-        format_phone(entite.telephone),
-        "\nTEL;CELL;VOICE:%s" % format_phone(entite.mobile) if entite.mobile else '',
-        entite.email,
-        dtime.strftime('%Y%m%dT%H%m%SZ')
-        )
+    vcard = format_vcard(entite)
     return Response(vcard, headers=headers)
 
+
+@routes.route('/csv')
+def get_csv():
+    '''
+    retourne la liste des correspondants au format VCARD
+    '''
+    entite_ids = request.args.getlist('params')
+    if not entite_ids:
+        entites = Entite.query.all()
+    else:
+        entites = get_entites_by_parent(entite_ids)
+    headers = Headers()
+    headers.add('Content-Type', 'text/plain')
+    headers.add('Content-Disposition', 'attachment', filename='export.csv')
+    csv = format_csv([e for e in entites if isinstance(e, Correspondant)])
+    return Response(csv, headers=headers)
 
 
 @routes.route('/entites/<nom>')
