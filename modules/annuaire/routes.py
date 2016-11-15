@@ -63,7 +63,6 @@ def format_csv(corresps):
     '''
     retourne une liste de correspondants sous format tabulaire CSV
     '''
-    print(corresps)
     return 'civilite,nom,prenom,adresse,fonction\r\n' + '\r\n'.join([','.join((
             corresp.civilite or '',
             corresp.nom or '',

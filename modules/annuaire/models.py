@@ -168,6 +168,7 @@ class CorrespondantValidateur(Validateur):
                 'mobile': lambda x: True,
                 'email': lambda x: True,
                 'fonction': lambda x: True,
+                'civilite': lambda x: True
                 }
 
 class Correspondant(Entite):
