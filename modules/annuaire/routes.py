@@ -49,12 +49,12 @@ def format_vcard(entite):
     '''
     dtime = datetime.datetime.now()
     return vcard_tpl % (
-        entite.nom,
-        entite.prenom,
-        entite.label,
+        entite.nom or '',
+        entite.prenom or '',
+        entite.label or '',
         format_phone(entite.telephone),
         "\nTEL;CELL;VOICE:%s" % format_phone(entite.mobile) if entite.mobile else '',
-        entite.email,
+        entite.email or '',
         dtime.strftime('%Y%m%dT%H%m%SZ')
         )
 
