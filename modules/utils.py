@@ -67,6 +67,8 @@ def json_resp(fn):
             res, status = res
         else:
             status = 200
+        if isinstance(res, Response):
+            return res
         return Response(json.dumps(res),
                 status=status, mimetype='application/json')
     return _json_resp

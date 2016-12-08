@@ -59,16 +59,30 @@ def format_vcard(entite):
         )
 
 
-def format_csv(corresps):
+def format_csv(corresps, sep=','):
     '''
     retourne une liste de correspondants sous format tabulaire CSV
     '''
-    return 'civilite,nom,prenom,adresse,fonction\r\n' + '\r\n'.join([','.join((
+    if not len(corresps):
+        return ''
+
+    correspondants = [normalize(corresp) for corresp in corresps]
+    for corr in correspondants:
+        del corr['parents']
+        del corr['relations']
+    fields = correspondants[0].keys()
+    outdata = [sep.join(fields)]
+    for item in correspondants:
+        outdata.append(sep.join([str((e or '')) for e in item.values()]))
+    return '\r\n'.join(outdata)
+    '''
+    return \r\n' + '\r\n'.join([','.join((
             corresp.civilite or '',
             corresp.nom or '',
             corresp.prenom or '',
             corresp.adresse or '',
             corresp.fonction or '')) for corresp in corresps])
+    '''
 
 
 
@@ -104,10 +118,28 @@ def get_entites():
     retourne la liste des groupes
     '''
     entite_ids = request.args.getlist('params')
+    _format = request.args.get('format', None)
     if not entite_ids:
         entites = Entite.query.all()
     else:
         entites = get_entites_by_parent(entite_ids)
+    if _format in ('csv', 'tsv'):
+        headers = Headers()
+        headers.add('Content-Type', 'text/plain')
+        headers.add('Content-Disposition', 'attachment', filename='export.csv')
+        if _format == 'csv':
+            csv = format_csv([e for e in entites if isinstance(e, Correspondant)], ',')
+        else:
+            csv = format_csv([e for e in entites if isinstance(e, Correspondant)], '\t')
+        return Response(csv, headers=headers)
+    if _format == 'vcard':
+        headers = Headers()
+        headers.add('Content-Type', 'text/plain')
+        headers.add('Content-Disposition', 'attachment', filename='export.vcf')
+        vcards = '\r\n'.join([format_vcard(e) for e in entites
+            if isinstance(e, Correspondant)])
+        return Response(vcards, headers=headers)
+
     return [normalize(e) for e in entites]# if isinstance(e, (Commune, Correspondant))]
 
 
@@ -119,61 +151,18 @@ def get_entite(id_entite):
     retourne une entite
     '''
     entite_type = request.args.get('type', 'entite')
+    _format = request.args.get('format', None)
     entite = TYPES_E[entite_type].query.get(id_entite)
     if not entite:
         return {'errmsg': 'Donnée inexistante'}, 404
+    if _format == 'vcard':
+        headers = Headers()
+        headers.add('Content-Type', 'text/plain')
+        headers.add('Content-Disposition', 'attachment', filename=entite.label.encode('ascii', 'ignore')+b'.vcf')
+        vcard = format_vcard(entite)
+        return Response(vcard, headers=headers)
     return normalize(entite)
 
-
-@routes.route('/vcards')
-def get_vcards():
-    '''
-    retourne la liste des correspondants au format VCARD
-    '''
-    entite_ids = request.args.getlist('params')
-    if not entite_ids:
-        entites = Entite.query.all()
-    else:
-        entites = get_entites_by_parent(entite_ids)
-    headers = Headers()
-    headers.add('Content-Type', 'text/plain')
-    headers.add('Content-Disposition', 'attachment', filename='export.vcf')
-    vcards = '\r\n'.join([format_vcard(e) for e in entites
-        if isinstance(e, Correspondant)])
-    return Response(vcards, headers=headers)
-
-
-@routes.route('/vcard/<id_entite>')
-def get_vcard(id_entite):
-    '''
-    retourne la vcard de l'entité
-    '''
-    entite_type = request.args.get('type', 'entite')
-    entite = TYPES_E[entite_type].query.get(id_entite)
-    if not entite:
-        return Response('', status=404)
-    headers = Headers()
-    headers.add('Content-Type', 'text/plain')
-    headers.add('Content-Disposition', 'attachment', filename=entite.label.encode('ascii', 'ignore')+b'.vcf')
-    vcard = format_vcard(entite)
-    return Response(vcard, headers=headers)
-
-
-@routes.route('/csv')
-def get_csv():
-    '''
-    retourne la liste des correspondants au format VCARD
-    '''
-    entite_ids = request.args.getlist('params')
-    if not entite_ids:
-        entites = Entite.query.all()
-    else:
-        entites = get_entites_by_parent(entite_ids)
-    headers = Headers()
-    headers.add('Content-Type', 'text/plain')
-    headers.add('Content-Disposition', 'attachment', filename='export.csv')
-    csv = format_csv([e for e in entites if isinstance(e, Correspondant)])
-    return Response(csv, headers=headers)
 
 
 @routes.route('/entites/<nom>')
@@ -189,6 +178,7 @@ def get_entite_nom(nom):
     return [{'id': e.id, 'label': e.label} for e in entites]
 
 
+
 @routes.route('/lib_entites/')
 @json_resp
 def get_lib_entite():
@@ -201,6 +191,7 @@ def get_lib_entite():
     else:
         entites = Entite.query.filter(Entite.id.in_(entite_ids)).all()
     return [{'id': item.id, 'label': item.label} for item in entites]
+
 
 
 @routes.route('/entite', methods=['POST', 'PUT'])
