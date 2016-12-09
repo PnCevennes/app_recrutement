@@ -37,6 +37,7 @@ vcard_tpl = '''BEGIN:VCARD
 VERSION:2.1
 N:%s;%s
 FN:%s
+TITLE:%s
 TEL;WORK;VOICE:%s%s
 EMAIL;PREF;INTERNET:%s
 REV:%s
@@ -52,11 +53,13 @@ def format_vcard(entite):
         entite.nom or '',
         entite.prenom or '',
         entite.label or '',
+        entite.fonction or '',
         format_phone(entite.telephone),
         "\nTEL;CELL;VOICE:%s" % format_phone(entite.mobile) if entite.mobile else '',
         entite.email or '',
         dtime.strftime('%Y%m%dT%H%m%SZ')
         )
+
 
 
 def format_csv(corresps, sep=','):
@@ -73,18 +76,9 @@ def format_csv(corresps, sep=','):
     fields = correspondants[0].keys()
     outdata = [sep.join(fields)]
     for item in correspondants:
-        outdata.append(sep.join([str((e or '')) for e in item.values()]))
-    return '\r\n'.join(outdata)
-    '''
-    return \r\n' + '\r\n'.join([','.join((
-            corresp.civilite or '',
-            corresp.nom or '',
-            corresp.prenom or '',
-            corresp.adresse or '',
-            corresp.fonction or '')) for corresp in corresps])
-    '''
-
-
+        outdata.append(sep.join(['"%s"'%(e or '') for e in item.values()]))
+    out = '\r\n'.join(outdata)
+    return out.encode('latin1')
 
 
 
@@ -99,6 +93,7 @@ def get_entites_by_parent(entite_ids):
     return Entite.query.filter(Entite.id.in_(ids)).order_by(Entite.type_entite).order_by(Entite.label).all()
 
 
+
 def format_phone(tel):
     '''
     formate un noméro de téléphone
@@ -107,7 +102,6 @@ def format_phone(tel):
         return ' '.join(a+b for a,b in zip([x for x in tel[::2]], [y for y in tel[1::2]]))
     except:
         return tel
-
 
 
 
