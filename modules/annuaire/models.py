@@ -164,6 +164,7 @@ class CorrespondantValidateur(Validateur):
                 'observations': lambda x: True,
                 'prenom': lambda x: True,
                 'adresse': lambda x: True,
+                'code_postal': lambda x: True,
                 'telephone': lambda x: True,
                 'mobile': lambda x: True,
                 'email': lambda x: True,
@@ -177,6 +178,7 @@ class Correspondant(Entite):
     civilite = db.Column(db.Unicode(length=50))
     _prenom = db.Column('prenom', db.Unicode(length=100))
     adresse = db.Column(db.Unicode(length=255))
+    code_postal = db.Column(db.Unicode(length=50))
     telephone = db.Column(db.Unicode(length=20))
     mobile = db.Column(db.Unicode(length=20))
     email = db.Column(db.Unicode(length=255))
@@ -209,8 +211,8 @@ class Correspondant(Entite):
 
     def to_json(self):
         fields = ['id', 'nom', 'observations', 'prenom', 'fonction',
-                'adresse', 'telephone', 'mobile', 'email', 'type_entite',
-                'relations', 'parents', 'label', 'civilite']
+                'adresse', 'code_postal', 'telephone', 'mobile', 'email',
+                'type_entite', 'relations', 'parents', 'label', 'civilite']
         return {field: getattr(self, field) for field in fields}
 
 
