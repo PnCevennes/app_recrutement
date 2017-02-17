@@ -113,6 +113,7 @@ def get_entites():
     '''
     entite_ids = request.args.getlist('params')
     _format = request.args.get('format', None)
+    _etype = request.args.get('type', 'correspondant')
     if not entite_ids:
         entites = Entite.query.all()
     else:
@@ -122,9 +123,9 @@ def get_entites():
         headers.add('Content-Type', 'text/plain')
         headers.add('Content-Disposition', 'attachment', filename='export.csv')
         if _format == 'csv':
-            csv = format_csv([e for e in entites if isinstance(e, Correspondant)], ',')
+            csv = format_csv([e for e in entites if isinstance(e, TYPES_E[_etype])], ',')
         else:
-            csv = format_csv([e for e in entites if isinstance(e, Correspondant)], '\t')
+            csv = format_csv([e for e in entites if isinstance(e, TYPES_E[_etype])], '\t')
         return Response(csv, headers=headers)
     if _format == 'vcard':
         headers = Headers()
