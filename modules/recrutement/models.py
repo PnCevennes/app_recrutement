@@ -49,12 +49,12 @@ class AgentDetail(Agent):
                     for cn in self.__table__.columns
                     if getattr(self, cn.name) is not None
                 })
-        out['arrivee'] = out['arrivee'].strftime('%Y-%m-%d')
-        out['meta_create'] = out['meta_create'].strftime('%Y-%m-%d')
+        out['arrivee'] = str(out['arrivee'])
+        out['meta_create'] = str(out['meta_create'])
         if 'meta_update' in out:
-            out['meta_update'] = out['meta_update'].strftime('%Y-%m-%d')
+            out['meta_update'] = str(out['meta_update'])
         if 'depart' in out:
-            out['depart'] = out['depart'].strftime('%Y-%m-%d')
+            out['depart'] = str(out['depart'])
         out['materiel'] = [item.id for item in self.materiel]
         return out
 

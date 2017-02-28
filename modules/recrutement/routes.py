@@ -94,7 +94,7 @@ def create_agent():
                 'Nouvelle fiche de recrutement',
                 '''
                 La fiche de recrutement de %s %s a été créée le %s.
-                Vous pouvez vous connecter sur http://192.168.10.10/outils/#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
+                Vous pouvez vous connecter sur http://devel.pnc.int/outils/#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
                 ''' % (
                     agent.prenom,
                     agent.nom,
@@ -120,6 +120,7 @@ def update_agent(id_agent):
     try:
         ag = request.json
         ag['arrivee'] = datetime.datetime.strptime(ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        print(ag['arrivee'])
         ag['meta_create'] = datetime.datetime.strptime(ag['meta_create'], '%Y-%m-%dT%H:%M:%S.%fZ')
         if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):
             ag['depart'] = datetime.datetime.strptime(ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -148,7 +149,7 @@ def update_agent(id_agent):
                 "Modification d'une fiche de recrutement",
                 '''
                 La fiche de recrutement de %s %s a été modifiée le %s.
-                Vous pouvez vous connecter à http://192.168.10.10/outils/#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
+                Vous pouvez vous connecter à http://devel.pnc.int/outils/#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
                 ''' % (
                     agent.prenom,
                     agent.nom,
@@ -182,7 +183,7 @@ def delete_agent(id_agent):
         "Suppression d'une fiche de recrutement",
         '''
         La fiche de recrutement de %s %s a été supprimée le %s.
-        Vous pouvez vous connecter à http://192.168.10.10/outils/#/recrutement pour voir la liste des recrutements en cours.
+        Vous pouvez vous connecter à http://devel.pnc.int/outils/#/recrutement pour voir la liste des recrutements en cours.
         ''' % (
             agent.prenom,
             agent.nom,
