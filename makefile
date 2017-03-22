@@ -9,11 +9,11 @@ develop:
 
 
 prod:
-	@/bin/bash -c "source ../$(VENV)/bin/activate&&gunicorn --daemon --error-log ../errors.log -w $(WORKERS) -b '$(HOST):$(PORT)' -n 'tizoutis' server:app"&&echo "Serveur activé sur '$(HOST):$(PORT)'"
+	@/bin/bash -c "source ../$(VENV)/bin/activate&&gunicorn --daemon --pid="tizoutis.pid" --error-log ../errors.log -w $(WORKERS) -b '$(HOST):$(PORT)' -n 'tizoutis' server:app"&&echo "Serveur activé sur '$(HOST):$(PORT)'"
 
 
 prod-stop:
-	@kill `ps xo'%p %a'|grep "[t]izoutis"|cut -d' ' -f2`&&echo "Terminé"
+	@kill `cat tizoutis.pid`&&echo "Terminé."
 
 
 shell:
