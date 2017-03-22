@@ -13,7 +13,7 @@ prod:
 
 
 prod-stop:
-	@kill `ps hx|grep [t]izoutis|cut -d' ' -f1`&&echo "Terminé"
+	@kill `ps xo'%p %a'|grep "[t]izoutis"|cut -d' ' -f2`&&echo "Terminé"
 
 
 shell:
