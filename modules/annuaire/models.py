@@ -6,7 +6,7 @@ mapping agent
 
 from server import db
 from sqlalchemy.ext.hybrid import hybrid_property
-
+from collections import OrderedDict
 
 
 class ValidationError(Exception):
@@ -34,13 +34,12 @@ class Validateur(object):
 
 
 class EntiteValidateur(Validateur):
-    def __init__(self):
-        self.fields = {
-                'id': lambda x: True,
-                'nom': lambda x: True,
-                'type_entite': lambda x: True,
-                'observations': lambda x: True
-                }
+        fields = OrderedDict((
+                ('id', lambda x: True),
+                ('nom', lambda x: True),
+                ('type_entite', lambda x: True),
+                ('observations', lambda x: True)
+                ))
 
 
 
@@ -116,23 +115,22 @@ class Entite(db.Model):
     def to_json(self):
         fields = ['id', 'nom', 'observations', 'type_entite',
                 'relations', 'label', 'parents']
-        out = {field: getattr(self, field) for field in fields}
+        out = {field: getattr(self, field, '') for field in fields}
         return out
 
 
 class CommuneValidateur(Validateur):
-    def __init__(self):
-        self.fields = {
-                'id': lambda x: True,
-                'nom': lambda x: True,
-                'type_entite': lambda x: True,
-                'observations': lambda x: True,
-                'adresse': lambda x: True,
-                'code_postal': lambda x: True,
-                'telephone': lambda x: True,
-                'email': lambda x: True,
-                'site_internet': lambda x: True,
-                }
+    fields = OrderedDict((
+                ('id', lambda x: True),
+                ('nom', lambda x: True),
+                ('adresse', lambda x: True),
+                ('code_postal', lambda x: True),
+                ('telephone', lambda x: True),
+                ('email', lambda x: True),
+                ('site_internet', lambda x: True),
+                ('type_entite', lambda x: True),
+                ('observations', lambda x: True)
+                ))
 
 
 
@@ -152,25 +150,24 @@ class Commune(Entite):
         fields = ['id', 'nom', 'observations', 'adresse', 'code_postal',
                 'telephone', 'email', 'site_internet', 'type_entite',
                 'relations', 'parents', 'label']
-        return {field: getattr(self, field) for field in fields}
+        return {field: getattr(self, field, '') for field in fields}
 
 
 class CorrespondantValidateur(Validateur):
-    def __init__(self):
-        self.fields = {
-                'id': lambda x: True,
-                'nom': lambda x: True,
-                'type_entite': lambda x: True,
-                'observations': lambda x: True,
-                'prenom': lambda x: True,
-                'adresse': lambda x: True,
-                'code_postal': lambda x: True,
-                'telephone': lambda x: True,
-                'mobile': lambda x: True,
-                'email': lambda x: True,
-                'fonction': lambda x: True,
-                'civilite': lambda x: True
-                }
+    fields = OrderedDict((
+                ('id', lambda x: True),
+                ('civilite', lambda x: True),
+                ('nom', lambda x: True),
+                ('prenom', lambda x: True),
+                ('fonction', lambda x: True),
+                ('adresse', lambda x: True),
+                ('code_postal', lambda x: True),
+                ('telephone', lambda x: True),
+                ('mobile', lambda x: True),
+                ('email', lambda x: True),
+                ('type_entite', lambda x: True),
+                ('observations', lambda x: True)
+                ))
 
 class Correspondant(Entite):
     __tablename__ = 'ann_correspondant'
@@ -213,7 +210,7 @@ class Correspondant(Entite):
         fields = ['id', 'nom', 'observations', 'prenom', 'fonction',
                 'adresse', 'code_postal', 'telephone', 'mobile', 'email',
                 'type_entite', 'relations', 'parents', 'label', 'civilite']
-        return {field: getattr(self, field) for field in fields}
+        return {field: getattr(self, field, '') for field in fields}
 
 
 

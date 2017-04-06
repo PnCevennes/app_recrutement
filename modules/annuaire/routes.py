@@ -7,7 +7,7 @@ from flask import Blueprint, request, Response
 from werkzeug.datastructures import Headers
 from sqlalchemy.orm.exc import NoResultFound
 from .models import (
-        Entite, EntiteValidateur, 
+        Entite, EntiteValidateur,
         Commune, CommuneValidateur,
         Correspondant, CorrespondantValidateur,
         RelationEntite)
@@ -62,21 +62,17 @@ def format_vcard(entite):
 
 
 
-def format_csv(corresps, sep=','):
+def format_csv(corresps, fields, sep=','):
     '''
     retourne une liste de correspondants sous format tabulaire CSV
     '''
     if not len(corresps):
         return ''
 
-    correspondants = [normalize(corresp) for corresp in corresps]
-    for corr in correspondants:
-        del corr['parents']
-        del corr['relations']
-    fields = correspondants[0].keys()
+    correspondants = [corresp.to_json() for corresp in corresps]
     outdata = [sep.join(fields)]
     for item in correspondants:
-        outdata.append(sep.join(['"%s"'%(e or '') for e in item.values()]))
+        outdata.append(sep.join(['"%s"'%(item.get(e) or '') for e in fields]))
     out = '\r\n'.join(outdata)
     return out.encode('latin1')
 
@@ -123,9 +119,9 @@ def get_entites():
         headers.add('Content-Type', 'text/plain')
         headers.add('Content-Disposition', 'attachment', filename='export.csv')
         if _format == 'csv':
-            csv = format_csv([e for e in entites if isinstance(e, TYPES_E[_etype])], ',')
+            csv = format_csv([e for e in entites if isinstance(e, TYPES_E[_etype])], VALIDATEURS_E[_etype].fields, ',')
         else:
-            csv = format_csv([e for e in entites if isinstance(e, TYPES_E[_etype])], '\t')
+            csv = format_csv([e for e in entites if isinstance(e, TYPES_E[_etype])], VALIDATEURS_E[_etype].fields, '\t')
         return Response(csv, headers=headers)
     if _format == 'vcard':
         headers = Headers()
