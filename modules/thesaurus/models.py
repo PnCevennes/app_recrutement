@@ -4,7 +4,9 @@
 mapping thésaurus
 '''
 
-from server import db
+from flask.ext.sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
 
 
 class Thesaurus(db.Model):

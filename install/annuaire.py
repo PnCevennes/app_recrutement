@@ -1,7 +1,6 @@
 #coding: utf8
 
-from server import db
-from modules.annuaire.models import Entite, Commune, Correspondant, RelationEntite
+from modules.annuaire.models import Entite, Commune, Correspondant, RelationEntite, db
 
 db.create_all()
 

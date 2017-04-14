@@ -1,7 +1,6 @@
 #coding: utf8
 
-from server import db
-from modules.recrutement.models import AgentDetail
+from modules.recrutement.models import AgentDetail, db
 from modules.thesaurus.models import Thesaurus
 import datetime
 
