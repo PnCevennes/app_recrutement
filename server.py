@@ -23,11 +23,16 @@ def get_app():
     db.init_app(app)
     mail.init_app(app)
 
-    from modules.utils import registered_modules
-    import routes
+    @app.route('/', methods=['GET'])
+    def index():
+        with app.open_resource('static/app.htm') as f:
+            return f.read()
 
+
+    import routes
     app.register_blueprint(routes.main)
 
+    from modules.utils import registered_modules
     for prefix, blueprint in registered_modules.items():
         app.register_blueprint(blueprint, url_prefix=prefix)
 

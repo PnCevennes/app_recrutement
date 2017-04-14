@@ -104,8 +104,3 @@ def send_mail(id_app, niveau, subject, msg_body):
 
     thr = threading.Thread(target=_send_async, args=[app, msg])
     thr.start()
-
-
-def delete_file(id_file):
-    import routes
-    return routes.delete_file(id_file)

@@ -1,6 +1,7 @@
 #coding: utf8
 
-from modules.thesaurus.models import Thesaurus, db
+from server import db
+from modules.thesaurus.models import Thesaurus
 
 #crée la base de données
 db.create_all()
