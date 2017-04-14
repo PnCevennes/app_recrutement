@@ -31,8 +31,10 @@ class AgentDetail(Agent):
     temps_travail = db.Column(db.Integer) #TH ref 33
     temps_travail_autre = db.Column(db.Unicode(length=100))
     residence_administrative = db.Column(db.Unicode(length=100))
+    observations = db.Column(db.UnicodeText)
     meta_create = db.Column(db.Date)
     meta_update = db.Column(db.Date)
+    meta_createur_fiche = db.Column(db.Unicode(length=100))
     materiel = db.relationship(
             'Thesaurus',
             secondary='recr_rel_agent_thesaurus_materiel',
@@ -47,12 +49,12 @@ class AgentDetail(Agent):
                     for cn in self.__table__.columns
                     if getattr(self, cn.name) is not None
                 })
-        out['arrivee'] = out['arrivee'].strftime('%Y-%m-%d')
-        out['meta_create'] = out['meta_create'].strftime('%Y-%m-%d')
+        out['arrivee'] = str(out['arrivee'])
+        out['meta_create'] = str(out['meta_create'])
         if 'meta_update' in out:
-            out['meta_update'] = out['meta_update'].strftime('%Y-%m-%d')
+            out['meta_update'] = str(out['meta_update'])
         if 'depart' in out:
-            out['depart'] = out['depart'].strftime('%Y-%m-%d')
+            out['depart'] = str(out['depart'])
         out['materiel'] = [item.id for item in self.materiel]
         return out
 

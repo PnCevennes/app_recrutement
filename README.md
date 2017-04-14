@@ -49,8 +49,8 @@ Crée la configuration de base de l'application
 Crée la base de données avec des données de test
 
 ```
-    python alt_serv.py shell
-    >import bootstrap
+    python server.py shell
+    >import all
 ```
 
 
@@ -59,5 +59,75 @@ Démarrage du serveur en mode debug
 
 
 ```
-    python server.py
+    python server.py runserver -d -r
 ```
+
+
+
+Démarrage du serveur en production
+----------------------------------
+
+
+```
+    gunicorn --daemon -b '0.0.0.0:8000' server:app
+```
+
+
+Commandes make
+--------------
+
+
+Les commandes make ne nécessitent pas l'activation du virtualenv avant d'être lancées
+
+```
+    make shell
+```
+Lance une console python dans l'environnement virtuel de l'application (eq. (venv)$ python server.py shell)
+
+
+```
+    make develop
+```
+Lance le serveur en mode de développement (eq. (venv)$ python server.py runserver -d -r)
+
+
+```
+    make prod
+```
+Lance le serveur en production (cf. Demarrage du serveur en production)
+
+
+
+```
+    make prod-stop
+```
+Arrête tous les processus serveurs en production
+
+
+
+Options des commandes make
+--------------------------
+
+```
+HOST=0.0.0.0
+```
+Détermine l'IP sur laquelle le serveur écoute
+
+
+```
+PORT=8000
+```
+Détermine le port sur lequel le serveur écoute
+
+
+```
+VENV=venv
+```
+Détermine le nom du virtualenv utilisé par l'application
+
+
+```
+WORKERS=4
+```
+Détermine le nombre de processus serveur créés (normalement 2-4 x nb_coeurs). Utilisé uniquement par la commande `make prod`
+

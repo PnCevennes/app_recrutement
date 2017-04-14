@@ -23,6 +23,11 @@ def get_app():
     db.init_app(app)
     mail.init_app(app)
 
+    @app.route('/', methods=['GET'])
+    def index():
+        with app.open_resource('static/app.htm') as f:
+            return f.read()
+
 
     import routes
     app.register_blueprint(routes.main)
@@ -39,4 +44,6 @@ app = get_app()
 
 
 if __name__ == '__main__':
-    get_app().run('127.0.0.1', 8000, debug=True)
+    from flask.ext.script import Manager
+    Manager(app).run()
+

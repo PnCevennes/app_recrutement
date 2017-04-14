@@ -12,5 +12,5 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return 'Ça marche !'
-
+    with open('./static/app.htm', 'r') as fp:
+        return fp.read()

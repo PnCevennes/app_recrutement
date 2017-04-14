@@ -80,26 +80,29 @@ def create_agent():
                 for item_id in ag.get('materiel', [])]
 
         ag['meta_create'] = datetime.datetime.now()
+        notif = ag.pop('ctrl_notif', False)
 
         agent = AgentDetail(**ag)
         db.session.add(agent)
         db.session.commit()
 
         out = normalize(agent)
-        send_mail(
-            3,
-            6,
-            'Nouvelle fiche de recrutement',
-            '''
-            La fiche de recrutement de %s %s a été créée le %s.
-            Vous pouvez vous connecter http://192.168.10.10/recrutement/app.htm#/agent/%s pour voir les détails de cette fiche.
-            ''' % (
-                agent.prenom,
-                agent.nom,
-                datetime.datetime.today().strftime('%d/%m/%Y'),
-                agent.id
+        if notif:
+            send_mail(
+                3,
+                6,
+                'Nouvelle fiche de recrutement',
+                '''
+                La fiche de recrutement de %s %s a été créée le %s.
+                Vous pouvez vous connecter sur http://devel.pnc.int/outils/#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
+                ''' % (
+                    agent.prenom,
+                    agent.nom,
+                    datetime.datetime.today().strftime('%d/%m/%Y'),
+                    agent.arrivee.year,
+                    agent.id
+                    )
                 )
-            )
 
         return out
 
@@ -116,10 +119,11 @@ def update_agent(id_agent):
     '''
     try:
         ag = request.json
-        ag['arrivee'] = datetime.datetime.strptime(ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ') 
-        ag['meta_create'] = datetime.datetime.strptime(ag['meta_create'], '%Y-%m-%dT%H:%M:%S.%fZ') 
+        ag['arrivee'] = datetime.datetime.strptime(ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        print(ag['arrivee'])
+        ag['meta_create'] = datetime.datetime.strptime(ag['meta_create'], '%Y-%m-%dT%H:%M:%S.%fZ')
         if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):
-            ag['depart'] = datetime.datetime.strptime(ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ') 
+            ag['depart'] = datetime.datetime.strptime(ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ')
         else:
             ag.pop('depart')
         agent = AgentDetail.query.get(id_agent)
@@ -130,6 +134,7 @@ def update_agent(id_agent):
                 for item_id in ag.get('materiel', [])]
 
         ag['meta_update'] = datetime.datetime.now()
+        notif = ag.pop('ctrl_notif', False)
 
         for col in ag:
             setattr(agent, col, ag[col])
@@ -137,20 +142,23 @@ def update_agent(id_agent):
         db.session.commit()
 
         out = normalize(agent)
-        send_mail(
-            3,
-            6,
-            "Modification d'une fiche de recrutement",
-             '''
-            La fiche de recrutement de %s %s a été modifiée le %s.
-            Vous pouvez vous connecter à http://192.168.10.10/recrutement/app.htm#/agent/%s pour voir les détails de cette fiche.
-            ''' % (
-                agent.prenom,
-                agent.nom,
-                datetime.datetime.today().strftime('%d/%m/%Y'),
-                agent.id
+        if notif:
+            send_mail(
+                3,
+                6,
+                "Modification d'une fiche de recrutement",
+                '''
+                La fiche de recrutement de %s %s a été modifiée le %s.
+                Vous pouvez vous connecter à http://devel.pnc.int/outils/#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
+                ''' % (
+                    agent.prenom,
+                    agent.nom,
+                    datetime.datetime.today().strftime('%d/%m/%Y'),
+                    agent.arrivee.year,
+                    agent.id
+                    )
                 )
-            )
+
         return out
     except Exception as e:
         print(e)
@@ -175,7 +183,7 @@ def delete_agent(id_agent):
         "Suppression d'une fiche de recrutement",
         '''
         La fiche de recrutement de %s %s a été supprimée le %s.
-        Vous pouvez vous connecter à http://192.168.10.10/recrutement/app.htm pour voir la liste des recrutements en cours.
+        Vous pouvez vous connecter à http://devel.pnc.int/outils/#/recrutement pour voir la liste des recrutements en cours.
         ''' % (
             agent.prenom,
             agent.nom,
