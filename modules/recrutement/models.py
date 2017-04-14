@@ -4,7 +4,10 @@
 mapping agent
 '''
 
-from server import db
+from flask.ext.sqlalchemy import SQLAlchemy
+from models import Fichier
+from modules.thesaurus.models import Thesaurus
+db = SQLAlchemy()
 
 
 class Agent(db.Model):
@@ -36,9 +39,16 @@ class AgentDetail(Agent):
     meta_update = db.Column(db.Date)
     meta_createur_fiche = db.Column(db.Unicode(length=100))
     materiel = db.relationship(
-            'Thesaurus',
+            Thesaurus,
             secondary='recr_rel_agent_thesaurus_materiel',
-            lazy='joined')
+            lazy='joined'
+            )
+    fichiers = db.relationship(
+            Fichier,
+            secondary='recr_rel_agent_fichier',
+            lazy='joined'
+            )
+
 
     def to_json(self):
         out = {cn.name: getattr(self, cn.name)
@@ -56,6 +66,7 @@ class AgentDetail(Agent):
         if 'depart' in out:
             out['depart'] = str(out['depart'])
         out['materiel'] = [item.id for item in self.materiel]
+        out['fichiers'] = [item.to_json() for item in self.fichiers]
         return out
 
 
@@ -68,6 +79,19 @@ class RelAgentMateriel(db.Model):
             primary_key=True)
     id_thesaurus = db.Column(
             db.Integer,
-            db.ForeignKey('th_thesaurus.id'),
+            db.ForeignKey(Thesaurus.id),
+            primary_key=True)
+
+
+
+class RelAgentFichier(db.Model):
+    __tablename__ = 'recr_rel_agent_fichier'
+    id_agent = db.Column(
+            db.Integer,
+            db.ForeignKey('recr_agent.id'),
+            primary_key=True)
+    id_fichier = db.Column(
+            db.Integer,
+            db.ForeignKey(Fichier.id),
             primary_key=True)
 

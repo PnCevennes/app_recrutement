@@ -5,8 +5,8 @@ Routes relatives au thésurus
 '''
 
 from flask import Blueprint
-from . import models
-from ..utils import normalize, json_resp, register_module
+from modules.thesaurus import models
+from modules.utils import normalize, json_resp, register_module
 
 
 routes = Blueprint('th_routes', __name__)
