@@ -10,6 +10,7 @@ from .models import (
         Entite, EntiteValidateur,
         Commune, CommuneValidateur,
         Correspondant, CorrespondantValidateur,
+        Entreprise, EntrepriseValidateur,
         RelationEntite)
 from ..utils import normalize, json_resp, register_module
 from server import db
@@ -24,6 +25,7 @@ TYPES_E = {
         'entite': Entite,
         'commune': Commune,
         'correspondant': Correspondant,
+        'entreprise': Entreprise
         }
 
 
@@ -31,6 +33,7 @@ VALIDATEURS_E = {
         'entite': EntiteValidateur,
         'commune': CommuneValidateur,
         'correspondant': CorrespondantValidateur,
+        'entreprise': EntrepriseValidateur
         }
 
 vcard_tpl = '''BEGIN:VCARD
@@ -174,7 +177,7 @@ def get_entite_nom(nom):
 @json_resp
 def get_lib_entite():
     '''
-    retourne un dictionnaire id/label 
+    retourne un dictionnaire id/label
     '''
     entite_ids = request.args.getlist('params')
     if not entite_ids:
@@ -238,6 +241,7 @@ def update_entite(id_entite):
 
     db.session.commit()
     return normalize(entite)
+
 
 
 @routes.route('/entite/<id_entite>', methods=['DELETE'])
