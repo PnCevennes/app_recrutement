@@ -6,8 +6,9 @@ Routes de base
 
 import os
 import os.path
+import mimetypes
 
-from flask import Blueprint, request, current_app
+from flask import Blueprint, request, current_app, Response
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import InvalidRequestError
 from werkzeug.utils import secure_filename
@@ -47,8 +48,10 @@ def upload():
 
 @main.route('/upload/<file_uri>', methods=['GET'])
 def get_uploaded_file(file_uri):
-    with open(os.path.join(current_app.config['UPLOAD_DIR'], file_uri), 'rb') as fp:
-        return fp.read()
+    file_ = os.path.join(current_app.config['UPLOAD_DIR'], file_uri)
+    mimetype_, encoding = mimetypes.guess_type(file_)
+    with open(file_, 'rb') as fp:
+        return Response(fp.read(), mimetype=mimetype_)
     return ''
 
 
