@@ -27,49 +27,66 @@ def index():
 
 @main.route('/upload', methods=['POST'])
 @json_resp
-def upload():
+def vupload_file():
     if not 'fichier' in request.files:
         return {}, 400
-    fichier = request.files['fichier']
+    return upload_file(request.files['fichier'])
+
+
+def upload_file(fichier, path=None):
+    if path is None:
+        path = current_app.config['UPLOAD_DIR']
     fname = secure_filename(fichier.filename)
     file_data = Fichier(filename=fname)
     try:
         db.session.add(file_data)
         db.session.flush()
         db.session.commit()
-        fichier.save(os.path.join('.', current_app.config['UPLOAD_DIR'], file_data.get_file_uri()))
+        fichier.save(os.path.join(path, file_data.get_file_uri()))
     except InvalidRequestError as e:
         db.session.rollback()
-        return {'msg': 'DB Locked'}, 400
+        import traceback
+        return {'msg': traceback.format_exc()}, 400
     return {'filename': fname,
             'file_uri': file_data.get_file_uri(),
             'id': file_data.id}
 
 
 @main.route('/upload/<file_uri>', methods=['GET'])
-def get_uploaded_file(file_uri):
-    file_ = os.path.join(current_app.config['UPLOAD_DIR'], file_uri)
+def vget_uploaded_file(file_uri):
+    return get_uploaded_file(file_uri)
+
+
+def get_uploaded_file(file_uri, path=None):
+    if path is None:
+        path = current_app.config['UPLOAD_DIR']
+
+    file_ = os.path.join(path, file_uri)
     mimetype_, encoding = mimetypes.guess_type(file_)
     with open(file_, 'rb') as fp:
         return Response(fp.read(), mimetype=mimetype_)
-    return ''
+    return Response('', status=404)
 
 
 @main.route('/upload/<fileid>', methods=['DELETE'])
 @json_resp
 def vdelete_uploaded_file(fileid):
-    return delete_file(fileid)
+    return delete_uploaded_file(fileid)
 
 
-def delete_file(fileid):
+def delete_uploaded_file(fileid, path=None):
+    if path is None:
+        path = current_app.config['UPLOAD_DIR']
+
     try:
         fich = db.session.query(Fichier).get(fileid)
         file_uri = fich.get_file_uri()
         db.session.delete(fich)
         db.session.flush()
         db.session.commit()
-        os.unlink(os.path.join('.', current_app.config['UPLOAD_DIR'], file_uri))
+        os.unlink(os.path.join(path, file_uri))
         return {}, 200
     except Exception as e:
         db.session.rollback()
-        return {'err': str(e)}, 400
+        import traceback
+        return {'err': traceback.format_exc()}, 400

@@ -8,8 +8,9 @@ from flask import Blueprint, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 from models import Fichier
+from routes import upload_file, get_uploaded_file, delete_uploaded_file
 from modules.thesaurus.models import Thesaurus
-from modules.utils import normalize, json_resp, send_mail, register_module, registered_funcs, delete_file
+from modules.utils import normalize, json_resp, send_mail, register_module, registered_funcs 
 from .models import Agent, AgentDetail, RelAgentFichier
 
 db = SQLAlchemy()
@@ -174,8 +175,9 @@ def update_agent(id_agent):
 
         return out
     except Exception as e:
-        print(e)
-        return [], 400
+        import traceback
+        traceback.print_exc()
+        return [{'msg':traceback.format_exc()}], 400
 
 
 
@@ -191,7 +193,7 @@ def delete_agent(id_agent):
     rels_fichiers = db.session.query(RelAgentFichier).filter(
             RelAgentFichier.id_agent==id_agent).all()
     for rel in rels_fichiers:
-        delete_file(rel.id_fichier)
+        delete_uploaded_file(rel.id_fichier)
         db.session.delete(rel)
     db.session.delete(agent)
     db.session.commit()
@@ -209,3 +211,28 @@ def delete_agent(id_agent):
             )
         )
     return []
+
+
+@routes.route('/upload', methods=['POST'])
+@json_resp
+def v_recr_upload_file():
+    if not 'fichier' in request.files:
+        return {}, 400
+    return upload_file(request.files['fichier'])
+
+
+@routes.route('/upload/<file_uri>', methods=['GET'])
+def v_recr_get_uploaded_file(file_uri):
+    return get_uploaded_file(file_uri)
+
+
+@routes.route('/upload/<fileid>', methods=['DELETE'])
+@json_resp
+def v_recr_delete_uploaded_file(fileid):
+    rels_fichiers = db.session.query(RelAgentFichier).filter(
+            RelAgentFichier.id_fichier==fileid).all()
+    for rel in rels_fichiers:
+        db.session.delete(rel)
+        db.session.commit()
+    return delete_uploaded_file(fileid)
+
