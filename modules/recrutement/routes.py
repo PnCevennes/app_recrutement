@@ -10,10 +10,10 @@ from sqlalchemy.orm.exc import NoResultFound
 from models import Fichier
 from routes import upload_file, get_uploaded_file, delete_uploaded_file
 from modules.thesaurus.models import Thesaurus
-from modules.utils import normalize, json_resp, send_mail, register_module, registered_funcs 
+from modules.utils import normalize, json_resp, send_mail, register_module, registered_funcs
 from .models import Agent, AgentDetail, RelAgentFichier
 
-db = SQLAlchemy()
+_db = SQLAlchemy()
 
 routes = Blueprint('recrutement', __name__)
 
@@ -37,17 +37,21 @@ def get_agents():
             annee = int(annee)
     except ValueError:
         return [], 400
-    annee_deb = datetime.date(annee, 1, 1)
-    annee_fin = datetime.date(annee, 12, 31)
-    qr = Agent.query.filter(Agent.arrivee.between(annee_deb, annee_fin))
+    try:
+        annee_deb = datetime.date(annee, 1, 1)
+        annee_fin = datetime.date(annee, 12, 31)
+        qr = Agent.query.filter(Agent.arrivee.between(annee_deb, annee_fin))
 
-    ag_list = qr.order_by(db.asc(Agent.arrivee)).all()
-    out = []
-    for item in ag_list:
-        out.append(normalize(item))
-    if not out:
-        return []
-    return out
+        ag_list = qr.order_by(_db.asc(Agent.arrivee)).all()
+        out = []
+        for item in ag_list:
+            out.append(normalize(item))
+        if not out:
+            return []
+        return out
+    except Exception as e:
+        import traceback
+        return [{'msg':traceback.format_exc()}], 400
 
 
 
@@ -80,11 +84,11 @@ def create_agent():
         else:
             ag.pop('depart', None)
 
-        ag['materiel'] = [db.session.query(Thesaurus).get(item_id)
+        ag['materiel'] = [_db.session.query(Thesaurus).get(item_id)
                 for item_id in ag.get('materiel', [])]
 
 
-        ag['fichiers'] = [db.session.query(Fichier).get(fich['id'])
+        ag['fichiers'] = [_db.session.query(Fichier).get(fich['id'])
                 for fich in ag.get('fichiers', [])]
 
 
@@ -92,8 +96,8 @@ def create_agent():
         notif = ag.pop('ctrl_notif', False)
 
         agent = AgentDetail(**ag)
-        db.session.add(agent)
-        db.session.commit()
+        _db.session.add(agent)
+        _db.session.commit()
 
         out = normalize(agent)
         if notif:
@@ -116,9 +120,8 @@ def create_agent():
         return out
 
     except Exception as e:
-        print(type(e))
-        print(e)
-        return [], 400
+        import traceback
+        return [{'msg':traceback.format_exc()}], 400
 
 
 
@@ -136,15 +139,15 @@ def update_agent(id_agent):
             ag['depart'] = datetime.datetime.strptime(ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ')
         else:
             ag.pop('depart')
-        agent = db.session.query(AgentDetail).get(id_agent)
+        agent = _db.session.query(AgentDetail).get(id_agent)
         if not agent:
             return [], 404
 
-        ag['materiel'] = [db.session.query(Thesaurus).get(item_id)
+        ag['materiel'] = [_db.session.query(Thesaurus).get(item_id)
                 for item_id in ag.get('materiel', [])]
         print(ag['materiel'])
 
-        ag['fichiers'] = [db.session.query(Fichier).get(fich['id'])
+        ag['fichiers'] = [_db.session.query(Fichier).get(fich['id'])
                 for fich in ag.get('fichiers', [])]
 
         ag['meta_update'] = datetime.datetime.now()
@@ -153,7 +156,7 @@ def update_agent(id_agent):
         for col in ag:
             setattr(agent, col, ag[col])
 
-        db.session.commit()
+        _db.session.commit()
 
         out = normalize(agent)
         if notif:
@@ -176,7 +179,6 @@ def update_agent(id_agent):
         return out
     except Exception as e:
         import traceback
-        traceback.print_exc()
         return [{'msg':traceback.format_exc()}], 400
 
 
@@ -187,16 +189,16 @@ def delete_agent(id_agent):
     '''
     annule un recrutement en cours
     '''
-    agent = db.session.query(AgentDetail).get(id_agent)
+    agent = _db.session.query(AgentDetail).get(id_agent)
     if not agent:
         return [], 404
-    rels_fichiers = db.session.query(RelAgentFichier).filter(
+    rels_fichiers = _db.session.query(RelAgentFichier).filter(
             RelAgentFichier.id_agent==id_agent).all()
     for rel in rels_fichiers:
-        delete_uploaded_file(rel.id_fichier)
-        db.session.delete(rel)
-    db.session.delete(agent)
-    db.session.commit()
+        delete_uploaded_file(rel.id_fichier, _db)
+        _db.session.delete(rel)
+    _db.session.delete(agent)
+    _db.session.commit()
     send_mail(
         3,
         6,
@@ -229,10 +231,10 @@ def v_recr_get_uploaded_file(file_uri):
 @routes.route('/upload/<fileid>', methods=['DELETE'])
 @json_resp
 def v_recr_delete_uploaded_file(fileid):
-    rels_fichiers = db.session.query(RelAgentFichier).filter(
+    rels_fichiers = _db.session.query(RelAgentFichier).filter(
             RelAgentFichier.id_fichier==fileid).all()
     for rel in rels_fichiers:
-        db.session.delete(rel)
-        db.session.commit()
-    return delete_uploaded_file(fileid)
+        _db.session.delete(rel)
+        _db.session.commit()
+    return delete_uploaded_file(fileid, db=_db)
 

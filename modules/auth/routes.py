@@ -9,15 +9,17 @@ import uuid
 import datetime
 from functools import wraps
 from flask import Blueprint, request, g, Response
+from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 from itsdangerous import (
         TimedJSONWebSignatureSerializer as Serializer,
         SignatureExpired,
         BadSignature)
-from server import db, get_app
+from server import get_app
 from . import models
 from ..utils import normalize, json_resp, register_module, registered_funcs
 
+_db = SQLAlchemy()
 
 class InvalidAuth(Exception):
     pass
@@ -138,8 +140,8 @@ def create_application():
     try:
         app_data = request.json
         app = models.Application(**app_data)
-        db.session.add(app)
-        db.session.commit()
+        _db.session.add(app)
+        _db.session.commit()
         return normalize(app)
     except:
         return []
@@ -155,7 +157,7 @@ def update_application(id_app):
             return [], 404
         for field, value in app_data.items():
             setattr(app, field, value)
-        db.session.commit()
+        _db.session.commit()
         return normalize(app)
     except:
         return [], 400
@@ -167,8 +169,8 @@ def delete_application(id_app):
     app = models.Application.get(app_id)
     if not app:
         return [], 404
-    db.session.delete(app)
-    db.session.commit()
+    _db.session.delete(app)
+    _db.session.commit()
     return normalize(app)
 
 
@@ -197,15 +199,15 @@ def create_user():
         apps = user_data.pop('applications', [])
         is_admin = user_data.pop('admin', False)
         user = models.User(**user_data)
-        db.session.add(user)
+        _db.session.add(user)
         rels = []
         for app in apps:
             rels.append(models.AppUser(
                     application_id=app['id'],
                     user=user,
                     niveau=app['niveau']))
-        db.session.add_all(rels)
-        db.session.commit()
+        _db.session.add_all(rels)
+        _db.session.commit()
 
 
 
@@ -234,11 +236,11 @@ def update_user(id_user):
                         application_id=app['id'],
                         user=user,
                         niveau=app['niveau'])
-                db.session.add(apprel)
+                _db.session.add(apprel)
             else:
                 rel[0].niveau = app['niveau']
 
-        db.session.commit()
+        _db.session.commit()
         return normalize(user)
     except Exception as e:
         print(e)
@@ -252,7 +254,7 @@ def delete_user(id_user):
     if not user:
         return [], 404
     for rel in user.relations:
-        db.session.delete(rel)
-    db.session.delete(user)
-    db.session.commit()
+        _db.session.delete(rel)
+    _db.session.delete(user)
+    _db.session.commit()
     return []

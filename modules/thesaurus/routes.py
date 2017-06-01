@@ -36,38 +36,6 @@ def get_by_id(id_thes):
         return [], 404
     return {'id': result.id, 'label': result.label}
 
-@routes.route('/services')
-@json_resp
-def get_services():
-    '''
-    retourne la liste des différents services
-    '''
-    return get_thesaurus(2)
-
-
-@routes.route('/lieux')
-@json_resp
-def get_lieux():
-    '''
-    retourne la liste des différents lieux d'affectation
-    '''
-    return get_thesaurus(1)
-
-@routes.route('/logements')
-@json_resp
-def get_logements():
-    '''
-    retourne la liste des options d'hébergement
-    '''
-    return get_thesaurus(3)
-
-@routes.route('/contrats')
-@json_resp
-def get_contrats():
-    '''
-    retourne les différents types de contrats
-    '''
-    return get_thesaurus(4)
 
 
 @routes.route('/ref/<id_ref>')

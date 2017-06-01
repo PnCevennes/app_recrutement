@@ -16,7 +16,7 @@ from modules.utils import json_resp
 from models import Fichier
 
 main = Blueprint('main', __name__)
-db = SQLAlchemy()
+_db = SQLAlchemy()
 
 
 @main.route('/')
@@ -39,12 +39,12 @@ def upload_file(fichier, path=None):
     fname = secure_filename(fichier.filename)
     file_data = Fichier(filename=fname)
     try:
-        db.session.add(file_data)
-        db.session.flush()
-        db.session.commit()
+        _db.session.add(file_data)
+        _db.session.flush()
+        _db.session.commit()
         fichier.save(os.path.join(path, file_data.get_file_uri()))
     except InvalidRequestError as e:
-        db.session.rollback()
+        _db.session.rollback()
         import traceback
         return {'msg': traceback.format_exc()}, 400
     return {'filename': fname,
@@ -74,9 +74,11 @@ def vdelete_uploaded_file(fileid):
     return delete_uploaded_file(fileid)
 
 
-def delete_uploaded_file(fileid, path=None):
+def delete_uploaded_file(fileid, path=None, db=None):
     if path is None:
         path = current_app.config['UPLOAD_DIR']
+    if db is None:
+        db = _db
 
     try:
         fich = db.session.query(Fichier).get(fileid)

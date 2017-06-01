@@ -4,10 +4,11 @@
 mapping agent
 '''
 
-from server import db
+from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.hybrid import hybrid_property
 from collections import OrderedDict
 
+db = SQLAlchemy()
 
 class ValidationError(Exception):
     def __init__(self, errors):

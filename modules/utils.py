@@ -3,13 +3,16 @@
 Fonctions utilitaires
 '''
 
-from server import db, mail, get_app
+from server import get_app
 from functools import wraps
 from flask import Response
-from flask.ext.mail import Message
+from flask.ext.mail import Mail, Message
+from flask.ext.sqlalchemy import SQLAlchemy
 import json
 import threading
 
+db = SQLAlchemy()
+mail = Mail()
 
 registered_modules = {}
 registered_funcs = {}

@@ -7,6 +7,7 @@ mapping agent
 from flask.ext.sqlalchemy import SQLAlchemy
 from models import Fichier
 from modules.thesaurus.models import Thesaurus
+
 db = SQLAlchemy()
 
 

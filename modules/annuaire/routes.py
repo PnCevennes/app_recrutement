@@ -6,6 +6,7 @@ routes relatives à l'annuaire
 from flask import Blueprint, request, Response
 from werkzeug.datastructures import Headers
 from sqlalchemy.orm.exc import NoResultFound
+from flask.ext.sqlalchemy import SQLAlchemy
 from .models import (
         Entite, EntiteValidateur,
         Commune, CommuneValidateur,
@@ -13,8 +14,9 @@ from .models import (
         Entreprise, EntrepriseValidateur,
         RelationEntite)
 from ..utils import normalize, json_resp, register_module
-from server import db
 import datetime
+
+_db = SQLAlchemy()
 
 routes = Blueprint('annuaire', __name__)
 
@@ -168,7 +170,7 @@ def get_entite_nom(nom):
     entite_type = request.args.get('type', 'entite')
     recherche = '%s%%' % '% '.join(nom.split())
     t_entite = TYPES_E[entite_type]
-    entites = t_entite.query.filter(t_entite.label.like(recherche)).all()
+    entites = t_entite.query.filter(t_entite.label.like(recherche)).order_by(t_entite.label).all()
     return [{'id': e.id, 'label': e.label} for e in entites]
 
 
@@ -205,11 +207,11 @@ def create_entite():
         entite = entite_class(**v_data)
     except ValidationError as e:
         return {'errmsg': 'Données invalides', 'errors': e.error_list}, 400
-    db.session.add(entite)
-    db.session.flush()
+    _db.session.add(entite)
+    _db.session.flush()
     entite.parents = [p['id'] for p in parents if p]
     entite.relations = [r['id'] for r in relations if r]
-    db.session.commit()
+    _db.session.commit()
     return normalize(entite)
 
 
@@ -239,7 +241,7 @@ def update_entite(id_entite):
     entite.parents = [p['id'] for p in parents if p]
     entite.relations = [r['id'] for r in relations if r]
 
-    db.session.commit()
+    _db.session.commit()
     return normalize(entite)
 
 
@@ -251,6 +253,6 @@ def delete_entite(id_entite):
     if not entite:
         return {'errmsg': 'Donnée inexistante'}, 404
     entite.delete_relations()
-    db.session.delete(entite)
-    db.session.commit()
+    _db.session.delete(entite)
+    _db.session.commit()
     return []
