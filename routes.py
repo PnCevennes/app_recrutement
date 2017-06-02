@@ -9,14 +9,15 @@ import os.path
 import mimetypes
 
 from flask import Blueprint, request, current_app, Response
-from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import InvalidRequestError
 from werkzeug.utils import secure_filename
+from server import db as _db
 from modules.utils import json_resp
 from models import Fichier
 
+
+
 main = Blueprint('main', __name__)
-_db = SQLAlchemy()
 
 
 @main.route('/')

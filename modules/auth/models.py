@@ -5,9 +5,8 @@ mappings applications et utilisateurs
 '''
 
 import hashlib
-from flask.ext.sqlalchemy import SQLAlchemy
+from server import db
 
-db = SQLAlchemy()
 
 class User(db.Model):
     '''

@@ -6,7 +6,7 @@ routes relatives à l'annuaire
 from flask import Blueprint, request, Response
 from werkzeug.datastructures import Headers
 from sqlalchemy.orm.exc import NoResultFound
-from .models import db as _db
+from server import db as _db
 from .models import (
         Entite, EntiteValidateur,
         Commune, CommuneValidateur,

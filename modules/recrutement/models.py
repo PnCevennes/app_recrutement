@@ -4,11 +4,9 @@
 mapping agent
 '''
 
-from flask.ext.sqlalchemy import SQLAlchemy
+from server import db
 from models import Fichier
 from modules.thesaurus.models import Thesaurus
-
-db = SQLAlchemy()
 
 
 class Agent(db.Model):

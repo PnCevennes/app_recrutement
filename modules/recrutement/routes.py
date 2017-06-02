@@ -5,15 +5,14 @@ Routes relatives aux agents
 '''
 import datetime
 from flask import Blueprint, request
-from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
+from server import db as _db
 from models import Fichier
 from routes import upload_file, get_uploaded_file, delete_uploaded_file
 from modules.thesaurus.models import Thesaurus
 from modules.utils import normalize, json_resp, send_mail, register_module, registered_funcs
 from .models import Agent, AgentDetail, RelAgentFichier
 
-_db = SQLAlchemy()
 
 routes = Blueprint('recrutement', __name__)
 

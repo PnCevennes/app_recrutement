@@ -9,17 +9,16 @@ import uuid
 import datetime
 from functools import wraps
 from flask import Blueprint, request, g, Response
-from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 from itsdangerous import (
         TimedJSONWebSignatureSerializer as Serializer,
         SignatureExpired,
         BadSignature)
 from server import get_app
+from server import db as _db
 from . import models
 from ..utils import normalize, json_resp, register_module, registered_funcs
 
-_db = SQLAlchemy()
 
 class InvalidAuth(Exception):
     pass

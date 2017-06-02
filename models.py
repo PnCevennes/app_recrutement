@@ -1,6 +1,5 @@
-from flask.ext.sqlalchemy import SQLAlchemy
+from server import db
 
-db = SQLAlchemy()
 
 class Fichier(db.Model):
     __tablename__ = 'commons_fichier'
