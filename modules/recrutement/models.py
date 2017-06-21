@@ -24,6 +24,7 @@ class AgentDetail(Agent):
     __tablename__ = 'recr_agent_detail'
     id_agent = db.Column(db.Integer, db.ForeignKey('recr_agent.id'), primary_key=True)
     desc_mission = db.Column(db.UnicodeText)
+    notif_list = db.Column(db.UnicodeText)
     type_contrat = db.Column(db.Integer) #TH ref 14
     lieu = db.Column(db.Integer) #TH ref 1
     logement = db.Column(db.Integer) #TH ref 10
@@ -33,6 +34,7 @@ class AgentDetail(Agent):
     temps_travail = db.Column(db.Integer) #TH ref 33
     temps_travail_autre = db.Column(db.Unicode(length=100))
     residence_administrative = db.Column(db.Unicode(length=100))
+    convention_signee = db.Column(db.Boolean)
     observations = db.Column(db.UnicodeText)
     meta_create = db.Column(db.Date)
     meta_update = db.Column(db.Date)
@@ -52,11 +54,11 @@ class AgentDetail(Agent):
     def to_json(self):
         out = {cn.name: getattr(self, cn.name)
                     for cn in super(AgentDetail, self).__table__.columns
-                    if getattr(self, cn.name) is not None
+                    #if getattr(self, cn.name) is not None
                 }
         out.update({cn.name: getattr(self, cn.name)
                     for cn in self.__table__.columns
-                    if getattr(self, cn.name) is not None
+                    #if getattr(self, cn.name) is not None
                 })
         out['arrivee'] = str(out['arrivee'])
         out['meta_create'] = str(out['meta_create'])

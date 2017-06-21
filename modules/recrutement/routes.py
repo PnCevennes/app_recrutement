@@ -113,7 +113,8 @@ def create_agent():
                     datetime.datetime.today().strftime('%d/%m/%Y'),
                     agent.arrivee.year,
                     agent.id
-                    )
+                    ),
+                add_dests=ag['notif_list'].split(',')
                 )
 
         return out
@@ -172,7 +173,8 @@ def update_agent(id_agent):
                     datetime.datetime.today().strftime('%d/%m/%Y'),
                     agent.arrivee.year,
                     agent.id
-                    )
+                    ),
+                add_dests=ag['notif_list'].split(',')
                 )
 
         return out
@@ -209,7 +211,8 @@ def delete_agent(id_agent):
             agent.prenom,
             agent.nom,
             datetime.datetime.today().strftime('%d/%m/%Y')
-            )
+            ),
+        add_dests=agent.notif_list.split(',')
         )
     return []
 

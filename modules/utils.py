@@ -79,10 +79,16 @@ def _send_async(app, msg):
     with app.app_context():
         mail.send(msg)
 
-def send_mail(id_app, niveau, subject, msg_body):
+def send_mail(id_app, niveau, subject, msg_body, add_dests=None):
     '''
     envoie un mail aux administrateurs de l'application
     '''
+    if add_dests is None:
+        add_dests = []
+
+    #supprimer chaines vides dans listes email
+    add_dests = list(filter(lambda x: len(x), add_dests))
+
     app = get_app()
     if not app.config['SEND_MAIL']:
         return
@@ -93,7 +99,7 @@ def send_mail(id_app, niveau, subject, msg_body):
             .filter(AppUser.niveau>=niveau)\
             .filter(AppUser.application_id==id_app)\
             .all()
-    dests = [rel.user.email for rel in rels]
+    dests = [rel.user.email for rel in rels] + add_dests
 
 
 
