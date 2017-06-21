@@ -166,12 +166,20 @@ def get_entite_nom(nom):
     '''
     retourne les entites correspondant à nom
     '''
+    #type d'entite à retourner (entite=tous les types)
     entite_type = request.args.get('type', 'entite')
+
+    #type de résultat (obj=id, label)
     entite_result = request.args.get('result', 'obj')
+
+    #colonne de retour ID
     entite_col = request.args.get('col', 'id')
+
+    entite_filtre = request.args.get('filter', 'label')
     recherche = '%s%%' % '% '.join(nom.split())
     t_entite = TYPES_E[entite_type]
-    entites = t_entite.query.filter(t_entite.label.like(recherche)).order_by(t_entite.label).all()
+    entites = t_entite.query.filter(getattr(t_entite, entite_filtre).like(recherche))\
+            .order_by(getattr(t_entite, entite_filtre)).all()
     if entite_result=='obj':
         return [{'id': getattr(e, entite_col, None), 'label': e.label} for e in entites]
     return [getattr(e, entite_col, None) for e in entites]

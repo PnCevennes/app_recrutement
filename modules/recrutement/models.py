@@ -54,18 +54,20 @@ class AgentDetail(Agent):
     def to_json(self):
         out = {cn.name: getattr(self, cn.name)
                     for cn in super(AgentDetail, self).__table__.columns
-                    #if getattr(self, cn.name) is not None
+                    if getattr(self, cn.name) is not None
                 }
         out.update({cn.name: getattr(self, cn.name)
                     for cn in self.__table__.columns
-                    #if getattr(self, cn.name) is not None
+                    if getattr(self, cn.name) is not None
                 })
         out['arrivee'] = str(out['arrivee'])
-        out['meta_create'] = str(out['meta_create'])
-        if 'meta_update' in out:
-            out['meta_update'] = str(out['meta_update'])
-        if 'depart' in out:
+        if out.get('depart', None) is not None:
             out['depart'] = str(out['depart'])
+
+        out['meta_create'] = str(out['meta_create'])
+        if out.get('meta_update', None) is not None:
+            out['meta_update'] = str(out['meta_update'])
+
         out['materiel'] = [item.id for item in self.materiel]
         out['fichiers'] = [item.to_json() for item in self.fichiers]
         return out
