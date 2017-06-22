@@ -35,6 +35,7 @@ class AgentDetail(Agent):
     temps_travail_autre = db.Column(db.Unicode(length=100))
     residence_administrative = db.Column(db.Unicode(length=100))
     convention_signee = db.Column(db.Boolean)
+    bureau = db.Column(db.Unicode(length=50))
     observations = db.Column(db.UnicodeText)
     meta_create = db.Column(db.Date)
     meta_update = db.Column(db.Date)
