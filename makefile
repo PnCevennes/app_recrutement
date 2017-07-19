@@ -3,6 +3,8 @@ PORT=8000
 VENV=venv
 WORKERS=4
 
+superv:
+	@/bin/bash -c "screen -S superv -d -m python3 supervision/supervisiond.py"
 
 develop:
 	@/bin/bash -c "source ../$(VENV)/bin/activate&&python server.py runserver -d -r -h $(HOST) -p $(PORT)"

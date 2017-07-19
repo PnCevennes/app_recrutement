@@ -11,5 +11,5 @@ register_module('/supervision', routes)
 @routes.route('/data')
 @json_resp
 def sup_index():
-    with open('resources/sup_out.json', 'r') as fp:
+    with open('supervision/sup_out.json', 'r') as fp:
         return json.load(fp)

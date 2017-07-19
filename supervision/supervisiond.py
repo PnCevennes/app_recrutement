@@ -54,16 +54,17 @@ def scan(hosts):
                     errors.append((host['name'], host['ip']))
                     host['down'] = True
                     host['delay'] = 0
-            with open('resources/sup_out.json', 'w') as fp:
-                json.dump(hosts, fp)
+            with open('supervision/sup_out.json', 'w') as fp:
+                json.dump(hosts, fp, indent=4)
 
 
             print(time.strftime('%H:%M:%S', time.localtime(scan_time)))
             e = evt.wait(timeout=300)
 
 
+if __name__ == '__main__':
+    hosts = get_hosts('supervision/equipements_reseau.csv')
 
-hosts = get_hosts('resources/equipements_reseau.csv')
-
-t = threading.Thread(target=scan, args=[hosts])
-t.start()
+    t = threading.Thread(target=scan, args=[hosts])
+    print('**** Démarrage supervision ****')
+    t.start()
