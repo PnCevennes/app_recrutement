@@ -6,14 +6,16 @@ routes relatives à l'annuaire
 from flask import Blueprint, request, Response
 from werkzeug.datastructures import Headers
 from sqlalchemy.orm.exc import NoResultFound
+from server import db as _db
 from .models import (
         Entite, EntiteValidateur,
         Commune, CommuneValidateur,
         Correspondant, CorrespondantValidateur,
+        Entreprise, EntrepriseValidateur,
         RelationEntite)
 from ..utils import normalize, json_resp, register_module
-from server import db
 import datetime
+
 
 routes = Blueprint('annuaire', __name__)
 
@@ -24,6 +26,7 @@ TYPES_E = {
         'entite': Entite,
         'commune': Commune,
         'correspondant': Correspondant,
+        'entreprise': Entreprise
         }
 
 
@@ -31,6 +34,7 @@ VALIDATEURS_E = {
         'entite': EntiteValidateur,
         'commune': CommuneValidateur,
         'correspondant': CorrespondantValidateur,
+        'entreprise': EntrepriseValidateur
         }
 
 vcard_tpl = '''BEGIN:VCARD
@@ -74,7 +78,7 @@ def format_csv(corresps, fields, sep=','):
     for item in correspondants:
         outdata.append(sep.join(['"%s"'%(item.get(e) or '') for e in fields]))
     out = '\r\n'.join(outdata)
-    return out.encode('latin1')
+    return out.encode('latin1', 'replace')
 
 
 
@@ -162,11 +166,24 @@ def get_entite_nom(nom):
     '''
     retourne les entites correspondant à nom
     '''
+    #type d'entite à retourner (entite=tous les types)
     entite_type = request.args.get('type', 'entite')
+
+    #type de résultat (obj=id, label)
+    entite_result = request.args.get('result', 'obj')
+
+    #colonne de retour ID
+    entite_col = request.args.get('col', 'id')
+
+    entite_filtre = request.args.get('filter', 'label')
     recherche = '%s%%' % '% '.join(nom.split())
     t_entite = TYPES_E[entite_type]
-    entites = t_entite.query.filter(t_entite.label.like(recherche)).all()
-    return [{'id': e.id, 'label': e.label} for e in entites]
+    entites = t_entite.query.filter(getattr(t_entite, entite_filtre).like(recherche))\
+            .order_by(getattr(t_entite, entite_filtre)).all()
+    if entite_result=='obj':
+        return [{'id': getattr(e, entite_col, None), 'label': e.label} for e in entites]
+    return [getattr(e, entite_col, None) for e in entites]
+
 
 
 
@@ -174,7 +191,7 @@ def get_entite_nom(nom):
 @json_resp
 def get_lib_entite():
     '''
-    retourne un dictionnaire id/label 
+    retourne un dictionnaire id/label
     '''
     entite_ids = request.args.getlist('params')
     if not entite_ids:
@@ -202,11 +219,11 @@ def create_entite():
         entite = entite_class(**v_data)
     except ValidationError as e:
         return {'errmsg': 'Données invalides', 'errors': e.error_list}, 400
-    db.session.add(entite)
-    db.session.flush()
+    _db.session.add(entite)
+    _db.session.flush()
     entite.parents = [p['id'] for p in parents if p]
     entite.relations = [r['id'] for r in relations if r]
-    db.session.commit()
+    _db.session.commit()
     return normalize(entite)
 
 
@@ -236,8 +253,9 @@ def update_entite(id_entite):
     entite.parents = [p['id'] for p in parents if p]
     entite.relations = [r['id'] for r in relations if r]
 
-    db.session.commit()
+    _db.session.commit()
     return normalize(entite)
+
 
 
 @routes.route('/entite/<id_entite>', methods=['DELETE'])
@@ -247,6 +265,6 @@ def delete_entite(id_entite):
     if not entite:
         return {'errmsg': 'Donnée inexistante'}, 404
     entite.delete_relations()
-    db.session.delete(entite)
-    db.session.commit()
+    _db.session.delete(entite)
+    _db.session.commit()
     return []

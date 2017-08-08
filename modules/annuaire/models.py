@@ -4,7 +4,7 @@
 mapping agent
 '''
 
-from server import db
+from server import db 
 from sqlalchemy.ext.hybrid import hybrid_property
 from collections import OrderedDict
 
@@ -45,15 +45,15 @@ class EntiteValidateur(Validateur):
 
 class Entite(db.Model):
     __tablename__ = 'ann_entite'
+    __mapper_args__ = {
+            'polymorphic_identity': 'entite',
+            'polymorphic_on': 'type_entite'
+            }
     id = db.Column(db.Integer, primary_key=True)
     _nom = db.Column(db.Unicode(length=255))
     _label = db.Column('nom_complet', db.Unicode(length=255))
     type_entite = db.Column(db.Integer)
     observations = db.Column(db.Unicode(length=1000))
-    __mapper_args__ = {
-            'polymorphic_identity': 'entite',
-            'polymorphic_on': 'type_entite'
-            }
 
     @hybrid_property
     def label(self):
@@ -124,6 +124,7 @@ class CommuneValidateur(Validateur):
                 ('id', lambda x: True),
                 ('nom', lambda x: True),
                 ('adresse', lambda x: True),
+                ('adresse2', lambda x: True),
                 ('code_postal', lambda x: True),
                 ('telephone', lambda x: True),
                 ('email', lambda x: True),
@@ -136,21 +137,23 @@ class CommuneValidateur(Validateur):
 
 class Commune(Entite):
     __tablename__ = 'ann_commune'
+    __mapper_args__ = {
+            'polymorphic_identity': 'commune',
+            }
     id_entite = db.Column(db.Integer, db.ForeignKey('ann_entite.id'), primary_key=True)
     adresse = db.Column(db.Unicode(length=255))
+    adresse2 = db.Column(db.Unicode(length=255))
     code_postal = db.Column(db.Unicode(length=50))
     telephone = db.Column(db.Unicode(length=20))
     email = db.Column(db.Unicode(length=255))
     site_internet = db.Column(db.Unicode(length=255))
-    __mapper_args__ = {
-            'polymorphic_identity': 'commune',
-            }
 
     def to_json(self):
-        fields = ['id', 'nom', 'observations', 'adresse', 'code_postal',
-                'telephone', 'email', 'site_internet', 'type_entite',
-                'relations', 'parents', 'label']
+        fields = ['id', 'nom', 'observations', 'adresse', 'adresse2', 
+                'code_postal', 'telephone', 'email', 'site_internet', 
+                'type_entite', 'relations', 'parents', 'label']
         return {field: getattr(self, field, '') for field in fields}
+
 
 
 class CorrespondantValidateur(Validateur):
@@ -169,20 +172,22 @@ class CorrespondantValidateur(Validateur):
                 ('observations', lambda x: True)
                 ))
 
+
 class Correspondant(Entite):
     __tablename__ = 'ann_correspondant'
+    __mapper_args__ = {
+            'polymorphic_identity': 'correspondant',
+            }
     id_entite = db.Column(db.Integer, db.ForeignKey('ann_entite.id'), primary_key=True)
     civilite = db.Column(db.Unicode(length=50))
     _prenom = db.Column('prenom', db.Unicode(length=100))
     adresse = db.Column(db.Unicode(length=255))
+    adresse2 = db.Column(db.Unicode(length=255))
     code_postal = db.Column(db.Unicode(length=50))
     telephone = db.Column(db.Unicode(length=20))
     mobile = db.Column(db.Unicode(length=20))
     email = db.Column(db.Unicode(length=255))
     fonction = db.Column(db.Unicode(length=100))
-    __mapper_args__ = {
-            'polymorphic_identity': 'correspondant',
-            }
 
     @hybrid_property
     def label(self):
@@ -208,9 +213,54 @@ class Correspondant(Entite):
 
     def to_json(self):
         fields = ['id', 'nom', 'observations', 'prenom', 'fonction',
-                'adresse', 'code_postal', 'telephone', 'mobile', 'email',
-                'type_entite', 'relations', 'parents', 'label', 'civilite']
+                'adresse', 'adresse2', 'code_postal', 'telephone', 'mobile',
+                'email', 'type_entite', 'relations', 'parents', 'label',
+                'civilite']
         return {field: getattr(self, field, '') for field in fields}
+
+
+
+class EntrepriseValidateur(Validateur):
+    fields = OrderedDict((
+        ('id', lambda x: True),
+        ('nom', lambda x: True),
+        ('nom_gerant', lambda x: True),
+        ('prenom_gerant', lambda x: True),
+        ('adresse', lambda x: True),
+        ('adresse2', lambda x: True),
+        ('code_postal', lambda x: True),
+        ('telephone', lambda x: True),
+        ('telephone2', lambda x: True),
+        ('email', lambda x: True),
+        ('site_internet', lambda x: True),
+        ('observations', lambda x: True)
+        ))
+
+
+
+class Entreprise(Entite):
+    __tablename__ = 'ann_entreprise'
+    __mapper_args__ = {
+            'polymorphic_identity': 'entreprise',
+            }
+    id_entite = db.Column(db.Integer, db.ForeignKey('ann_entite.id'), primary_key=True)
+    nom_gerant = db.Column(db.Unicode(length=100))
+    prenom_gerant = db.Column(db.Unicode(length=100))
+    adresse = db.Column(db.Unicode(length=255))
+    adresse2 = db.Column(db.Unicode(length=255))
+    code_postal = db.Column(db.Unicode(length=50))
+    telephone = db.Column(db.Unicode(length=20))
+    telephone2 = db.Column(db.Unicode(length=20))
+    email = db.Column(db.Unicode(length=255))
+    site_internet = db.Column(db.Unicode(length=255))
+
+    def to_json(self):
+        fields = ['id', 'nom', 'observations', 'nom_gerant', 'prenom_gerant',
+                'adresse', 'adresse2', 'code_postal', 'telephone', 'telephone2',
+                'email', 'site_internet', 'relations', 'parents', 'label',
+                'type_entite']
+        return {field: getattr(self, field, '') for field in fields}
+
 
 
 

@@ -3,10 +3,11 @@
 Fonctions utilitaires
 '''
 
-from server import db, mail, get_app
+from server import get_app
 from functools import wraps
 from flask import Response
 from flask.ext.mail import Message
+from server import db, mail
 import json
 import threading
 
@@ -78,10 +79,16 @@ def _send_async(app, msg):
     with app.app_context():
         mail.send(msg)
 
-def send_mail(id_app, niveau, subject, msg_body):
+def send_mail(id_app, niveau, subject, msg_body, add_dests=None):
     '''
     envoie un mail aux administrateurs de l'application
     '''
+    if add_dests is None:
+        add_dests = []
+
+    #supprimer chaines vides dans listes email
+    add_dests = list(filter(lambda x: len(x), add_dests))
+
     app = get_app()
     if not app.config['SEND_MAIL']:
         return
@@ -92,7 +99,7 @@ def send_mail(id_app, niveau, subject, msg_body):
             .filter(AppUser.niveau>=niveau)\
             .filter(AppUser.application_id==id_app)\
             .all()
-    dests = [rel.user.email for rel in rels]
+    dests = [rel.user.email for rel in rels] + add_dests
 
 
 
@@ -104,3 +111,8 @@ def send_mail(id_app, niveau, subject, msg_body):
 
     thr = threading.Thread(target=_send_async, args=[app, msg])
     thr.start()
+
+
+def delete_file(id_file):
+    import routes
+    return routes.delete_file(id_file)

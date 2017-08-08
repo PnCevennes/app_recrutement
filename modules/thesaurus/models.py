@@ -3,7 +3,6 @@
 '''
 mapping thésaurus
 '''
-
 from server import db
 
 
