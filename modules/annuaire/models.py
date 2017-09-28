@@ -226,12 +226,14 @@ class EntrepriseValidateur(Validateur):
         ('nom', lambda x: True),
         ('nom_gerant', lambda x: True),
         ('prenom_gerant', lambda x: True),
+        ('fonction_gerant', lambda x: True),
         ('adresse', lambda x: True),
         ('adresse2', lambda x: True),
         ('code_postal', lambda x: True),
         ('telephone', lambda x: True),
         ('telephone2', lambda x: True),
         ('email', lambda x: True),
+        ('alt_email', lambda x: True),
         ('site_internet', lambda x: True),
         ('observations', lambda x: True)
         ))
@@ -246,18 +248,34 @@ class Entreprise(Entite):
     id_entite = db.Column(db.Integer, db.ForeignKey('ann_entite.id'), primary_key=True)
     nom_gerant = db.Column(db.Unicode(length=100))
     prenom_gerant = db.Column(db.Unicode(length=100))
+    fonction_gerant = db.Column(db.Unicode(length=255))
     adresse = db.Column(db.Unicode(length=255))
     adresse2 = db.Column(db.Unicode(length=255))
     code_postal = db.Column(db.Unicode(length=50))
     telephone = db.Column(db.Unicode(length=20))
     telephone2 = db.Column(db.Unicode(length=20))
     email = db.Column(db.Unicode(length=255))
+    alt_email = db.Column(db.Unicode(length=255))
     site_internet = db.Column(db.Unicode(length=255))
 
     def to_json(self):
-        fields = ['id', 'nom', 'observations', 'nom_gerant', 'prenom_gerant',
-                'adresse', 'adresse2', 'code_postal', 'telephone', 'telephone2',
-                'email', 'site_internet', 'relations', 'parents', 'label',
+        fields = ['id',
+                'nom',
+                'observations',
+                'nom_gerant',
+                'prenom_gerant',
+                'fonction_gerant',
+                'adresse',
+                'adresse2',
+                'code_postal',
+                'telephone',
+                'telephone2',
+                'email',
+                'alt_email',
+                'site_internet',
+                'relations',
+                'parents',
+                'label',
                 'type_entite']
         return {field: getattr(self, field, '') for field in fields}
 
