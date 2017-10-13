@@ -164,6 +164,7 @@ class CorrespondantValidateur(Validateur):
                 ('prenom', lambda x: True),
                 ('fonction', lambda x: True),
                 ('adresse', lambda x: True),
+                ('adresse2', lambda x: True),
                 ('code_postal', lambda x: True),
                 ('telephone', lambda x: True),
                 ('mobile', lambda x: True),
