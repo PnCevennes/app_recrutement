@@ -14,6 +14,7 @@ class Agent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.Unicode(length=100))
     prenom = db.Column(db.Unicode(length=100))
+    intitule_poste = db.Column(db.Unicode(length=255))
     service_id = db.Column(db.Integer) #TH ref 4
     arrivee = db.Column(db.Date)
     depart = db.Column(db.Date)
