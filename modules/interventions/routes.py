@@ -47,12 +47,11 @@ def create_intervention():
     """
     crée une nouvelle demande d'intervention
     """
-    print('create intervention')
-    print(request.json)
-
     dem = request.json
-    dem['fichiers'] = [_db.session.query(Fichier).get(item['id'])
-            for item in dem.get('fichiers', [])]
+    dem['dem_fichiers'] = [_db.session.query(Fichier).get(item['id'])
+            for item in dem.get('dem_fichiers', [])]
+    dem['rea_fichiers'] = [_db.session.query(Fichier).get(item['id'])
+            for item in dem.get('rea_fichiers', [])]
     dem['dem_date'] = datetime.datetime.now()
     dem['dmdr_contact_email'] = ','.join(dem.get('dmdr_contact_email',[]))
 
@@ -61,15 +60,15 @@ def create_intervention():
     _db.session.commit()
 
     """
-    send_mail(4, 6, "Nouvelle demande d'intervention",
+    send_mail(4, 6, "Création de la demande d'intervention n°%s" % demande.id,
             '''
             Une nouvelle demande d'intervention a été créée.
             Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/%s pour voir les détails de cette demande.
-            ''' % dem.id,
-            add_dests = dem.dmdr_contact_email)
+            ''' % demande.id,
+            add_dests = demande.dmdr_contact_email)
     """
 
-    return ['create intv']
+    return {'id': demande.id}
 
 
 @routes.route('/<id_intervention>', methods=['POST', 'PUT'])
@@ -78,9 +77,35 @@ def update_intervention(id_intervention):
     """
     met à jour une demande d'intervention identifée par id_intervention
     """
-    print('update intervention')
-    print(request.json)
-    return ['update_intv']
+    dem = request.json
+    dem['dem_fichiers'] = [_db.session.query(Fichier).get(item['id'])
+            for item in dem.get('dem_fichiers', [])]
+    dem['rea_fichiers'] = [_db.session.query(Fichier).get(item['id'])
+            for item in dem.get('rea_fichiers', [])]
+    dem['dem_date'] = datetime.datetime.strptime(dem['dem_date'], '%Y-%m-%d')
+    if dem.get('rea_date') is not None and len(dem['rea_date']):
+        try:
+            dem['rea_date'] = datetime.datetime.strptime(dem['rea_date'], '%Y-%m-%d')
+        except ValueError:
+            dem['rea_date'] = datetime.datetime.strptime(dem['rea_date'], '%Y-%m-%dT%H:%M:%S.%fZ')
+
+    dem['dmdr_contact_email'] = ','.join(dem.get('dmdr_contact_email',[]))
+
+    demande = _db.session.query(Demande).get(id_intervention)
+    for key, value in dem.items():
+        setattr(demande, key, value)
+
+    _db.session.commit()
+
+    """
+    send_mail(4, 6, "Mise à jour de la demande d'intervention n°%s" % demande.id,
+            '''
+            La demande d'intervention n°%s a été modifiée.
+            Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/%s pour voir les détails de cette demande.
+            ''' % demande.id,
+            add_dests = demande.dmdr_contact_email)
+    """
+    return {'id': demande.id}
 
 
 @routes.route('/<id_intervention>', methods=['DELETE'])
@@ -89,6 +114,15 @@ def delete_intervention(id_intervention):
     """
     supprime une demande d'intervention identifiée par id_intervention
     """
-    print('delete intervention')
-    print(request.json)
-    return ['delete_intv']
+    demande = _db.session.query(Demande).get(id_intervention)
+    _db.session.delete(demande)
+    _db.session.commit()
+    """
+    send_mail(4, 6, "Annulation de la demande d'intervention n°%s" % demande.id,
+            '''
+            La demande d'intervention n°%s a été annulée.
+            Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/ pour voir la liste des demandes en cours.
+            ''',
+            add_dests = demande.dmdr_contact_email)
+    """
+    return {'id': demande.id}
