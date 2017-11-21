@@ -49,12 +49,33 @@ class Field:
             preparefn=lambda x: x,
             serializefn=lambda x: x,
             default=None):
-        self.name = None
+        '''
+        Constructeur
+        params (obligatoirement nommés) : 
+            checkfn : fonction de vérification - doit renvoyer booleen
+            preparefn : fonction de transformation en vue de l'insertion
+            serializefn : fonction de transformation pour la serialisation
+            default : valeur par défaut lors de la serialisation
+        '''
+
+        # Nom de l'attribut automatiquement défini par le decorateur serializer
+        self.name = None 
+
+        # Nom correspondant dans l'objet cible si besoin
         self.alias = alias
+
+        # callback de transformation de la donnée pour la sérialisation
         self.serializefn = serializefn
+
+        # callback de transformation de la donnée pour l'ajout au modèle
         self.preparefn = preparefn
+
+        # callback de vérification de la validité de la donnée
         self.checkfn = checkfn
+
+        # valeur par défaut de l'attribut lors de la sérialisation uniquement
         self.default = default
+
 
     def __set__(self, instance, value):
         '''
