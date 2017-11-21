@@ -4,14 +4,16 @@
 Routes relatives aux demandes d'intervention
 '''
 import datetime
-from flask import Blueprint, request
+from flask import Blueprint, request, Response
+from werkzeug.datastructures import Headers
 from sqlalchemy.orm.exc import NoResultFound
 from server import db as _db
 from models import Fichier
 from routes import upload_file, get_uploaded_file, delete_uploaded_file
 from modules.thesaurus.models import Thesaurus
 from modules.utils import normalize, json_resp, send_mail, register_module, registered_funcs
-from .models import Demande, DemandeFichier
+from .models import Demande, DemandeFichier, DemandeSerializer, DemandeFullSerializer
+from serialize_utils import ValidationError
 
 
 routes = Blueprint('interventions', __name__)
@@ -20,6 +22,25 @@ register_module('/interventions', routes)
 
 check_auth = registered_funcs['check_auth']
 
+def format_csv(data, sep=', '):
+    _fields = ['id', 'dem_objet', 'dem_date', 'dem_localisation', 'dem_details',
+            'dmdr_service', 'dem_delai', 'dem_loc_commune', 'dem_loc_libelle',
+            'rea_duree', 'dmdr_contact_nom', 'plan_commentaire', 'plan_date',
+            'rea_date', 'rea_nb_agents', 'rea_commentaire'] 
+    out = [sep.join(_fields)]
+    for item in data:
+        line = DemandeFullSerializer(item).serialize(_fields)
+
+        line['dem_localisation'] = _db.session.query(Thesaurus).get(line['dem_localisation']).label
+        line['dem_objet'] = _db.session.query(Thesaurus).get(line['dem_objet']).label
+        line['dmdr_service'] = _db.session.query(Thesaurus).get(line['dmdr_service']).label
+        out.append(sep.join([str(col) if col else '' for col in line.values()]))
+    headers = Headers()
+    headers.add('Content-Type', 'text/plain')
+    headers.add('Content-Disposition', 'attachment', filename='export.csv')
+    return Response(('\n'.join(out)).encode('latin1'), headers=headers)
+
+
 
 @routes.route('/', methods=['GET'])
 @json_resp
@@ -27,8 +48,34 @@ def get_interventions():
     """
     retourne la liste des demandes d'intervention
     """
-    results = _db.session.query(Demande).all()
-    return [res.to_json() for res in results]
+    
+    today = datetime.date.today()
+    _format = request.args.get('format', 'dict')
+    try:
+        annee = request.args.get('annee', False)
+        if not annee:
+            annee = today.year
+        else:
+            annee = int(annee)
+    except ValueError:
+        return [], 400
+    try:
+        annee_deb = datetime.date(annee, 1, 1)
+        annee_fin = datetime.date(annee, 12, 31)
+
+        results = _db.session.query(Demande).filter(Demande.dem_date.between(annee_deb, annee_fin)).all()
+    except Exception as e:
+        import traceback
+        return [{'msg':traceback.format_exc()}], 400
+
+    if _format == 'csv':
+        return format_csv(results)
+    if _format == 'tsv':
+        return format_csv(results, "\t")
+
+    else:
+        return [DemandeSerializer(res).serialize() for res in results]
+    
 
 
 @routes.route('/<id_intervention>', methods=['GET'])
@@ -38,7 +85,7 @@ def get_one_intervention(id_intervention):
     retourne une demande d'intervention identifiée par id_intervention
     """
     result = _db.session.query(Demande).get(id_intervention)
-    return result.to_json(full=True)
+    return DemandeFullSerializer(result).serialize()
 
 
 @routes.route('/', methods=['POST','PUT'])
@@ -53,22 +100,23 @@ def create_intervention():
     dem['rea_fichiers'] = [_db.session.query(Fichier).get(item['id'])
             for item in dem.get('rea_fichiers', [])]
     dem['dem_date'] = datetime.datetime.now()
-    dem['dmdr_contact_email'] = ','.join(dem.get('dmdr_contact_email',[]))
 
-    demande = Demande(**dem)
-    _db.session.add(demande)
-    _db.session.commit()
+    demande = Demande()
+    try:
+        DemandeFullSerializer(demande).populate(dem)
+        _db.session.add(demande)
+        _db.session.commit()
 
-    """
-    send_mail(4, 6, "Création de la demande d'intervention n°%s" % demande.id,
-            '''
-            Une nouvelle demande d'intervention a été créée.
-            Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/%s pour voir les détails de cette demande.
-            ''' % demande.id,
-            add_dests = demande.dmdr_contact_email)
-    """
+        send_mail(4, 6, "Création de la demande d'intervention n°%s" % demande.id,
+                '''
+                Une nouvelle demande d'intervention a été créée.
+                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/%s pour voir les détails de cette demande.
+                ''' % demande.id,
+                add_dests = demande.dmdr_contact_email)
 
-    return {'id': demande.id}
+        return {'id': demande.id}
+    except ValidationError as e:
+        return e.errors, 400
 
 
 @routes.route('/<id_intervention>', methods=['POST', 'PUT'])
@@ -82,30 +130,25 @@ def update_intervention(id_intervention):
             for item in dem.get('dem_fichiers', [])]
     dem['rea_fichiers'] = [_db.session.query(Fichier).get(item['id'])
             for item in dem.get('rea_fichiers', [])]
-    dem['dem_date'] = datetime.datetime.strptime(dem['dem_date'], '%Y-%m-%d')
-    if dem.get('rea_date') is not None and len(dem['rea_date']):
-        try:
-            dem['rea_date'] = datetime.datetime.strptime(dem['rea_date'], '%Y-%m-%d')
-        except ValueError:
-            dem['rea_date'] = datetime.datetime.strptime(dem['rea_date'], '%Y-%m-%dT%H:%M:%S.%fZ')
-
-    dem['dmdr_contact_email'] = ','.join(dem.get('dmdr_contact_email',[]))
 
     demande = _db.session.query(Demande).get(id_intervention)
-    for key, value in dem.items():
-        setattr(demande, key, value)
+    try:
+        DemandeFullSerializer(demande).populate(dem)
+        _db.session.add(demande)
+        _db.session.commit()
 
-    _db.session.commit()
+        send_mail(4, 6, "Mise à jour de la demande d'intervention n°%s" % demande.id,
+                '''
+                La demande d'intervention n°%s a été modifiée.
+                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/%s pour voir les détails de cette demande.
+                ''' % (demande.id, demande.id),
+                add_dests = demande.dmdr_contact_email)
 
-    """
-    send_mail(4, 6, "Mise à jour de la demande d'intervention n°%s" % demande.id,
-            '''
-            La demande d'intervention n°%s a été modifiée.
-            Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/%s pour voir les détails de cette demande.
-            ''' % demande.id,
-            add_dests = demande.dmdr_contact_email)
-    """
-    return {'id': demande.id}
+        return {'id': demande.id}
+    except ValidationError as e:
+        return e.errors, 400
+
+
 
 
 @routes.route('/<id_intervention>', methods=['DELETE'])
@@ -117,12 +160,13 @@ def delete_intervention(id_intervention):
     demande = _db.session.query(Demande).get(id_intervention)
     _db.session.delete(demande)
     _db.session.commit()
-    """
+
     send_mail(4, 6, "Annulation de la demande d'intervention n°%s" % demande.id,
             '''
             La demande d'intervention n°%s a été annulée.
             Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/ pour voir la liste des demandes en cours.
             ''',
             add_dests = demande.dmdr_contact_email)
-    """
+
     return {'id': demande.id}
+

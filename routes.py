@@ -43,13 +43,13 @@ def upload_file(fichier, path=None):
         _db.session.add(file_data)
         _db.session.flush()
         _db.session.commit()
-        fichier.save(os.path.join(path, file_data.get_file_uri()))
+        fichier.save(os.path.join(path, file_data.file_uri))
     except InvalidRequestError as e:
         _db.session.rollback()
         import traceback
         return {'msg': traceback.format_exc()}, 400
     return {'filename': fname,
-            'file_uri': file_data.get_file_uri(),
+            'file_uri': file_data.file_uri,
             'id': file_data.id}
 
 
