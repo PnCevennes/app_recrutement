@@ -1,10 +1,19 @@
 #coding: utf8
+'''
+Outils permettant de simplifier et clarifier la vérification des
+données entrantes et la sérialisation des données sortantes
+'''
+#TODO ajouter champs adéquats pour les relations
+
 
 import datetime
 from collections import OrderedDict
 
 
 def prepare_date(data):
+    '''
+    Transforme une chaine de date en objet datetime
+    '''
     if not data: 
         return
     try:
@@ -14,6 +23,10 @@ def prepare_date(data):
 
 
 def serializer(cls):
+    '''
+    Décorateur nécéssaire pour initialiser une classe dérivée de Serializer
+    TODO: voir si c'est remplaçable par une metaclasse
+    '''
     if not hasattr(cls, '__fields_list__'):
         cls.__fields_list__ = []
     else:
@@ -26,6 +39,10 @@ def serializer(cls):
 
 
 class Field:
+    '''
+    Attribute class
+    Représente un attribut du modele à serialiser
+    '''
     def __init__(self, *,
             alias=None,
             checkfn=lambda x: True,
@@ -40,14 +57,26 @@ class Field:
         self.default = default
 
     def __set__(self, instance, value):
-        value = self.preparefn(value)
-        print(value)
-        if not self.checkfn(value):
+        '''
+        Transmet la valeur fournie a l'objet à "peupler"
+        Etape 1 : la valeur est transformée par la fonction 'preparefn'
+        (si la transformation échoue, la valeur transmise était incorrecte)
+        Etape 2 : le résultat transformé est évalué par la fonction 'checkfn'
+
+        '''
+        try:
+            value = self.preparefn(value)
+            if not self.checkfn(value):
+                raise ValueError 
+            setattr(instance.obj, self.alias or self.name, value)
+        except Exception:
             instance.errors[self.name] = value
             raise ValueError
-        setattr(instance.obj, self.alias or self.name, value)
 
     def __get__(self, instance, owner):
+        '''
+        Retourne la valeur transformée par 'serializefn'
+        '''
         if instance is None:
             return self
         val = getattr(instance.obj, self.alias or self.name, self.default)
@@ -55,16 +84,31 @@ class Field:
 
 
 class ValidationError(Exception):
+    '''
+    Erreur levée lorsqu'une valeur passée à un attribut est non valide
+    '''
     def __init__(self, errors):
         self.errors = errors
 
 
 class Serializer:
+    '''
+    Représentation d'un modele
+    '''
+
     def __init__(self, obj):
+        '''
+        Initialisé soit avec un objet à serialiser, soit avec 
+        un objet vide à "peupler"
+        '''
         self.obj = obj
         self.errors = {}
 
     def populate(self, data):
+        '''
+        "Peuple" un objet en passant par les attribute class Field
+        et les méthodes de transformation/vérification associées
+        '''
         errors = False
         for name, value in data.items():
             try:
@@ -75,10 +119,15 @@ class Serializer:
         if errors:
             raise ValidationError(self.errors)
 
-    def set_fields(self, fields):
-        self.__fields_list__ = fields
 
     def serialize(self, fields=None):
+        '''
+        Sérialise un objet en passant par les attribute class Field
+        et les méthodes de transformation associées
+        Retourne un dictionnaire. 
+        Si une liste de champs est fournie, retourne un OrderedDict
+        respectant l'ordre de la liste des champs fournis.
+        '''
         if fields is None :
             return {field: getattr(self, field) for field in self.__fields_list__}
         else:
