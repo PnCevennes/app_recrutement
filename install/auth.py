@@ -8,7 +8,10 @@ apps = [
     Application(nom='Annuaire'),
     Application(nom='Recrutement')]
 
-user = User(login='admin', password='admin', email='admin@example.com')
+user = User(login='admin',
+        password='admin',
+        email='admin@example.com'
+        )
 
 rels = [
     AppUser(niveau=6, user=user, application=apps[0]),
