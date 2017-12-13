@@ -16,6 +16,8 @@ def prepare_date(data):
     '''
     if not data: 
         return
+    if isinstance(data, datetime.datetime):
+        return data
     try:
         return datetime.datetime.strptime(data, '%Y-%m-%d')
     except ValueError:
