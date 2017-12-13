@@ -110,7 +110,7 @@ def create_intervention():
         send_mail(4, 6, "Création de la demande d'intervention n°%s" % demande.id,
                 '''
                 Une nouvelle demande d'intervention a été créée.
-                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/%s pour voir les détails de cette demande.
+                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?intervention=%s pour voir les détails de cette demande.
                 ''' % demande.id,
                 add_dests = demande.dmdr_contact_email)
 
@@ -140,7 +140,7 @@ def update_intervention(id_intervention):
         send_mail(4, 6, "Mise à jour de la demande d'intervention n°%s" % demande.id,
                 '''
                 La demande d'intervention n°%s a été modifiée.
-                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/%s pour voir les détails de cette demande.
+                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?intervention=%s pour voir les détails de cette demande.
                 ''' % (demande.id, demande.id),
                 add_dests = demande.dmdr_contact_email)
 
