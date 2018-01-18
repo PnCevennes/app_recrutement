@@ -1,11 +1,8 @@
-#coding: utf8
-
 '''
 routes relatives aux application, utilisateurs et à l'authentification
 '''
 
 import json
-import uuid
 import datetime
 from functools import wraps
 from flask import Blueprint, request, g, Response
@@ -36,20 +33,21 @@ def check_auth(app_id, level, final=True):
             try:
                 serializer = Serializer(get_app().config['SECRET_KEY'])
                 user = serializer.loads(request.cookies.get('token', {}))
-                app = list(filter(lambda x: x.application_id == app_id,
+                app = list(filter(
+                        lambda x: x.application_id == app_id,
                         user.applications))
-                if app[0].niveau<level:
+                if app[0].niveau < level:
                     if final:
                         raise InvalidAuth
                     else:
                         g.user_is_authorized = False
                 g.authenticated_user = user
                 return fn(*args, **kwargs)
-            except SignatureExpired as e:
+            except SignatureExpired:
                 return [], 403
-            except BadSignature as e:
+            except BadSignature:
                 return [], 403
-            except InvalidAuth as e:
+            except InvalidAuth:
                 return [], 403
         return __check_auth
     return _check_auth
@@ -63,18 +61,19 @@ def reconnect():
         serializer = Serializer(get_app().config['SECRET_KEY'])
         user = serializer.loads(request.cookies.get('token', {}))
         return {'user': user}
-    except SignatureExpired as e:
+    except SignatureExpired:
         return [], 403
-    except BadSignature as e:
+    except BadSignature:
         return [], 403
-
 
 
 @routes.route('/login', methods=['POST'])
 def login():
     try:
         user_data = request.json
-        user = models.User.query.filter(models.User.login==user_data['login']).one()
+        user = (models.User.query
+                .filter(models.User.login == user_data['login'])
+                .one())
         if not user.check_password(user_data['password']):
             raise InvalidAuth
         serializer = Serializer(get_app().config['SECRET_KEY'])
@@ -82,27 +81,23 @@ def login():
         cookie_exp = datetime.datetime.now() + datetime.timedelta(days=1)
 
         resp = Response(
-                json.dumps({'login':True, 'user': normalize(user)}),
+                json.dumps({'login': True, 'user': normalize(user)}),
                 mimetype='application/json'
                 )
         resp.set_cookie('token', cookie_data, expires=cookie_exp)
         return resp
-    except NoResultFound as e:
+    except NoResultFound:
         return Response(
-                json.dumps(
-                    {'login': False, 'msg': 'Utilisateur inconnu'}),
-                    status=403)
-    except InvalidAuth as e:
+                json.dumps({'login': False, 'msg': 'Utilisateur inconnu'}),
+                status=403)
+    except InvalidAuth:
         return Response(
-                json.dumps(
-                    {'login': False, 'msg': 'Utilisateur inconnu'}),
-                    status=403)
-    except Exception as e:
+                json.dumps({'login': False, 'msg': 'Utilisateur inconnu'}),
+                status=403)
+    except Exception:
         return Response(
-                json.dumps(
-                    {'login': False, 'msg': 'Données corrompues'}),
-                    status=400)
-
+                json.dumps({'login': False, 'msg': 'Données corrompues'}),
+                status=500)
 
 
 @routes.route('/logout')
@@ -165,7 +160,7 @@ def update_application(id_app):
 @routes.route('/application/<id_app>', methods=['DELETE'])
 @json_resp
 def delete_application(id_app):
-    app = models.Application.get(app_id)
+    app = models.Application.get(id_app)
     if not app:
         return [], 404
     _db.session.delete(app)
@@ -196,7 +191,6 @@ def create_user():
         user_data = request.json
         print(user_data)
         apps = user_data.pop('applications', [])
-        is_admin = user_data.pop('admin', False)
         user = models.User(**user_data)
         _db.session.add(user)
         rels = []
@@ -207,8 +201,6 @@ def create_user():
                     niveau=app['niveau']))
         _db.session.add_all(rels)
         _db.session.commit()
-
-
 
         return normalize(user)
     except:
@@ -221,15 +213,15 @@ def update_user(id_user):
     try:
         user_data = request.json
         apps = user_data.pop('applications', [])
-        id_admin = user_data.pop('admin', False)
         user = models.User.query.get(user_data['id'])
         if not user:
             return [], 404
         for key, value in user_data.items():
             setattr(user, key, value)
-        rels = []
         for app in apps:
-            rel = list(filter(lambda x: x.application_id==app['id'], user.relations))
+            rel = list(filter(
+                lambda x: x.application_id == app['id'],
+                user.relations))
             if not len(rel):
                 apprel = models.AppUser(
                         application_id=app['id'],

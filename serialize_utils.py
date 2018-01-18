@@ -1,9 +1,8 @@
-#coding: utf8
 '''
 Outils permettant de simplifier et clarifier la vérification des
 données entrantes et la sérialisation des données sortantes
 '''
-#TODO ajouter champs adéquats pour les relations
+# TODO ajouter champs adéquats pour les relations
 
 
 import datetime
@@ -14,7 +13,7 @@ def prepare_date(data):
     '''
     Transforme une chaine de date en objet datetime
     '''
-    if not data: 
+    if not data:
         return
     if isinstance(data, datetime.datetime):
         return data
@@ -45,7 +44,9 @@ class Field:
     Attribute class
     Représente un attribut du modele à serialiser
     '''
-    def __init__(self, *,
+    def __init__(
+            self,
+            *,
             alias=None,
             checkfn=lambda x: True,
             preparefn=lambda x: x,
@@ -53,7 +54,7 @@ class Field:
             default=None):
         '''
         Constructeur
-        params (obligatoirement nommés) : 
+        params (obligatoirement nommés) :
             checkfn : fonction de vérification - doit renvoyer booleen
             preparefn : fonction de transformation en vue de l'insertion
             serializefn : fonction de transformation pour la serialisation
@@ -61,7 +62,7 @@ class Field:
         '''
 
         # Nom de l'attribut automatiquement défini par le decorateur serializer
-        self.name = None 
+        self.name = None
 
         # Nom correspondant dans l'objet cible si besoin
         self.alias = alias
@@ -78,7 +79,6 @@ class Field:
         # valeur par défaut de l'attribut lors de la sérialisation uniquement
         self.default = default
 
-
     def __set__(self, instance, value):
         '''
         Transmet la valeur fournie a l'objet à "peupler"
@@ -90,7 +90,7 @@ class Field:
         try:
             value = self.preparefn(value)
             if not self.checkfn(value):
-                raise ValueError 
+                raise ValueError
             setattr(instance.obj, self.alias or self.name, value)
         except Exception:
             instance.errors[self.name] = value
@@ -121,7 +121,7 @@ class Serializer:
 
     def __init__(self, obj):
         '''
-        Initialisé soit avec un objet à serialiser, soit avec 
+        Initialisé soit avec un objet à serialiser, soit avec
         un objet vide à "peupler"
         '''
         self.obj = obj
@@ -136,23 +136,23 @@ class Serializer:
         for name, value in data.items():
             try:
                 setattr(self, name, value)
-            except ValueError as err:
+            except ValueError as err:  # noqa
                 errors = True
                 self.errors[name] = value
         if errors:
             raise ValidationError(self.errors)
 
-
     def serialize(self, fields=None):
         '''
         Sérialise un objet en passant par les attribute class Field
         et les méthodes de transformation associées
-        Retourne un dictionnaire. 
+        Retourne un dictionnaire.
         Si une liste de champs est fournie, retourne un OrderedDict
         respectant l'ordre de la liste des champs fournis.
         '''
-        if fields is None :
-            return {field: getattr(self, field) for field in self.__fields_list__}
+        if fields is None:
+            return {field: getattr(self, field)
+                    for field in self.__fields_list__}
         else:
             out = OrderedDict()
             for field in fields:
@@ -165,7 +165,8 @@ class Serializer:
 class TestSerializer(Serializer):
     #a = Field(serializefn=lambda x: x.strftime('%d/%m/%Y %H-%M-%S'))
     a = Field(serializefn=str)
-    b = Field(alias='plop', serializefn=lambda x: x+5, default=10, checkfn=lambda x: 1<=x<=100)
+    b = Field(alias='plop', serializefn=lambda x: x+5,
+            default=10, checkfn=lambda x: 1<=x<=100)
     c = Field()
     d = Field()
 '''

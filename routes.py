@@ -1,5 +1,3 @@
-#coding: utf8
-
 '''
 Routes de base
 '''
@@ -16,7 +14,6 @@ from modules.utils import json_resp
 from models import Fichier
 
 
-
 main = Blueprint('main', __name__)
 
 
@@ -29,7 +26,7 @@ def index():
 @main.route('/upload', methods=['POST'])
 @json_resp
 def vupload_file():
-    if not 'fichier' in request.files:
+    if 'fichier' not in request.files:
         return {}, 400
     return upload_file(request.files['fichier'])
 
@@ -44,7 +41,7 @@ def upload_file(fichier, path=None):
         _db.session.flush()
         _db.session.commit()
         fichier.save(os.path.join(path, file_data.file_uri))
-    except InvalidRequestError as e:
+    except InvalidRequestError as e:  # noqa
         _db.session.rollback()
         import traceback
         return {'msg': traceback.format_exc()}, 400
@@ -89,7 +86,7 @@ def delete_uploaded_file(fileid, path=None, db=None):
         db.session.commit()
         os.unlink(os.path.join(path, file_uri))
         return {}, 200
-    except Exception as e:
+    except Exception as e:  # noqa
         db.session.rollback()
         import traceback
         return {'err': traceback.format_exc()}, 400

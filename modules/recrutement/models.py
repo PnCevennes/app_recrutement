@@ -1,5 +1,3 @@
-#coding: utf8
-
 '''
 mapping agent
 '''
@@ -15,24 +13,26 @@ class Agent(db.Model):
     nom = db.Column(db.Unicode(length=100))
     prenom = db.Column(db.Unicode(length=100))
     intitule_poste = db.Column(db.Unicode(length=255))
-    service_id = db.Column(db.Integer) #TH ref 4
+    service_id = db.Column(db.Integer)  # TH ref 4
     arrivee = db.Column(db.Date)
     depart = db.Column(db.Date)
 
 
-
 class AgentDetail(Agent):
     __tablename__ = 'recr_agent_detail'
-    id_agent = db.Column(db.Integer, db.ForeignKey('recr_agent.id'), primary_key=True)
+    id_agent = db.Column(
+            db.Integer,
+            db.ForeignKey('recr_agent.id'),
+            primary_key=True)
     desc_mission = db.Column(db.UnicodeText)
     notif_list = db.Column(db.UnicodeText)
-    type_contrat = db.Column(db.Integer) #TH ref 14
-    lieu = db.Column(db.Integer) #TH ref 1
-    logement = db.Column(db.Integer) #TH ref 10
-    categorie = db.Column(db.Integer) #TH ref 38
+    type_contrat = db.Column(db.Integer)  # TH ref 14
+    lieu = db.Column(db.Integer)  # TH ref 1
+    logement = db.Column(db.Integer)  # TH ref 10
+    categorie = db.Column(db.Integer)  # TH ref 38
     referent = db.Column(db.UnicodeText)
     gratification = db.Column(db.Integer)
-    temps_travail = db.Column(db.Integer) #TH ref 33
+    temps_travail = db.Column(db.Integer)  # TH ref 33
     temps_travail_autre = db.Column(db.Unicode(length=100))
     residence_administrative = db.Column(db.Unicode(length=100))
     convention_signee = db.Column(db.Boolean)
@@ -52,16 +52,15 @@ class AgentDetail(Agent):
             lazy='joined'
             )
 
-
     def to_json(self):
-        out = {cn.name: getattr(self, cn.name)
-                    for cn in super(AgentDetail, self).__table__.columns
-                    if getattr(self, cn.name) is not None
-                }
-        out.update({cn.name: getattr(self, cn.name)
-                    for cn in self.__table__.columns
-                    if getattr(self, cn.name) is not None
-                })
+        out = {
+                cn.name: getattr(self, cn.name)
+                for cn in super(AgentDetail, self).__table__.columns
+                if getattr(self, cn.name) is not None}
+        out.update({
+                cn.name: getattr(self, cn.name)
+                for cn in self.__table__.columns
+                if getattr(self, cn.name) is not None})
         out['arrivee'] = str(out['arrivee'])
         if out.get('depart', None) is not None:
             out['depart'] = str(out['depart'])
@@ -73,7 +72,6 @@ class AgentDetail(Agent):
         out['materiel'] = [item.id for item in self.materiel]
         out['fichiers'] = [item.to_json() for item in self.fichiers]
         return out
-
 
 
 class RelAgentMateriel(db.Model):
@@ -88,7 +86,6 @@ class RelAgentMateriel(db.Model):
             primary_key=True)
 
 
-
 class RelAgentFichier(db.Model):
     __tablename__ = 'recr_rel_agent_fichier'
     id_agent = db.Column(
@@ -99,4 +96,3 @@ class RelAgentFichier(db.Model):
             db.Integer,
             db.ForeignKey(Fichier.id),
             primary_key=True)
-

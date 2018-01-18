@@ -1,5 +1,3 @@
-#coding: utf8
-
 '''
 Démarrage de l'application
 '''
@@ -41,4 +39,3 @@ app = get_app()
 if __name__ == '__main__':
     from flask.ext.script import Manager
     Manager(app).run()
-

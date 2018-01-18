@@ -1,5 +1,3 @@
-#coding: utf8
-
 '''
 mapping thésaurus
 '''
@@ -11,4 +9,3 @@ class Thesaurus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_ref = db.Column(db.Integer)
     label = db.Column(db.Unicode(length=50))
-

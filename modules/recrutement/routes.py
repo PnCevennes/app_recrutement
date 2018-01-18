@@ -1,16 +1,21 @@
-#coding: utf8
-
 '''
 Routes relatives aux agents
 '''
+
 import datetime
+
 from flask import Blueprint, request
-from sqlalchemy.orm.exc import NoResultFound
+
 from server import db as _db
 from models import Fichier
 from routes import upload_file, get_uploaded_file, delete_uploaded_file
 from modules.thesaurus.models import Thesaurus
-from modules.utils import normalize, json_resp, send_mail, register_module, registered_funcs
+from modules.utils import (
+        normalize,
+        json_resp,
+        send_mail,
+        register_module,
+        registered_funcs)
 from .models import Agent, AgentDetail, RelAgentFichier
 
 
@@ -48,10 +53,9 @@ def get_agents():
         if not out:
             return []
         return out
-    except Exception as e:
+    except Exception:
         import traceback
-        return [{'msg':traceback.format_exc()}], 400
-
+        return [{'msg': traceback.format_exc()}], 400
 
 
 @routes.route('/<id_agent>', methods=['GET'])
@@ -66,7 +70,6 @@ def get_agent(id_agent):
     return normalize(agent)
 
 
-
 @routes.route('/', methods=['POST', 'PUT'])
 @json_resp
 def create_agent():
@@ -77,19 +80,19 @@ def create_agent():
         ag = request.json
         ag['arrivee'] = datetime.datetime.strptime(
                 ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ')
-        if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):
+        if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):  # noqa
             ag['depart'] = datetime.datetime.strptime(
                     ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ')
         else:
             ag.pop('depart', None)
 
-        ag['materiel'] = [_db.session.query(Thesaurus).get(item_id)
+        ag['materiel'] = [
+                _db.session.query(Thesaurus).get(item_id)
                 for item_id in ag.get('materiel', [])]
 
-
-        ag['fichiers'] = [_db.session.query(Fichier).get(fich['id'])
+        ag['fichiers'] = [
+                _db.session.query(Fichier).get(fich['id'])
                 for fich in ag.get('fichiers', [])]
-
 
         ag['meta_create'] = datetime.datetime.now()
         notif = ag.pop('ctrl_notif', False)
@@ -119,10 +122,9 @@ def create_agent():
 
         return out
 
-    except Exception as e:
+    except Exception:
         import traceback
-        return [{'msg':traceback.format_exc()}], 400
-
+        return [{'msg': traceback.format_exc()}], 400
 
 
 @routes.route('/<id_agent>', methods=['POST', 'PUT'])
@@ -133,21 +135,26 @@ def update_agent(id_agent):
     '''
     try:
         ag = request.json
-        ag['arrivee'] = datetime.datetime.strptime(ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ')
-        ag['meta_create'] = datetime.datetime.strptime(ag['meta_create'], '%Y-%m-%dT%H:%M:%S.%fZ')
-        if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):
-            ag['depart'] = datetime.datetime.strptime(ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        ag['arrivee'] = datetime.datetime.strptime(
+                ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        ag['meta_create'] = datetime.datetime.strptime(
+                ag['meta_create'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):  # noqa
+            ag['depart'] = datetime.datetime.strptime(
+                    ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ')
         else:
             ag.pop('depart')
         agent = _db.session.query(AgentDetail).get(id_agent)
         if not agent:
             return [], 404
 
-        ag['materiel'] = [_db.session.query(Thesaurus).get(item_id)
+        ag['materiel'] = [
+                _db.session.query(Thesaurus).get(item_id)
                 for item_id in ag.get('materiel', [])]
         print(ag['materiel'])
 
-        ag['fichiers'] = [_db.session.query(Fichier).get(fich['id'])
+        ag['fichiers'] = [
+                _db.session.query(Fichier).get(fich['id'])
                 for fich in ag.get('fichiers', [])]
 
         ag['meta_update'] = datetime.datetime.now()
@@ -178,10 +185,9 @@ def update_agent(id_agent):
                 )
 
         return out
-    except Exception as e:
+    except Exception:
         import traceback
-        return [{'msg':traceback.format_exc()}], 400
-
+        return [{'msg': traceback.format_exc()}], 400
 
 
 @routes.route('/<id_agent>', methods=['DELETE'])
@@ -194,7 +200,7 @@ def delete_agent(id_agent):
     if not agent:
         return [], 404
     rels_fichiers = _db.session.query(RelAgentFichier).filter(
-            RelAgentFichier.id_agent==id_agent).all()
+            RelAgentFichier.id_agent == id_agent).all()
     for rel in rels_fichiers:
         delete_uploaded_file(rel.id_fichier, _db)
         _db.session.delete(rel)
@@ -220,7 +226,7 @@ def delete_agent(id_agent):
 @routes.route('/upload', methods=['POST'])
 @json_resp
 def v_recr_upload_file():
-    if not 'fichier' in request.files:
+    if 'fichier' not in request.files:
         return {}, 400
     return upload_file(request.files['fichier'])
 
@@ -234,9 +240,8 @@ def v_recr_get_uploaded_file(file_uri):
 @json_resp
 def v_recr_delete_uploaded_file(fileid):
     rels_fichiers = _db.session.query(RelAgentFichier).filter(
-            RelAgentFichier.id_fichier==fileid).all()
+            RelAgentFichier.id_fichier == fileid).all()
     for rel in rels_fichiers:
         _db.session.delete(rel)
         _db.session.commit()
     return delete_uploaded_file(fileid, db=_db)
-

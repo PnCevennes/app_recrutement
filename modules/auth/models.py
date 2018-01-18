@@ -1,5 +1,3 @@
-#coding: utf8
-
 '''
 mappings applications et utilisateurs
 '''
@@ -52,8 +50,6 @@ class User(db.Model):
         return out
 
 
-
-
 class Application(db.Model):
     '''
     Représente une application ou un module
@@ -63,19 +59,25 @@ class Application(db.Model):
     nom = db.Column(db.Unicode(length=100))
 
 
-
-
 class AppUser(db.Model):
     '''
     Relations entre applications et utilisateurs
     '''
     __tablename__ = 'auth_rel_app_user'
-    user_id = db.Column(db.Integer,
-            db.ForeignKey('auth_utilisateur.id'), primary_key=True)
-    application_id = db.Column(db.Integer,
-            db.ForeignKey('auth_application.id'), primary_key=True)
+    user_id = db.Column(
+            db.Integer,
+            db.ForeignKey('auth_utilisateur.id'),
+            primary_key=True)
+    application_id = db.Column(
+            db.Integer,
+            db.ForeignKey('auth_application.id'),
+            primary_key=True)
     niveau = db.Column(db.Integer)
-    user = db.relationship('User',
-            backref='relations', lazy='joined')
-    application = db.relationship('Application',
-            backref='relations', lazy='joined')
+    user = db.relationship(
+            'User',
+            backref='relations',
+            lazy='joined')
+    application = db.relationship(
+            'Application',
+            backref='relations',
+            lazy='joined')

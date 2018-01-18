@@ -1,19 +1,21 @@
-#coding: utf8
 '''
 Fonctions utilitaires
 '''
 
-from server import get_app
-from functools import wraps
-from flask import Response
-from flask.ext.mail import Message
-from server import db, mail
 import json
 import threading
+
+from functools import wraps
+
+from flask import Response
+from flask.ext.mail import Message
+
+from server import get_app, db, mail
 
 
 registered_modules = {}
 registered_funcs = {}
+
 
 def register_module(prefix, blueprint):
     '''
@@ -38,7 +40,6 @@ def _normalize(obj, columns):
     return out
 
 
-
 def normalize(obj, *parents):
     '''
     Prend un objet mappé SQLAlchemy et le transforme en dictionnaire pour
@@ -48,12 +49,11 @@ def normalize(obj, *parents):
     '''
     try:
         return obj.to_json()
-    except AttributeError as e:
+    except AttributeError:
         out = _normalize(obj, obj.__table__.columns)
         for p in parents:
             out.update(_normalize(obj, p().__table__.columns))
         return out
-
 
 
 def json_resp(fn):
@@ -70,8 +70,10 @@ def json_resp(fn):
             status = 200
         if isinstance(res, Response):
             return res
-        return Response(json.dumps(res),
-                status=status, mimetype='application/json')
+        return Response(
+                json.dumps(res),
+                status=status,
+                mimetype='application/json')
     return _json_resp
 
 
@@ -79,14 +81,17 @@ def _send_async(app, msg):
     with app.app_context():
         mail.send(msg)
 
-def send_mail(id_app, niveau, subject, msg_body, add_dests=None):
+
+def send_mail(
+        id_app, niveau, subject, msg_body,
+        add_dests=None, sendername='recrutement'):
     '''
     envoie un mail aux administrateurs de l'application
     '''
     if add_dests is None:
         add_dests = []
 
-    #supprimer chaines vides dans listes email
+    # supprimer chaines vides dans listes email
     add_dests = list(filter(lambda x: len(x), add_dests))
 
     app = get_app()
@@ -95,18 +100,17 @@ def send_mail(id_app, niveau, subject, msg_body, add_dests=None):
 
     from .auth.models import AppUser
 
-    rels = AppUser.query\
-            .filter(AppUser.niveau>=niveau)\
-            .filter(AppUser.application_id==id_app)\
-            .all()
+    rels = (AppUser.query
+            .filter(AppUser.niveau >= niveau)
+            .filter(AppUser.application_id == id_app)
+            .all())
     dests = [rel.user.email for rel in rels] + add_dests
 
-
-
-    msg = Message('[recrutement] %s' % subject,
+    msg = Message(
+            '[%s] %s' % sendername,
+            subject,
             sender=app.config['MAIL_SENDER'],
-            recipients=dests
-            )
+            recipients=dests)
     msg.body = msg_body
 
     thr = threading.Thread(target=_send_async, args=[app, msg])

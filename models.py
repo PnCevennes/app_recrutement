@@ -1,5 +1,5 @@
 from server import db
-from serialize_utils import serializer, Serializer, Field, ValidationError
+from serialize_utils import serializer, Serializer, Field
 
 
 @serializer
@@ -24,6 +24,7 @@ class Fichier(db.Model):
                 'filename': self.filename,
                 'file_uri': self.file_uri
                 }
+
 
 def serialize_files(data):
     return [FichierSerializer(item).serialize() for item in data]
