@@ -27,4 +27,6 @@ class Fichier(db.Model):
 
 
 def serialize_files(data):
+    if not data:
+        return []
     return [FichierSerializer(item).serialize() for item in data]

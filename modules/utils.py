@@ -107,8 +107,7 @@ def send_mail(
     dests = [rel.user.email for rel in rels] + add_dests
 
     msg = Message(
-            '[%s] %s' % sendername,
-            subject,
+            '[%s] %s' % (sendername, subject),
             sender=app.config['MAIL_SENDER'],
             recipients=dests)
     msg.body = msg_body
