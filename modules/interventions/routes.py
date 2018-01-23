@@ -57,7 +57,7 @@ def format_csv(data, sep='", "'):
     headers = Headers()
     headers.add('Content-Type', 'text/plain')
     headers.add('Content-Disposition', 'attachment', filename='export.csv')
-    return Response(('\n'.join(out)).encode('latin1'), headers=headers)
+    return Response(('\n'.join(out)), headers=headers)
 
 
 @routes.route('/', methods=['GET'])
