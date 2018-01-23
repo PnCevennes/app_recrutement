@@ -35,7 +35,7 @@ def format_csv(data, sep='", "'):
             'dem_loc_libelle', 'rea_duree', 'dmdr_contact_nom',
             'plan_commentaire', 'plan_date', 'rea_date', 'rea_nb_agents',
             'rea_commentaire']
-    out = ['"%"' % sep.join(_fields)]
+    out = ['"%s"' % sep.join(_fields)]
     for item in data:
         line = DemandeFullSerializer(item).serialize(_fields)
 
