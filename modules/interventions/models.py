@@ -10,10 +10,10 @@ from serialize_utils import serializer, Serializer, Field, prepare_date
 @serializer
 class DemandeSerializer(Serializer):
     id = Field()
+    num_intv = Field()
     dem_date = Field(serializefn=str, preparefn=prepare_date)
     dem_objet = Field()
-    dem_localisation = Field()
-    dmdr_service = Field()
+    dem_loc_libelle = Field()
     rea_date = Field(
             serializefn=(lambda val: str(val) if val is not None else val),
             preparefn=prepare_date)
@@ -21,13 +21,14 @@ class DemandeSerializer(Serializer):
 
 @serializer
 class DemandeFullSerializer(DemandeSerializer):
+    dem_localisation = Field()
     dem_loc_commune = Field()
-    dem_loc_libelle = Field()
     dem_details = Field()
     dem_delai = Field()
     dem_fichiers = Field(serializefn=serialize_files)
 
     dmdr_contact_nom = Field()
+    dmdr_service = Field()
     dmdr_contact_email = Field(
             serializefn=(
                 lambda val: [item for item in val.split(',') if item]),
@@ -49,6 +50,7 @@ class Demande(db.Model):
     """
     __tablename__ = 'intv_demande'
     id = db.Column(db.Integer, primary_key=True)
+    num_intv = db.Column(db.Unicode(length=50))
     dem_date = db.Column(db.Date)
     dem_objet = db.Column(db.Integer)
     dem_localisation = db.Column(db.Integer)
