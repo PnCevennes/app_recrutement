@@ -129,8 +129,14 @@ def create_intervention():
         _db.session.add(demande)
         _db.session.commit()
 
+        dem_loc = _db.session.query(Thesaurus).get(demande.dem_localisation).label
+        dem_objet = _db.session.query(Thesaurus).get(demande.dem_objet).label
         send_mail(4, 6,
-                "Création de la demande d'intervention n°%s" % demande.id,
+                "Création de la demande d'intervention n°%s - %s %s" % (
+                    demande.id,
+                    dem_objet,
+                    dem_loc
+                    ),
                 '''
                 Une nouvelle demande d'intervention a été créée.
                 Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?intervention=%s pour voir les détails de cette demande.
@@ -164,8 +170,15 @@ def update_intervention(id_intervention):
         _db.session.add(demande)
         _db.session.commit()
 
+        dem_loc = _db.session.query(Thesaurus).get(demande.dem_localisation).label
+        dem_objet = _db.session.query(Thesaurus).get(demande.dem_objet).label
+
         send_mail(4, 6,
-                "Mise à jour de la demande d'intervention n°%s" % demande.id,
+                "Mise à jour de la demande d'intervention n°%s - %s %s" % (
+                    demande.id,
+                    dem_objet,
+                    dem_loc
+                    ),
                 '''
                 La demande d'intervention n°%s a été modifiée.
                 Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?intervention=%s pour voir les détails de cette demande.
@@ -189,8 +202,15 @@ def delete_intervention(id_intervention):
     _db.session.delete(demande)
     _db.session.commit()
 
+    dem_loc = _db.session.query(Thesaurus).get(demande.dem_localisation).label
+    dem_objet = _db.session.query(Thesaurus).get(demande.dem_objet).label
+
     send_mail(4, 6,
-            "Annulation de la demande d'intervention n°%s" % demande.id,
+            "Annulation de la demande d'intervention n°%s" % (
+                    demande.id,
+                    dem_objet,
+                    dem_loc
+                    ),
             '''
             La demande d'intervention n°%s a été annulée.
             Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/ pour voir la liste des demandes en cours.

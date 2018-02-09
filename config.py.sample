@@ -14,7 +14,7 @@ MAIL_PORT = 25
 MAIL_USERNAME = 'foo@example.com'
 MAIL_PASSWORD = 'secret'
 
-MAIL_SENDER = 'recrutement<foo@example.com>',
+MAIL_SENDER = 'recrutement<foo@example.com>'
 
 # liste des destinataires à prévenir lorsqu'une modification est effectuée
 MAIL_DESTS = [

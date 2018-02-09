@@ -106,12 +106,15 @@ def create_agent():
             send_mail(
                 3,
                 6,
-                'Nouvelle fiche de recrutement',
+                'Nouvelle fiche de recrutement : %s %s' % (
+                    agent.prenom or '',
+                    agent.nom
+                    ),
                 '''
                 La fiche de recrutement de %s %s a été créée le %s.
                 Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
                 ''' % (
-                    agent.prenom,
+                    agent.prenom or '',
                     agent.nom,
                     datetime.datetime.today().strftime('%d/%m/%Y'),
                     agent.arrivee.year,
@@ -170,12 +173,15 @@ def update_agent(id_agent):
             send_mail(
                 3,
                 6,
-                "Modification d'une fiche de recrutement",
+                "Modification d'une fiche de recrutement : %s %s" % (
+                    agent.prenom or '',
+                    agent.nom
+                    ),
                 '''
                 La fiche de recrutement de %s %s a été modifiée le %s.
                 Vous pouvez vous connecter à http://tizoutis.pnc.int/#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
                 ''' % (
-                    agent.prenom,
+                    agent.prenom or '',
                     agent.nom,
                     datetime.datetime.today().strftime('%d/%m/%Y'),
                     agent.arrivee.year,
@@ -209,12 +215,15 @@ def delete_agent(id_agent):
     send_mail(
         3,
         6,
-        "Suppression d'une fiche de recrutement",
+        "Suppression d'une fiche de recrutement : %s %s" % (
+            agent.prenom or '',
+            agent.nom
+            ),
         '''
         La fiche de recrutement de %s %s a été supprimée le %s.
         Vous pouvez vous connecter à http://tizoutis.pnc.int/#/recrutement pour voir la liste des recrutements en cours.
         ''' % (
-            agent.prenom,
+            agent.prenom or '',
             agent.nom,
             datetime.datetime.today().strftime('%d/%m/%Y')
             ),
