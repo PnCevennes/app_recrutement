@@ -206,7 +206,7 @@ def delete_intervention(id_intervention):
     dem_objet = _db.session.query(Thesaurus).get(demande.dem_objet).label
 
     send_mail(4, 6,
-            "Annulation de la demande d'intervention n°%s" % (
+            "Annulation de la demande d'intervention n°%s - %s %s" % (
                     demande.id,
                     dem_objet,
                     dem_loc
