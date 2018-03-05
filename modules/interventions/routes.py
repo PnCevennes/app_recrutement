@@ -30,7 +30,7 @@ check_auth = registered_funcs['check_auth']
 
 def format_csv(data, sep='", "'):
     _fields = [
-            'id', 'dem_objet', 'dem_date', 'dem_localisation',
+            'id', 'num_intv', 'dem_objet', 'dem_date', 'dem_localisation',
             'dem_details', 'dmdr_service', 'dem_delai', 'dem_loc_commune',
             'dem_loc_libelle', 'rea_duree', 'dmdr_contact_nom',
             'plan_commentaire', 'plan_date', 'rea_date', 'rea_nb_agents',
