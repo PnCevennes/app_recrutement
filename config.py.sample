@@ -21,3 +21,10 @@ MAIL_DESTS = [
     'bar@example.com',
     'baz@example.com'
 ]
+
+UPLOAD_DIR = 'static/upload'
+
+LDAP_PREFIX = 'MyCompany\\%s'
+LDAP_USER = 'LdapAdmin'
+LDAP_PASS = 'SecretPasswd!!'
+LDAP_BASE_PATH = 'ou=users,dc=mycompany,dc=com'
