@@ -4,11 +4,13 @@ Démarrage de l'application
 
 
 import flask
+from flask_cors import CORS
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.mail import Mail
 
 db = SQLAlchemy()
 mail = Mail()
+cors = CORS()
 
 app_globals = {}
 
@@ -20,6 +22,7 @@ def get_app():
     app.config.from_pyfile('./config.py')
     db.init_app(app)
     mail.init_app(app)
+    cors.init_app(app)
 
     from modules.utils import registered_modules
     import routes

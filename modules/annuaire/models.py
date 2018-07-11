@@ -49,7 +49,7 @@ class Entite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     _nom = db.Column(db.Unicode(length=255))
     _label = db.Column('nom_complet', db.Unicode(length=255))
-    type_entite = db.Column(db.Integer)
+    type_entite = db.Column(db.Unicode(50))
     observations = db.Column(db.Unicode(length=1000))
 
     @hybrid_property

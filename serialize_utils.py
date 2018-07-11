@@ -13,14 +13,21 @@ def prepare_date(data):
     '''
     Transforme une chaine de date en objet datetime
     '''
+    print('prepare date: %s' % data)
     if not data:
-        return
+        return None
     if isinstance(data, datetime.datetime):
         return data
     try:
         return datetime.datetime.strptime(data, '%Y-%m-%d')
     except ValueError:
         return datetime.datetime.strptime(data, '%Y-%m-%dT%H:%M:%S.%fZ')
+
+def serialize_date(data):
+    '''
+    retourne une date sous forme de chaine
+    '''
+    return str(data) if data else None
 
 
 def serializer(cls):
@@ -135,8 +142,10 @@ class Serializer:
         errors = False
         for name, value in data.items():
             try:
+                print('%s: %s' % (name, value))
                 setattr(self, name, value)
             except ValueError as err:  # noqa
+                print(err)
                 errors = True
                 self.errors[name] = value
         if errors:
@@ -158,15 +167,3 @@ class Serializer:
             for field in fields:
                 out[field] = getattr(self, field)
             return out
-
-
-'''
-@serializer
-class TestSerializer(Serializer):
-    #a = Field(serializefn=lambda x: x.strftime('%d/%m/%Y %H-%M-%S'))
-    a = Field(serializefn=str)
-    b = Field(alias='plop', serializefn=lambda x: x+5,
-            default=10, checkfn=lambda x: 1<=x<=100)
-    c = Field()
-    d = Field()
-'''

@@ -14,16 +14,14 @@ from modules.utils import (
         normalize,
         json_resp,
         send_mail,
-        register_module,
-        registered_funcs)
+        register_module
+        )
 from .models import Agent, AgentDetail, RelAgentFichier
 
 
 routes = Blueprint('recrutement', __name__)
 
 register_module('/recrutement', routes)
-
-check_auth = registered_funcs['check_auth']
 
 
 @routes.route('/')
@@ -79,10 +77,10 @@ def create_agent():
     try:
         ag = request.json
         ag['arrivee'] = datetime.datetime.strptime(
-                ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                ag['arrivee'], '%Y-%m-%d')
         if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):  # noqa
             ag['depart'] = datetime.datetime.strptime(
-                    ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                    ag['depart'], '%Y-%m-%d')
         else:
             ag.pop('depart', None)
 
@@ -93,7 +91,7 @@ def create_agent():
         ag['fichiers'] = [
                 _db.session.query(Fichier).get(fich['id'])
                 for fich in ag.get('fichiers', [])]
-
+        ag['notif_list'] = ','.join(ag['notif_list'])
         ag['meta_create'] = datetime.datetime.now()
         notif = ag.pop('ctrl_notif', False)
 
@@ -104,15 +102,14 @@ def create_agent():
         out = normalize(agent)
         if notif:
             send_mail(
-                3,
-                6,
+                ['tizoutis-recrutement', 'admin-tizoutis'],
                 'Nouvelle fiche de recrutement : %s %s' % (
                     agent.prenom or '',
                     agent.nom
                     ),
                 '''
                 La fiche de recrutement de %s %s a été créée le %s.
-                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
+                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/recrutement?annee=%s&fiche=%s pour voir les détails de cette fiche.
                 ''' % (
                     agent.prenom or '',
                     agent.nom,
@@ -138,13 +135,14 @@ def update_agent(id_agent):
     '''
     try:
         ag = request.json
+        ag['notif_list'] = ','.join(ag['notif_list'])
         ag['arrivee'] = datetime.datetime.strptime(
-                ag['arrivee'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                ag['arrivee'], '%Y-%m-%d')
         ag['meta_create'] = datetime.datetime.strptime(
-                ag['meta_create'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                ag['meta_create'], '%Y-%m-%d')
         if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):  # noqa
             ag['depart'] = datetime.datetime.strptime(
-                    ag['depart'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                    ag['depart'], '%Y-%m-%d')
         else:
             ag.pop('depart')
         agent = _db.session.query(AgentDetail).get(id_agent)
@@ -154,7 +152,6 @@ def update_agent(id_agent):
         ag['materiel'] = [
                 _db.session.query(Thesaurus).get(item_id)
                 for item_id in ag.get('materiel', [])]
-        print(ag['materiel'])
 
         ag['fichiers'] = [
                 _db.session.query(Fichier).get(fich['id'])
@@ -162,24 +159,25 @@ def update_agent(id_agent):
 
         ag['meta_update'] = datetime.datetime.now()
         notif = ag.pop('ctrl_notif', False)
+        print(ag)
 
         for col in ag:
             setattr(agent, col, ag[col])
 
         _db.session.commit()
 
+        print('commit')
         out = normalize(agent)
         if notif:
             send_mail(
-                3,
-                6,
+                ['tizoutis-recrutement', 'admin-tizoutis'],
                 "Modification d'une fiche de recrutement : %s %s" % (
                     agent.prenom or '',
                     agent.nom
                     ),
                 '''
                 La fiche de recrutement de %s %s a été modifiée le %s.
-                Vous pouvez vous connecter à http://tizoutis.pnc.int/#/recrutement?annee=%s&agent=%s pour voir les détails de cette fiche.
+                Vous pouvez vous connecter à http://tizoutis.pnc.int/#/recrutement?annee=%s&fiche=%s pour voir les détails de cette fiche.
                 ''' % (
                     agent.prenom or '',
                     agent.nom,
@@ -191,8 +189,10 @@ def update_agent(id_agent):
                 )
 
         return out
-    except Exception:
+    except Exception as exc:
         import traceback
+        print(exc)
+        print(traceback.format_exc())
         return [{'msg': traceback.format_exc()}], 400
 
 
@@ -209,12 +209,11 @@ def delete_agent(id_agent):
             RelAgentFichier.id_agent == id_agent).all()
     for rel in rels_fichiers:
         delete_uploaded_file(rel.id_fichier, _db)
-        _db.session.delete(rel)
+        #_db.session.delete(rel)
     _db.session.delete(agent)
     _db.session.commit()
     send_mail(
-        3,
-        6,
+        ['tizoutis-recrutement', 'admin-tizoutis'],
         "Suppression d'une fiche de recrutement : %s %s" % (
             agent.prenom or '',
             agent.nom

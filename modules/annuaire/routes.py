@@ -121,7 +121,7 @@ def get_entites():
     entite_ids = request.args.getlist('params')
     _format = request.args.get('format', None)
     _etype = request.args.get('type', 'correspondant')
-    if not entite_ids:
+    if not len(entite_ids):
         entites = Entite.query.all()
     else:
         entites = get_entites_by_parent(entite_ids)
@@ -199,7 +199,11 @@ def get_entite_nom(nom):
             .all())
     if entite_result == 'obj':
         return [
-                {'id': getattr(e, entite_col, None), 'label': e.label}
+                {
+                    'id': getattr(e, entite_col, None),
+                    'label': e.label,
+                    'fonction': getattr(e, 'fonction', '')
+                }
                 for e in entites]
     return [getattr(e, entite_col, None) for e in entites]
 
@@ -211,11 +215,11 @@ def get_lib_entite():
     retourne un dictionnaire id/label
     '''
     entite_ids = request.args.getlist('params')
-    if not entite_ids:
+    if not len(entite_ids):
         entites = Entite.query.all()
     else:
         entites = Entite.query.filter(Entite.id.in_(entite_ids)).all()
-    return [{'id': item.id, 'label': item.label} for item in entites]
+    return [{'id': item.id, 'label': item.label, 'fonction': getattr(item, 'fonction', '')} for item in entites]
 
 
 @routes.route('/entite', methods=['POST', 'PUT'])

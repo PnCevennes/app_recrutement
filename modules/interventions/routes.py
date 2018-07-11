@@ -5,6 +5,7 @@ import datetime
 
 from flask import Blueprint, request, Response
 from werkzeug.datastructures import Headers
+from sqlalchemy.exc import InvalidRequestError
 
 from server import db as _db
 from models import Fichier
@@ -12,8 +13,8 @@ from modules.thesaurus.models import Thesaurus
 from modules.utils import (
         json_resp,
         send_mail,
-        register_module,
-        registered_funcs)
+        register_module
+        )
 from .models import (
         Demande,
         DemandeSerializer,
@@ -24,9 +25,6 @@ from serialize_utils import ValidationError
 routes = Blueprint('interventions', __name__)
 
 register_module('/interventions', routes)
-
-check_auth = registered_funcs['check_auth']
-
 
 def format_csv(data, sep='", "'):
     _fields = [
@@ -131,7 +129,8 @@ def create_intervention():
 
         dem_loc = _db.session.query(Thesaurus).get(demande.dem_localisation).label
         dem_objet = _db.session.query(Thesaurus).get(demande.dem_objet).label
-        send_mail(4, 6,
+        send_mail(
+                ['tizoutis-interventions', 'admin-tizoutis'],
                 "Création de la demande d'intervention n°%s - %s %s" % (
                     demande.id,
                     dem_objet,
@@ -139,9 +138,9 @@ def create_intervention():
                     ),
                 '''
                 Une nouvelle demande d'intervention a été créée.
-                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?intervention=%s pour voir les détails de cette demande.
+                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?fiche=%s pour voir les détails de cette demande.
                 ''' % demande.id,
-                add_dests=demande.dmdr_contact_email.split(','),
+                add_dests=demande.dmdr_contact_email,
                 sendername='interventions'
                 )
 
@@ -173,7 +172,8 @@ def update_intervention(id_intervention):
         dem_loc = _db.session.query(Thesaurus).get(demande.dem_localisation).label
         dem_objet = _db.session.query(Thesaurus).get(demande.dem_objet).label
 
-        send_mail(4, 6,
+        send_mail(
+                ['tizoutis-interventions', 'admin-tizoutis'],
                 "Mise à jour de la demande d'intervention n°%s - %s %s" % (
                     demande.id,
                     dem_objet,
@@ -181,15 +181,18 @@ def update_intervention(id_intervention):
                     ),
                 '''
                 La demande d'intervention n°%s a été modifiée.
-                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?intervention=%s pour voir les détails de cette demande.
+                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?fiche=%s pour voir les détails de cette demande.
                 ''' % (demande.id, demande.id),
-                add_dests=demande.dmdr_contact_email.split(','),
+                add_dests=demande.dmdr_contact_email,
                 sendername='interventions'
                 )
 
         return {'id': demande.id}
     except ValidationError as e:
         return e.errors, 400
+    except:
+        _db.session.rollback()
+        return {}, 400
 
 
 @routes.route('/<id_intervention>', methods=['DELETE'])
@@ -205,7 +208,8 @@ def delete_intervention(id_intervention):
     dem_loc = _db.session.query(Thesaurus).get(demande.dem_localisation).label
     dem_objet = _db.session.query(Thesaurus).get(demande.dem_objet).label
 
-    send_mail(4, 6,
+    send_mail(
+            ['tizoutis-interventions', 'admin-tizoutis'],
             "Annulation de la demande d'intervention n°%s - %s %s" % (
                     demande.id,
                     dem_objet,
@@ -215,6 +219,7 @@ def delete_intervention(id_intervention):
             La demande d'intervention n°%s a été annulée.
             Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/ pour voir la liste des demandes en cours.
             ''',
-            add_dests=demande.dmdr_contact_email.split(','))
+            add_dests=demande.dmdr_contact_email,
+            sendername='interventions')
 
     return {'id': demande.id}

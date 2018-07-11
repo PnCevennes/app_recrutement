@@ -68,6 +68,8 @@ class AgentDetail(Agent):
         out['meta_create'] = str(out['meta_create'])
         if out.get('meta_update', None) is not None:
             out['meta_update'] = str(out['meta_update'])
+        out['notif_list'] = [
+                item for item in self.notif_list.split(',') if item]
 
         out['materiel'] = [item.id for item in self.materiel]
         out['fichiers'] = [item.to_json() for item in self.fichiers]

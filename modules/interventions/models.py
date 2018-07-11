@@ -1,5 +1,5 @@
 '''
-mapping agent
+mapping intervention
 '''
 
 from server import db
@@ -95,7 +95,7 @@ class DemandeFichier(db.Model):
             primary_key=True)
     id_fichier = db.Column(
             db.Integer,
-            db.ForeignKey(Fichier.id),
+            db.ForeignKey(Fichier.id, ondelete='cascade'),
             primary_key=True)
 
 
@@ -111,5 +111,5 @@ class ReaFichier(db.Model):
             primary_key=True)
     id_fichier = db.Column(
             db.Integer,
-            db.ForeignKey(Fichier.id),
+            db.ForeignKey(Fichier.id, ondelete='cascade'),
             primary_key=True)

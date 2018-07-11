@@ -80,7 +80,7 @@ def delete_uploaded_file(fileid, path=None, db=None):
 
     try:
         fich = db.session.query(Fichier).get(fileid)
-        file_uri = fich.get_file_uri()
+        file_uri = fich.file_uri
         db.session.delete(fich)
         db.session.flush()
         db.session.commit()

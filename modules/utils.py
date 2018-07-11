@@ -6,16 +6,15 @@ import json
 import threading
 
 from functools import wraps
-
 from flask import Response
 from flask.ext.mail import Message
 
 from server import get_app, db, mail
 
-
 registered_modules = {}
 registered_funcs = {}
 
+from modules.auth.utils import ldap_connect, get_user_groups
 
 def register_module(prefix, blueprint):
     '''
@@ -77,13 +76,29 @@ def json_resp(fn):
     return _json_resp
 
 
-def _send_async(app, msg):
+def _send_async(app, msg, groups):
+    print(groups)
     with app.app_context():
+        ldap_cnx = ldap_connect(
+                app.config['LDAP_USER'],
+                app.config['LDAP_PASS'])
+        ldap_cnx.search(
+                'ou=Personnel,dc=pnc,dc=int',
+                '(sn=*)',
+                attributes=['cn', 'mail', 'memberOf'])
+        for entry in ldap_cnx.entries:
+            user_groups = get_user_groups(entry)
+            for grp in groups:
+                print(grp)
+                if grp in user_groups:
+                    msg.add_recipient(str(entry.mail))
+                    break
+
         mail.send(msg)
 
 
 def send_mail(
-        id_app, niveau, subject, msg_body,
+        groups, subject, msg_body,
         add_dests=None, sendername='recrutement'):
     '''
     envoie un mail aux administrateurs de l'application
@@ -98,13 +113,7 @@ def send_mail(
     if not app.config['SEND_MAIL']:
         return
 
-    from .auth.models import AppUser
-
-    rels = (AppUser.query
-            .filter(AppUser.niveau >= niveau)
-            .filter(AppUser.application_id == id_app)
-            .all())
-    dests = [rel.user.email for rel in rels] + add_dests
+    dests = add_dests
 
     msg = Message(
             '[%s] %s' % (sendername, subject),
@@ -112,7 +121,7 @@ def send_mail(
             recipients=dests)
     msg.body = msg_body
 
-    thr = threading.Thread(target=_send_async, args=[app, msg])
+    thr = threading.Thread(target=_send_async, args=[app, msg, groups])
     thr.start()
 
 

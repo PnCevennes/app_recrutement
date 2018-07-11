@@ -36,7 +36,7 @@ def get_thesaurus(id_ref):
 @routes.route('/id/<id_thes>')
 @json_resp
 def get_by_id(id_thes):
-    result = models.Thesaurus.query.get(id_thes)
+    result = _db.session.query(models.Thesaurus).get(int(id_thes))
     if not result:
         return [], 404
     return {'id': result.id, 'label': result.label}
