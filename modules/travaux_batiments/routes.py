@@ -91,12 +91,11 @@ def create_trav_batiment():
         _db.session.add(trav)
         _db.session.commit()
 
-        #TODO send mail
         send_mail(
                 ['tizoutis-travaux-batiments-admin', 'admin-tizoutis'],
-                "Création de la demande d'intervention n°%s" % trav.id,
+                "Création de la demande de travaux n°%s" % trav.id,
                 '''
-                Une nouvelle demande d'intervention a été créée.
+                Une nouvelle demande de travaux a été créée.
                 Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/batiments?fiche=%s pour voir les détails de cette demande.
                 ''' % trav.id,
                 add_dests=trav.dmdr_contact_email.split(','),
@@ -130,7 +129,6 @@ def update_trav_batiment(id_trav):
         TravauxBatimentFullSerializer(trav).populate(dem)
         _db.session.commit()
 
-        #TODO send mail
         send_mail(
                 ['tizoutis-travaux-batiments-admin', 'admin-tizoutis'],
                 "Mise à jour de la fiche n°%s" % trav.id,
@@ -157,7 +155,6 @@ def delete_trav_batiment(id_trav):
     _db.session.delete(trav)
     _db.session.commit()
 
-    #TODO send mail
     send_mail(
             ['tizoutis-travaux-batiments-admin', 'admin-tizoutis'],
             "Suppression de la fiche n°%s" % trav.id,
