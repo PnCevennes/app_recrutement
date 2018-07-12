@@ -88,7 +88,6 @@ def _send_async(app, msg, groups):
         for entry in ldap_cnx.entries:
             user_groups = get_user_groups(entry)
             for grp in groups:
-                print(grp)
                 if grp in user_groups:
                     msg.add_recipient(str(entry.mail))
                     break
