@@ -14,7 +14,6 @@ from server import get_app, db, mail
 registered_modules = {}
 registered_funcs = {}
 
-from modules.auth.utils import ldap_connect, get_user_groups
 
 def register_module(prefix, blueprint):
     '''
@@ -77,7 +76,7 @@ def json_resp(fn):
 
 
 def _send_async(app, msg, groups):
-    print(groups)
+    from modules.auth.utils import ldap_connect, get_user_groups
     with app.app_context():
         ldap_cnx = ldap_connect(
                 app.config['LDAP_USER'],
