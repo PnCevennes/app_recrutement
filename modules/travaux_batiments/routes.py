@@ -99,7 +99,7 @@ def create_trav_batiment():
                 Une nouvelle demande d'intervention a été créée.
                 Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/batiments?fiche=%s pour voir les détails de cette demande.
                 ''' % trav.id,
-                add_dests=trav.dmdr_contact_email,
+                add_dests=trav.dmdr_contact_email.split(','),
                 sendername='travaux-batiments'
                 )
 
@@ -138,7 +138,7 @@ def update_trav_batiment(id_trav):
                 La fiche n°{0} a été modifiée.
                 Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/batiments?fiche={0} pour voir les détails de cette demande.
                 '''.format(trav.id),
-                add_dests=trav.dmdr_contact_email,
+                add_dests=trav.dmdr_contact_email.split(','),
                 sendername='travaux-batiments'
                 )
 
@@ -165,7 +165,7 @@ def delete_trav_batiment(id_trav):
             La fiche n°{0} a été supprimée.
             Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/batiments pour voir la liste des travaux en cours.
             '''.format(trav.id),
-            add_dests=trav.dmdr_contact_email,
+            add_dests=trav.dmdr_contact_email.split(','),
             sendername='travaux-batiments'
             )
     return {'id': id_trav}
