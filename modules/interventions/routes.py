@@ -140,7 +140,7 @@ def create_intervention():
                 Une nouvelle demande d'intervention a été créée.
                 Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?fiche=%s pour voir les détails de cette demande.
                 ''' % demande.id,
-                add_dests=demande.dmdr_contact_email,
+                add_dests=demande.dmdr_contact_email.split(','),
                 sendername='interventions'
                 )
 
@@ -183,7 +183,7 @@ def update_intervention(id_intervention):
                 La demande d'intervention n°%s a été modifiée.
                 Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?fiche=%s pour voir les détails de cette demande.
                 ''' % (demande.id, demande.id),
-                add_dests=demande.dmdr_contact_email,
+                add_dests=demande.dmdr_contact_email.split(','),
                 sendername='interventions'
                 )
 
@@ -219,7 +219,7 @@ def delete_intervention(id_intervention):
             La demande d'intervention n°%s a été annulée.
             Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/ pour voir la liste des demandes en cours.
             ''',
-            add_dests=demande.dmdr_contact_email,
+            add_dests=demande.dmdr_contact_email.split(','),
             sendername='interventions')
 
     return {'id': demande.id}
