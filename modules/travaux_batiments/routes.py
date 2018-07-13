@@ -10,6 +10,7 @@ from werkzeug.datastructures import Headers
 from server import db as _db
 from models import Fichier
 from modules.thesaurus.models import Thesaurus
+from modules.refgeo.models import RefGeoCommunes, RefGeoBatiment
 from modules.utils import (
         json_resp,
         send_mail,
@@ -24,6 +25,59 @@ from serialize_utils import ValidationError
 routes = Blueprint('travaux_batiments', __name__)
 
 register_module('/travaux_batiments', routes)
+
+
+def format_csv(data, sep='", "'):
+    _fields = [
+            'id',
+            'dem_date',
+            'dem_commune',
+            'dem_designation',
+            'dmdr_service',
+            'dmdr_contact_nom',
+            'dem_importance_travaux',
+            'dem_type_travaux',
+            'dem_description_travaux',
+            'plan_service',
+            'plan_entreprise',
+            'plan_date',
+            'plan_commentaire',
+            'rea_date',
+            'rea_duree',
+            'rea_commentaire'
+            ]
+    out = ['"%s"' % sep.join(_fields)]
+    for item in data:
+        line = TravauxBatimentFullSerializer(item).serialize(_fields)
+
+        line['dem_commune'] = (
+                _db.session.query(RefGeoCommunes)
+                .get(line['dem_commune'])
+                .nom_commune)
+        line['dem_designation'] = (
+                _db.session.query(RefGeoBatiment)
+                .get(line['dem_designation'])
+                .designation)
+        line['dem_type_travaux'] = (
+                _db.session.query(Thesaurus)
+                .get(line['dem_type_travaux'])
+                .label)
+        line['dmdr_service'] = (
+                _db.session.query(Thesaurus)
+                .get(line['dmdr_service'])
+                .label)
+        if line['plan_service']:
+            line['plan_service'] = (
+                    _db.session.query(Thesaurus)
+                    .get(line['plan_service'])
+                    .label)
+        out.append('"%s"' % sep.join([
+            str(col) if col else ''
+            for col in line.values()]))
+    headers = Headers()
+    headers.add('Content-Type', 'text/plain')
+    headers.add('Content-Disposition', 'attachment', filename='export.csv')
+    return Response(('\n'.join(out)), headers=headers)
 
 
 @routes.route('/', methods=['GET'])
@@ -53,6 +107,11 @@ def get_all_trav_batiments():
     except Exception:
         import traceback
         return [{'msg': traceback.format_exc()}], 400
+
+    if _format == 'csv':
+        return format_csv(results)
+    if _format == 'tsv':
+        return format_csv(results, "\t")
 
     return [TravauxBatimentSerializer(res).serialize() for res in results]
 

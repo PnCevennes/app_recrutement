@@ -4,24 +4,97 @@ Routes relatives aux agents
 
 import datetime
 
-from flask import Blueprint, request
+from flask import Blueprint, request, Response
+from werkzeug.datastructures import Headers
 
 from server import db as _db
 from models import Fichier
 from routes import upload_file, get_uploaded_file, delete_uploaded_file
 from modules.thesaurus.models import Thesaurus
 from modules.utils import (
-        normalize,
         json_resp,
         send_mail,
         register_module
         )
-from .models import Agent, AgentDetail, RelAgentFichier
+from .models import (
+        Agent,
+        AgentDetail,
+        AgentSerializer,
+        AgentDetailSerializer,
+        RelAgentFichier)
+from serialize_utils import ValidationError
 
 
 routes = Blueprint('recrutement', __name__)
 
 register_module('/recrutement', routes)
+
+
+def format_csv(data, sep='", "'):
+    _fields = [
+            'id',
+            'nom',
+            'prenom',
+            'intitule_poste',
+            'service_id',
+            'arrivee',
+            'depart',
+            'desc_mission',
+            'type_contrat',
+            'lieu',
+            'categorie',
+            'temps_travail',
+            'temps_travail_autre'
+            ]
+    out = ['%s' % sep.join(_fields)]
+    for item in data:
+        try:
+            line = AgentDetailSerializer(item).serialize(_fields)
+        except ValidationError as e:
+            print(e.errors)
+
+        if line['type_contrat']:
+            line['type_contrat'] = (
+                    _db.session.query(Thesaurus)
+                    .get(line['type_contrat'])
+                    .label)
+        else:
+            line['type_contrat'] = None
+        if line['lieu']:
+            line['lieu'] = (
+                    _db.session.query(Thesaurus)
+                    .get(line['lieu'])
+                    .label)
+        else:
+            line['lieu'] = None
+        if line['service_id']:
+            line['service_id'] = (
+                    _db.session.query(Thesaurus)
+                    .get(line['service_id'])
+                    .label)
+        else:
+            line['service_id'] = None
+        if line['categorie']:
+            line['categorie'] = (
+                    _db.session.query(Thesaurus)
+                    .get(line['categorie'])
+                    .label)
+        else:
+            line['categorie'] = None
+        if line['temps_travail']:
+            line['temps_travail'] = (
+                    _db.session.query(Thesaurus)
+                    .get(line['temps_travail'])
+                    .label)
+        else:
+            line['temps_travail'] = None
+        out.append('%s' % sep.join([
+            str(col) if col else ''
+            for col in line.values()]))
+    headers = Headers()
+    headers.add('Content-Type', 'text/plain')
+    headers.add('Content-Disposition', 'attachment', filename='export.csv')
+    return Response(('\n'.join(out)), headers=headers)
 
 
 @routes.route('/')
@@ -31,6 +104,7 @@ def get_agents():
     retourne la liste des agents en cours de recrutement
     '''
     today = datetime.date.today()
+    _format = request.args.get('format', 'dict')
     try:
         annee = request.args.get('annee', False)
         if not annee:
@@ -42,15 +116,18 @@ def get_agents():
     try:
         annee_deb = datetime.date(annee, 1, 1)
         annee_fin = datetime.date(annee, 12, 31)
-        qr = Agent.query.filter(Agent.arrivee.between(annee_deb, annee_fin))
+        if _format == 'dict':
+            qr = Agent.query.filter(Agent.arrivee.between(annee_deb, annee_fin))
+        else:
+            qr = AgentDetail.query.filter(AgentDetail.arrivee.between(annee_deb, annee_fin))
 
         ag_list = qr.order_by(_db.asc(Agent.arrivee)).all()
-        out = []
-        for item in ag_list:
-            out.append(normalize(item))
-        if not out:
-            return []
-        return out
+        if _format == 'csv':
+            return format_csv(ag_list, ';')
+        if _format == 'tsv':
+            return format_csv(ag_list, "\t")
+        else:
+            return [AgentSerializer(res).serialize() for res in ag_list]
     except Exception:
         import traceback
         return [{'msg': traceback.format_exc()}], 400
@@ -65,7 +142,7 @@ def get_agent(id_agent):
     agent = AgentDetail.query.get(id_agent)
     if not agent:
         return [], 404
-    return normalize(agent)
+    return AgentDetailSerializer(agent).serialize()
 
 
 @routes.route('/', methods=['POST', 'PUT'])
@@ -99,7 +176,7 @@ def create_agent():
         _db.session.add(agent)
         _db.session.commit()
 
-        out = normalize(agent)
+        out = AgentDetailSerializer(agent).serialize()
         if notif:
             send_mail(
                 ['tizoutis-recrutement', 'admin-tizoutis'],
@@ -159,15 +236,13 @@ def update_agent(id_agent):
 
         ag['meta_update'] = datetime.datetime.now()
         notif = ag.pop('ctrl_notif', False)
-        print(ag)
 
         for col in ag:
             setattr(agent, col, ag[col])
 
         _db.session.commit()
 
-        print('commit')
-        out = normalize(agent)
+        out = AgentDetailSerializer(agent).serialize()
         if notif:
             send_mail(
                 ['tizoutis-recrutement', 'admin-tizoutis'],

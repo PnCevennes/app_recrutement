@@ -3,8 +3,35 @@ mapping agent
 '''
 
 from server import db
-from models import Fichier
+from models import Fichier, serialize_files
 from modules.thesaurus.models import Thesaurus
+from serialize_utils import (
+    serializer,
+    Serializer,
+    Field,
+    prepare_date,
+    serialize_date)
+
+
+@serializer
+class AgentSerializer(Serializer):
+    '''
+    serialise une partie des données de la fiche pour
+    un affichage en liste
+    '''
+    id = Field()
+    nom = Field()
+    prenom = Field()
+    intitule_poste = Field()
+    service_id = Field()
+    arrivee = Field(
+            serializefn=serialize_date,
+            preparefn=prepare_date
+            )
+    depart = Field(
+            serializefn=serialize_date,
+            preparefn=prepare_date
+            )
 
 
 class Agent(db.Model):
@@ -16,6 +43,45 @@ class Agent(db.Model):
     service_id = db.Column(db.Integer)  # TH ref 4
     arrivee = db.Column(db.Date)
     depart = db.Column(db.Date)
+
+
+@serializer
+class AgentDetailSerializer(AgentSerializer):
+    '''
+    serialise la totalité de la fiche pour un affichage détaillé
+    '''
+    id_agent = Field()
+    desc_mission = Field()
+    notif_list = Field(
+            serializefn=(
+                lambda val: [item for item in val.split(',') if item]),
+            preparefn=lambda val: ','.join(val)
+            )
+    type_contrat = Field()
+    lieu = Field()
+    logement = Field()  # TH ref 10
+    categorie = Field()  # TH ref 38
+    referent = Field()
+    gratification = Field()
+    temps_travail = Field()  # TH ref 33
+    temps_travail_autre = Field()
+    residence_administrative = Field()
+    convention_signee = Field()
+    bureau = Field()
+    observations = Field()
+    meta_create = Field(
+            serializefn=serialize_date,
+            preparefn=prepare_date
+            )
+    meta_update = Field(
+            serializefn=serialize_date,
+            preparefn=prepare_date
+            )
+    meta_createur_fiche = Field()
+    materiel = Field(
+            serializefn=lambda val: [item.id for item in val]
+            )
+    fichiers = Field(serializefn=serialize_files)
 
 
 class AgentDetail(Agent):
@@ -51,29 +117,6 @@ class AgentDetail(Agent):
             secondary='recr_rel_agent_fichier',
             lazy='joined'
             )
-
-    def to_json(self):
-        out = {
-                cn.name: getattr(self, cn.name)
-                for cn in super(AgentDetail, self).__table__.columns
-                if getattr(self, cn.name) is not None}
-        out.update({
-                cn.name: getattr(self, cn.name)
-                for cn in self.__table__.columns
-                if getattr(self, cn.name) is not None})
-        out['arrivee'] = str(out['arrivee'])
-        if out.get('depart', None) is not None:
-            out['depart'] = str(out['depart'])
-
-        out['meta_create'] = str(out['meta_create'])
-        if out.get('meta_update', None) is not None:
-            out['meta_update'] = str(out['meta_update'])
-        out['notif_list'] = [
-                item for item in self.notif_list.split(',') if item]
-
-        out['materiel'] = [item.id for item in self.materiel]
-        out['fichiers'] = [item.to_json() for item in self.fichiers]
-        return out
 
 
 class RelAgentMateriel(db.Model):

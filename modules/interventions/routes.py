@@ -28,10 +28,22 @@ register_module('/interventions', routes)
 
 def format_csv(data, sep='", "'):
     _fields = [
-            'id', 'num_intv', 'dem_objet', 'dem_date', 'dem_localisation',
-            'dem_details', 'dmdr_service', 'dem_delai', 'dem_loc_commune',
-            'dem_loc_libelle', 'rea_duree', 'dmdr_contact_nom',
-            'plan_commentaire', 'plan_date', 'rea_date', 'rea_nb_agents',
+            'id',
+            'num_intv',
+            'dem_objet',
+            'dem_date',
+            'dem_localisation',
+            'dem_details',
+            'dmdr_service',
+            'dem_delai',
+            'dem_loc_commune',
+            'dem_loc_libelle',
+            'rea_duree',
+            'dmdr_contact_nom',
+            'plan_commentaire',
+            'plan_date',
+            'rea_date',
+            'rea_nb_agents',
             'rea_commentaire']
     out = ['"%s"' % sep.join(_fields)]
     for item in data:
@@ -91,7 +103,6 @@ def get_interventions():
         return format_csv(results)
     if _format == 'tsv':
         return format_csv(results, "\t")
-
     else:
         return [DemandeSerializer(res).serialize() for res in results]
 

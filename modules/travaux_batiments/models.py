@@ -50,9 +50,6 @@ class TravauxBatimentFullSerializer(TravauxBatimentSerializer):
             serializefn=serialize_date,
             preparefn=prepare_date)
     plan_commentaire = Field()
-    rea_date = Field(
-            serializefn=serialize_date,
-            preparefn=prepare_date)
     rea_duree = Field()
     rea_commentaire = Field()
     dem_fichiers = Field(serializefn=serialize_files)

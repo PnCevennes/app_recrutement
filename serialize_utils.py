@@ -13,7 +13,6 @@ def prepare_date(data):
     '''
     Transforme une chaine de date en objet datetime
     '''
-    print('prepare date: %s' % data)
     if not data:
         return None
     if isinstance(data, datetime.datetime):
@@ -142,10 +141,8 @@ class Serializer:
         errors = False
         for name, value in data.items():
             try:
-                print('%s: %s' % (name, value))
                 setattr(self, name, value)
             except ValueError as err:  # noqa
-                print(err)
                 errors = True
                 self.errors[name] = value
         if errors:
@@ -165,5 +162,5 @@ class Serializer:
         else:
             out = OrderedDict()
             for field in fields:
-                out[field] = getattr(self, field)
+                out[field] = getattr(self, field, None)
             return out
