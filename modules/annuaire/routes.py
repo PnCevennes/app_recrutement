@@ -202,7 +202,7 @@ def get_entite_nom(nom):
                 {
                     'id': getattr(e, entite_col, None),
                     'label': e.label,
-                    'fonction': getattr(e, 'fonction', '')
+                    'fonction': getattr(e, 'fonction', None)
                 }
                 for e in entites]
     return [getattr(e, entite_col, None) for e in entites]
