@@ -78,7 +78,7 @@ def format_csv(corresps, fields, sep=','):
     outdata = [sep.join(fields)]
     for item in correspondants:
         outdata.append(
-                sep.join(['"%s"' % (item.get(e) or '') for e in fields]))
+                sep.join(['"%s"' % str(item.get(e) or '').replace('"', '""') for e in fields]))
     out = '\r\n'.join(outdata)
     return out.encode('latin1', 'replace')
 

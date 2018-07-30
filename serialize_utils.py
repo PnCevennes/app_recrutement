@@ -20,7 +20,10 @@ def prepare_date(data):
     try:
         return datetime.datetime.strptime(data, '%Y-%m-%d')
     except ValueError:
-        return datetime.datetime.strptime(data, '%Y-%m-%dT%H:%M:%S.%fZ')
+        try:
+            return datetime.datetime.strptime(data, '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            return datetime.datetime.strptime(data, '%Y-%m-%d %H:%M:%S')
 
 def serialize_date(data):
     '''
