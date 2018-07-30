@@ -4,3 +4,4 @@ static
 *.pyc
 *.db
 *.swp
+supervision.lock

@@ -1,18 +1,25 @@
 '''
 Démarrage de l'application
 '''
-
+import os
+import atexit
 
 import flask
 from flask_cors import CORS
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.mail import Mail
 
+
 db = SQLAlchemy()
 mail = Mail()
 cors = CORS()
 
 app_globals = {}
+
+def shutdown_fn(scan):
+    scan.evt.set()
+    os.unlink('./supervision.lock')
+    print('QUIT')
 
 
 def get_app():
@@ -33,6 +40,11 @@ def get_app():
         app.register_blueprint(blueprint, url_prefix=prefix)
 
     app_globals['app'] = app
+
+    from modules.supervision.tools import Scanner
+    scan = Scanner()
+
+    atexit.register(shutdown_fn, scan)
 
     return app
 
