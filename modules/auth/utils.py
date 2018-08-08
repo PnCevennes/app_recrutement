@@ -19,10 +19,12 @@ class AuthUser:
             self.id = data['id']
             self.name = data['name']
             self.groups = data['groups']
+            self.mail = data['mail']
             self.is_valid = True
         except TypeError:
             self.id = None
             self.name = None
+            self.mail = None
             self.groups = []
             self.is_valid = False
 
@@ -38,6 +40,7 @@ class AuthUser:
                 'id': self.id,
                 'name': self.name,
                 'groups': self.groups,
+                'mail': self.mail,
                 'is_valid': self.is_valid
                 }
 
@@ -93,14 +96,15 @@ def check_ldap_auth(login, passwd):
     ldap_cnx.search(
             config.LDAP_BASE_PATH,
             '(sAMAccountName=%s)' % login,
-            attributes=['objectSid', 'cn', 'memberOf'])
+            attributes=['objectSid', 'cn', 'memberOf', 'mail'])
     user_data = ldap_cnx.entries[0]
     user_name = str(user_data.cn)
     user_groups = get_user_groups(user_data)
     user = AuthUser({
             'id': str(user_data.objectSid)[-4:],
             'name': user_name,
-            'groups': user_groups
+            'groups': user_groups,
+            'mail': str(user_data.mail)
             })
 
     return user

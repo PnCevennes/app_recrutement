@@ -11,21 +11,29 @@ def _scan(app, session, evt):
     '''
     from .models import Equipement, EquipementSerializer
     with app.app_context():
+        counter = 0
         while not evt.is_set():
-            print('nouveau scan')
+            print('nouvelle boucle')
             equips = session.query(Equipement).all()
             out = []
-            for equip in equips:
-                res = subprocess.run(['fping', equip.ip_addr], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                if len(res.stderr):
-                    equip.status = 0
-                else:
-                    equip.status = 1
-                    equip.last_up = datetime.datetime.now()
-                out.append(EquipementSerializer(equip).serialize())
-                session.flush()
-                session.commit()
-            evt.wait(180)
+            if counter % 3 == 0:
+                counter = 0
+                print('nouveau scan')
+                for equip in equips:
+                    res = subprocess.run(
+                            ['fping', equip.ip_addr],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+                    if len(res.stderr):
+                        equip.status = 0
+                    else:
+                        equip.status = 1
+                        equip.last_up = datetime.datetime.now()
+                    out.append(EquipementSerializer(equip).serialize())
+                    session.flush()
+                    session.commit()
+            counter += 1
+            evt.wait(60)
 
 
 class Scanner:
