@@ -4,18 +4,16 @@ routes relatives aux application, utilisateurs et à l'authentification
 
 import json
 import datetime
+import uuid
 from functools import wraps
+
 from flask import (
         Blueprint,
         request,
         g,
-        Response,
-        current_app)
+        Response)
 from sqlalchemy.orm.exc import NoResultFound
-from itsdangerous import (
-        TimedSerializer,
-        SignatureExpired,
-        BadSignature)
+
 import config
 from server import get_app
 from server import db as _db
@@ -31,31 +29,67 @@ routes = Blueprint('auth', __name__)
 register_module('/auth', routes)
 
 @routes.route('/login', methods=['POST'])
+@json_resp
 def login_view():
     login = request.json['login'].strip()
     passwd = request.json['passwd'].strip()
 
+
     try:
         user = utils.check_ldap_auth(login, passwd)
+        userdata = json.dumps(user.as_dict())
+        token = uuid.uuid4().hex
+        expiration = datetime.date.today() + datetime.timedelta(days=1)
+        authstatus = _db.session.query(models.AuthStatus).get(user.id)
 
-        serializer = TimedSerializer(config.SECRET_KEY)
-        cookie_data = serializer.dumps(user.as_dict())
-        cookie_exp = datetime.datetime.now() + datetime.timedelta(days=1)
+        if authstatus:
+            authstatus.token = token
+            authstatus.expiration = expiration
+            authstatus.userdata = userdata
+            _db.session.commit()
 
-        resp = current_app.make_response(json.dumps(user.as_dict()))
-        resp.set_cookie('user', cookie_data, expires=cookie_exp)
+        else:
+            authstatus = models.AuthStatus(
+                    user_id=user.id,
+                    token=token,
+                    expiration=expiration,
+                    userdata=userdata
+                    )
+            _db.session.add(authstatus)
+            _db.session.commit()
 
-        return resp
+        return authstatus.as_dict()
     except utils.InvalidAuthError as err:
         return Response('[]', 403)
 
 
+@routes.route('/reconnect', methods=['POST'])
+@json_resp
+def reconnect_view():
+    token = request.json['token']
+    uid = request.json['id']
+    now = datetime.date.today()
+    authstatus = _db.session.query(models.AuthStatus).get(uid)
+    if not authstatus:
+        return {'err': 'invalid user'}, 403
+    if not authstatus.token == token:
+        return {'err': 'invalid token'}, 403
+    if authstatus.expiration < now:
+        return {'err': 'expired'}, 403
+    return json.loads(authstatus.userdata)
+
+
+
 
 @routes.route('/logout')
+@json_resp
 def logout():
-    resp = Response(json.dumps({'logout': True}))
-    resp.set_cookie('token', '')
-    return resp
+    token = request.json['token'].strip()
+    uid = request.json['id'].strip()
+    authstatus = _db.session.query(AuthStatus).get(uid)
+    if authstatus:
+        _db.session.delete(authstatus)
+    return []
 
 
 @routes.route('/users', methods=['GET'])
@@ -72,18 +106,3 @@ def get_user(id_user):
     if not user:
         return [], 404
     return normalize(user)
-
-@routes.route('/reconnect', methods=['GET'])
-@json_resp
-def reconnect():
-    try:
-        serializer = TimedSerializer(config.SECRET_KEY)
-        user = serializer.loads(request.cookies.get('user', {}))
-        print(user)
-        return {'user': user}
-    except SignatureExpired:
-        print('expired')
-        return [], 403
-    except BadSignature:
-        print('bad signature')
-        return [], 403

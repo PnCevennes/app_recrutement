@@ -3,7 +3,27 @@ mappings applications et utilisateurs
 '''
 
 import hashlib
+import json
 from server import db
+
+
+class AuthStatus(db.Model):
+    '''
+    Informations de session utilisateur
+    '''
+    __tablename__ = 'auth_status'
+    user_id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.Unicode(length=100))
+    expiration = db.Column(db.Date)
+    userdata = db.Column(db.UnicodeText)
+
+    def as_dict(self):
+        return {
+                'id': self.user_id,
+                'token': self.token,
+                'userdata': json.loads(self.userdata)
+                }
+
 
 
 class User(db.Model):
@@ -17,7 +37,6 @@ class User(db.Model):
     nom = db.Column(db.Unicode(length=100))
     prenom = db.Column(db.Unicode(length=100))
     email = db.Column(db.Unicode(length=250))
-    token = db.Column(db.Unicode(length=100))
     applications = db.relationship('AppUser', lazy='joined')
 
     @property

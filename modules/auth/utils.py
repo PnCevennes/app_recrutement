@@ -5,7 +5,7 @@ Fonctions relatives à l'authentification LDAP
 from functools import wraps
 
 import ldap3
-from flask import redirect, url_for, g
+from flask import redirect, url_for, g, request
 
 import config
 from ..utils import registered_funcs
@@ -16,10 +16,12 @@ class AuthUser:
     '''
     def __init__(self, data=None):
         try:
+            self.id = data['id']
             self.name = data['name']
             self.groups = data['groups']
             self.is_valid = True
         except TypeError:
+            self.id = None
             self.name = None
             self.groups = []
             self.is_valid = False
@@ -33,6 +35,7 @@ class AuthUser:
 
     def as_dict(self):
         return {
+                'id': self.id,
                 'name': self.name,
                 'groups': self.groups,
                 'is_valid': self.is_valid
@@ -47,7 +50,17 @@ class InvalidAuthError(Exception):
 
 
 def check_auth(*args, **kwargs):
-    return True
+    def _check_auth(fn):
+        @wraps(fn)
+        def __check_auth(*args_, **kwargs_):
+            if not request.args['token']:
+                return {'err': 'not authentified'}, 403
+            else:
+                return fn(*args_, **kwargs_)
+
+
+        return __check_auth
+    return _check_auth
 
 registered_funcs['check_auth'] = check_auth
 
@@ -80,11 +93,12 @@ def check_ldap_auth(login, passwd):
     ldap_cnx.search(
             config.LDAP_BASE_PATH,
             '(sAMAccountName=%s)' % login,
-            attributes=['cn', 'memberOf'])
+            attributes=['objectSid', 'cn', 'memberOf'])
     user_data = ldap_cnx.entries[0]
     user_name = str(user_data.cn)
     user_groups = get_user_groups(user_data)
     user = AuthUser({
+            'id': str(user_data.objectSid)[-4:],
             'name': user_name,
             'groups': user_groups
             })
