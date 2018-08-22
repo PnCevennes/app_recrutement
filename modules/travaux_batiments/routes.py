@@ -136,6 +136,9 @@ def get_one_trav_batiment(id_trav):
 
 @routes.route('/', methods=['PUT', 'POST'])
 @json_resp
+@check_auth(groups=[
+    'tizoutis-travaux-batiments-admin',
+    'tizoutis-travaux-batiments-user'])
 def create_trav_batiment():
     """
     Crée une nouvelle demande de travaux
@@ -176,6 +179,9 @@ def create_trav_batiment():
 
 @routes.route('/<id_trav>', methods=['PUT', 'POST'])
 @json_resp
+@check_auth(groups=[
+    'tizoutis-travaux-batiments-admin',
+    'tizoutis-travaux-batiments-user'])
 def update_trav_batiment(id_trav):
     """
     Met à jour une demande de travaux
@@ -214,6 +220,7 @@ def update_trav_batiment(id_trav):
 
 @routes.route('/<id_trav>', methods=['DELETE'])
 @json_resp
+@check_auth(groups=['tizoutis-travaux-batiments-admin'])
 def delete_trav_batiment(id_trav):
     """
     Supprime une demande de travaux

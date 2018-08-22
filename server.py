@@ -41,10 +41,11 @@ def get_app():
 
     app_globals['app'] = app
 
-    from modules.supervision.tools import Scanner
-    scan = Scanner()
+    if app.config.get('ENABLE_SUPERVISION', False):
+        from modules.supervision.tools import Scanner
+        scan = Scanner()
 
-    atexit.register(shutdown_fn, scan)
+        atexit.register(shutdown_fn, scan)
 
     return app
 

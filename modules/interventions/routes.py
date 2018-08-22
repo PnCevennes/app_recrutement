@@ -124,6 +124,7 @@ def get_one_intervention(id_intervention):
 
 @routes.route('/', methods=['POST', 'PUT'])
 @json_resp
+@check_auth()
 def create_intervention():
     """
     crée une nouvelle demande d'intervention
@@ -167,6 +168,7 @@ def create_intervention():
 
 @routes.route('/<id_intervention>', methods=['POST', 'PUT'])
 @json_resp
+@check_auth()
 def update_intervention(id_intervention):
     """
     met à jour une demande d'intervention identifée par id_intervention
@@ -213,6 +215,7 @@ def update_intervention(id_intervention):
 
 @routes.route('/<id_intervention>', methods=['DELETE'])
 @json_resp
+@check_auth(['tizoutis-interventions'])
 def delete_intervention(id_intervention):
     """
     supprime une demande d'intervention identifiée par id_intervention

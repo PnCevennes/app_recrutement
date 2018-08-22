@@ -2,30 +2,42 @@
 Fichier de configuration générale de l'application
 '''
 
+# chaine de connexion à la base de données
 SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
 
 # token administrateur pour débogage
 # permet d'accéder aux méthodes de l'API protégées par jeton d'identification
-ADMIN_DEBUG_TOKEN = 'superSecret'
+# type : str
+ADMIN_DEBUG_TOKEN = None  #'superSecret'
 
+# mails de notification
 SEND_MAIL = False
 
+# configuration email de notification
 MAIL_SERVER = 'localhost'
 MAIL_PORT = 25
 MAIL_USERNAME = 'foo@example.com'
 MAIL_PASSWORD = 'secret'
-
 MAIL_SENDER = 'recrutement<foo@example.com>'
 
-# liste des destinataires à prévenir lorsqu'une modification est effectuée
-MAIL_DESTS = [
-    'bar@example.com',
-    'baz@example.com'
-]
+# active le thread du module de supervision
+ENABLE_SUPERVISION = True
 
+# dossier des fichiers uploadés
 UPLOAD_DIR = 'static/upload'
 
+# gestion des utilisateurs locale ou via un serveur LDAP
+# AUTH_TYPE = 'local'
+AUTH_TYPE = 'ldap'
+
+# options LDAP
+
+# chaine de connexion LDAP
 LDAP_PREFIX = 'MyCompany\\%s'
+
+# utilisateur pour acces LDAP service (envoi mails)
 LDAP_USER = 'LdapAdmin'
 LDAP_PASS = 'SecretPasswd!!'
+
+# chaine de base de recherche
 LDAP_BASE_PATH = 'ou=users,dc=mycompany,dc=com'

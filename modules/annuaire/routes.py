@@ -231,6 +231,7 @@ def get_lib_entite():
 
 @routes.route('/entite', methods=['POST', 'PUT'])
 @json_resp
+@check_auth(['tizoutis-annuaire'])
 def create_entite():
     '''
     cree une nouvelle entite
@@ -256,6 +257,7 @@ def create_entite():
 
 @routes.route('/entite/<id_entite>', methods=['POST', 'PUT'])
 @json_resp
+@check_auth(['tizoutis-annuaire'])
 def update_entite(id_entite):
     '''
     met à jour une entite
@@ -285,6 +287,7 @@ def update_entite(id_entite):
 
 @routes.route('/entite/<id_entite>', methods=['DELETE'])
 @json_resp
+@check_auth(['tizoutis-annuaire'])
 def delete_entite(id_entite):
     entite = Entite.query.get(id_entite)
     if not entite:

@@ -151,6 +151,7 @@ def get_agent(id_agent):
 
 @routes.route('/', methods=['POST', 'PUT'])
 @json_resp
+@check_auth()
 def create_agent():
     '''
     crée un nouvel agent
@@ -210,6 +211,7 @@ def create_agent():
 
 @routes.route('/<id_agent>', methods=['POST', 'PUT'])
 @json_resp
+@check_auth()
 def update_agent(id_agent):
     '''
     met à jour un agent
@@ -277,6 +279,7 @@ def update_agent(id_agent):
 
 @routes.route('/<id_agent>', methods=['DELETE'])
 @json_resp
+@check_auth()
 def delete_agent(id_agent):
     '''
     annule un recrutement en cours
