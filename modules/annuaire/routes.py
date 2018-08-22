@@ -13,13 +13,18 @@ from .models import (
         Correspondant, CorrespondantValidateur,
         Entreprise, EntrepriseValidateur,
         RelationEntite, ValidationError)
-from ..utils import normalize, json_resp, register_module
+from ..utils import (
+        normalize,
+        json_resp,
+        register_module,
+        registered_funcs)
 
 
 routes = Blueprint('annuaire', __name__)
 
 register_module('/annuaire', routes)
 
+check_auth = registered_funcs['check_auth']
 
 TYPES_E = {
         'entite': Entite,
@@ -114,6 +119,7 @@ def format_phone(tel):
 
 @routes.route('/entites')
 @json_resp
+@check_auth()
 def get_entites():
     '''
     retourne la liste des groupes
@@ -153,6 +159,7 @@ def get_entites():
 
 @routes.route('/entite/<id_entite>')
 @json_resp
+@check_auth()
 def get_entite(id_entite):
     '''
     retourne une entite

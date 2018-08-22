@@ -13,7 +13,8 @@ from modules.thesaurus.models import Thesaurus
 from modules.utils import (
         json_resp,
         send_mail,
-        register_module
+        register_module,
+        registered_funcs
         )
 from .models import (
         Demande,
@@ -25,6 +26,8 @@ from serialize_utils import ValidationError
 routes = Blueprint('interventions', __name__)
 
 register_module('/interventions', routes)
+
+check_auth = registered_funcs['check_auth']
 
 def format_csv(data, sep='", "'):
     _fields = [
@@ -72,6 +75,7 @@ def format_csv(data, sep='", "'):
 
 @routes.route('/', methods=['GET'])
 @json_resp
+@check_auth()
 def get_interventions():
     """
     retourne la liste des demandes d'intervention
@@ -109,6 +113,7 @@ def get_interventions():
 
 @routes.route('/<id_intervention>', methods=['GET'])
 @json_resp
+@check_auth()
 def get_one_intervention(id_intervention):
     """
     retourne une demande d'intervention identifiée par id_intervention

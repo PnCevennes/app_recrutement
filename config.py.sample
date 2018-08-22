@@ -4,8 +4,9 @@ Fichier de configuration générale de l'application
 
 SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
 
-#clé de chiffrage et de signature des cookies
-SECRET_KEY = 'cleSecreteAChanger'
+# token administrateur pour débogage
+# permet d'accéder aux méthodes de l'API protégées par jeton d'identification
+ADMIN_DEBUG_TOKEN = 'superSecret'
 
 SEND_MAIL = False
 

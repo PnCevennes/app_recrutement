@@ -14,7 +14,8 @@ from modules.thesaurus.models import Thesaurus
 from modules.utils import (
         json_resp,
         send_mail,
-        register_module
+        register_module,
+        registered_funcs
         )
 from .models import (
         Agent,
@@ -29,6 +30,7 @@ routes = Blueprint('recrutement', __name__)
 
 register_module('/recrutement', routes)
 
+check_auth = registered_funcs['check_auth']
 
 def format_csv(data, sep='", "'):
     _fields = [
@@ -99,6 +101,7 @@ def format_csv(data, sep='", "'):
 
 @routes.route('/')
 @json_resp
+@check_auth()
 def get_agents():
     '''
     retourne la liste des agents en cours de recrutement
@@ -135,6 +138,7 @@ def get_agents():
 
 @routes.route('/<id_agent>', methods=['GET'])
 @json_resp
+@check_auth()
 def get_agent(id_agent):
     '''
     retourne l'agent identifié par `id_agent`

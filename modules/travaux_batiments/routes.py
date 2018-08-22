@@ -14,7 +14,8 @@ from modules.refgeo.models import RefGeoCommunes, RefGeoBatiment
 from modules.utils import (
         json_resp,
         send_mail,
-        register_module
+        register_module,
+        registered_funcs
         )
 from .models import (
         TravauxBatiment,
@@ -26,6 +27,7 @@ routes = Blueprint('travaux_batiments', __name__)
 
 register_module('/travaux_batiments', routes)
 
+check_auth = registered_funcs['check_auth']
 
 def format_csv(data, sep='", "'):
     _fields = [
@@ -82,6 +84,9 @@ def format_csv(data, sep='", "'):
 
 @routes.route('/', methods=['GET'])
 @json_resp
+@check_auth(groups=[
+    'tizoutis-travaux-batiments-admin',
+    'tizoutis-travaux-batiments-user'])
 def get_all_trav_batiments():
     """
     retourne la liste des demandes de travaux sur batiments
@@ -118,6 +123,9 @@ def get_all_trav_batiments():
 
 @routes.route('/<id_trav>', methods=['GET'])
 @json_resp
+@check_auth(groups=[
+    'tizoutis-travaux-batiments-admin',
+    'tizoutis-travaux-batiments-user'])
 def get_one_trav_batiment(id_trav):
     """
     Retourne le détail d'une fiche de demande de travaux

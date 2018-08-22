@@ -9,6 +9,8 @@ from flask import redirect, url_for, g, request
 
 import config
 from ..utils import registered_funcs
+from server import db
+from modules.auth.models import AuthStatus
 
 class AuthUser:
     '''
@@ -53,19 +55,29 @@ class InvalidAuthError(Exception):
 
 
 def check_auth(*args, **kwargs):
+    '''
+    vérifie l'authentification de l'utilisateur
+    '''
     def _check_auth(fn):
         @wraps(fn)
         def __check_auth(*args_, **kwargs_):
-            if not request.args['token']:
+            print('check auth')
+            token = request.args.get('token', None)
+            if token is None:
                 return {'err': 'not authentified'}, 403
-            else:
-                return fn(*args_, **kwargs_)
+            if token != config.ADMIN_DEBUG_TOKEN:
+                try:
+                    userinfo = db.session.query(AuthStatus).filter(AuthStatus.token == token).one()
+                except:
+                    return {'err': 'invalid auth'}, 403
+            return fn(*args_, **kwargs_)
 
 
         return __check_auth
     return _check_auth
 
 registered_funcs['check_auth'] = check_auth
+
 
 def ldap_connect(login, passwd):
     '''
