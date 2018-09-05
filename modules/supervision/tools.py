@@ -5,6 +5,17 @@ import os
 import os.path
 
 
+def shutdown_fn(scan):
+    '''
+    Stoppe le thread de scan des serveurs et supprime le 
+    fichier lock qui empèche la multiplication des threads
+    lorsqu'il y a plusieurs workers en prod
+    '''
+    scan.evt.set()
+    os.unlink('./supervision.lock')
+    print('QUIT')
+
+
 def _scan(app, session, evt):
     '''
     Thread qui scanne les différents équipements réseau.
@@ -20,11 +31,12 @@ def _scan(app, session, evt):
                 counter = 0
                 print('nouveau scan')
                 for equip in equips:
-                    res = subprocess.run(
+                    # compat 3.4
+                    res = subprocess.Popen(
                             ['fping', equip.ip_addr],
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
-                    if len(res.stderr):
+                    if res.wait():
                         equip.status = 0
                     else:
                         equip.status = 1

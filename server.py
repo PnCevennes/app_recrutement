@@ -16,12 +16,6 @@ cors = CORS()
 
 app_globals = {}
 
-def shutdown_fn(scan):
-    scan.evt.set()
-    os.unlink('./supervision.lock')
-    print('QUIT')
-
-
 def get_app():
     if app_globals.get('app', False):
         return app_globals['app']
@@ -42,7 +36,7 @@ def get_app():
     app_globals['app'] = app
 
     if app.config.get('ENABLE_SUPERVISION', False):
-        from modules.supervision.tools import Scanner
+        from modules.supervision.tools import Scanner, shutdown_fn
         scan = Scanner()
 
         atexit.register(shutdown_fn, scan)
