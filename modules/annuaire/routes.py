@@ -292,7 +292,10 @@ def delete_entite(id_entite):
     entite = Entite.query.get(id_entite)
     if not entite:
         return {'errmsg': 'Donnée inexistante'}, 404
-    entite.delete_relations()
+    try:
+        entite.delete_relations()
+    except sqlalchemy.exc.InvalidRequestError:
+        _db.session.rollback()
     _db.session.delete(entite)
     _db.session.commit()
     return []

@@ -7,7 +7,7 @@ import threading
 
 from functools import wraps
 from flask import Response
-from flask.ext.mail import Message
+from flask_mail import Message
 
 from server import get_app, db, mail
 
@@ -121,8 +121,3 @@ def send_mail(
 
     thr = threading.Thread(target=_send_async, args=[app, msg, groups])
     thr.start()
-
-
-def delete_file(id_file):
-    import routes
-    return routes.delete_file(id_file)

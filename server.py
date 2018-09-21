@@ -6,8 +6,8 @@ import atexit
 
 import flask
 from flask_cors import CORS
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.mail import Mail
+from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail
 
 
 db = SQLAlchemy()
@@ -47,5 +47,5 @@ app = get_app()
 
 
 if __name__ == '__main__':
-    from flask.ext.script import Manager
+    from flask_script import Manager
     Manager(app).run()
