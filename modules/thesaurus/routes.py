@@ -14,7 +14,13 @@ routes = Blueprint('th_routes', __name__)
 register_module('/thesaurus', routes)
 
 
-@routes.route('/ref/<id_ref>')
+@routes.route('/')
+@json_resp
+def th_index():
+    th_list = _db.session.query(models.Thesaurus).all()
+    return [normalize(item) for item in th_list]
+
+@routes.route('/ref/<int:id_ref>')
 @json_resp
 def get_thesaurus(id_ref):
     '''
@@ -24,10 +30,22 @@ def get_thesaurus(id_ref):
     try:
         th_list = _db.session.query(models.Thesaurus).filter(
                 models.Thesaurus.id_ref == id_ref).all()
-        out = []
-        for item in th_list:
-            out.append(normalize(item))
-        return out
+        return [normalize(item) for item in th_list]
+    except StatementError:
+        _db.session.rollback()
+        return [], 400
+
+
+@routes.route('/ref/<label>')
+@json_resp
+def get_th_mnemo(label):
+    try:
+        id_ref = _db.session.query(models.Thesaurus).filter(
+            models.Thesaurus.label == label
+            ).one()
+        th_list = _db.session.query(models.Thesaurus).filter(
+                models.Thesaurus.id_ref == id_ref.id).all()
+        return [normalize(item) for item in th_list]
     except StatementError:
         _db.session.rollback()
         return [], 400
