@@ -18,7 +18,7 @@ import config
 from server import get_app
 from server import db as _db
 from . import models, utils
-from ..utils import normalize, json_resp, register_module, registered_funcs
+from modules.utils import normalize, json_resp, register_module, registered_funcs
 
 
 class InvalidAuth(Exception):

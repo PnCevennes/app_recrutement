@@ -9,6 +9,7 @@ from serialize_utils import (
     Serializer,
     Field,
     prepare_date,
+    prepare_serial,
     serialize_date)
 
 
@@ -18,7 +19,7 @@ class TravauxBatimentSerializer(Serializer):
     serialise une partie des données de la fiche pour
     un affichage en liste
     '''
-    id = Field()
+    id = Field(preparefn=prepare_serial)
     dem_date = Field(
             serializefn=serialize_date,
             preparefn=prepare_date)
@@ -50,6 +51,9 @@ class TravauxBatimentFullSerializer(TravauxBatimentSerializer):
             serializefn=serialize_date,
             preparefn=prepare_date)
     plan_commentaire = Field()
+    rea_date = Field(
+            serializefn=serialize_date,
+            preparefn=prepare_date)
     rea_duree = Field()
     rea_commentaire = Field()
     dem_fichiers = Field(serializefn=serialize_files)

@@ -155,24 +155,24 @@ def create_trav_batiment():
             for item in dem.get('rea_fichiers', [])]
     dem['dem_date'] = datetime.datetime.now()
 
-    trav = TravauxBatiment()
+    demande = TravauxBatiment()
     try:
-        TravauxBatimentFullSerializer(trav).populate(dem)
-        _db.session.add(trav)
+        TravauxBatimentFullSerializer(demande).populate(dem)
+        _db.session.add(demande)
         _db.session.commit()
+
 
         send_mail(
                 ['tizoutis-travaux-batiments-admin', 'admin-tizoutis'],
-                "Création de la demande de travaux n°%s" % trav.id,
+                "Création de la demande de travaux n°%s" % demande.id,
                 '''
                 Une nouvelle demande de travaux a été créée.
                 Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/batiments?fiche=%s pour voir les détails de cette demande.
-                ''' % trav.id,
-                add_dests=trav.dmdr_contact_email.split(','),
+                ''' % demande.id,
+                add_dests=demande.dmdr_contact_email.split(','),
                 sendername='travaux-batiments'
                 )
-
-        return {'id': trav.id}
+        return {'id': demande.id}
     except ValidationError as e:
         return e.errors, 400
 

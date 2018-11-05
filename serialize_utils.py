@@ -9,6 +9,15 @@ import datetime
 from collections import OrderedDict
 
 
+def prepare_serial(val):
+    '''
+    Retourne int ou None pour int serial/autoincrement
+    '''
+    if val == '':
+        return None
+    return int(val)
+
+
 def prepare_date(data):
     '''
     Transforme une chaine de date en objet datetime
