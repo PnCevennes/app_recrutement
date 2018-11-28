@@ -1,8 +1,8 @@
 from server import db
-from serialize_utils import serializer, Serializer, Field
+from modules.utils.serialize import Serializer, Field
 
 
-@serializer
+
 class FichierSerializer(Serializer):
     id = Field()
     filename = Field()
@@ -30,3 +30,15 @@ def serialize_files(data):
     if not data:
         return []
     return [FichierSerializer(item).serialize() for item in data]
+
+
+def prepare_fichiers(db):
+    '''
+    retourne une liste de fichiers
+    '''
+    def _prepare_fichiers(val):
+        return [db.session.query(Fichier).get(item['id'])
+                    for item in val]
+    return _prepare_fichiers
+
+

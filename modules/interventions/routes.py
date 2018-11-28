@@ -8,7 +8,7 @@ from werkzeug.datastructures import Headers
 from sqlalchemy.exc import InvalidRequestError
 
 from server import db as _db
-from models import Fichier
+from models import Fichier, prepare_fichiers
 from modules.thesaurus.models import Thesaurus
 from modules.utils import (
         json_resp,
@@ -16,11 +16,16 @@ from modules.utils import (
         register_module,
         registered_funcs
         )
-from .models import (
-        Demande,
+from .models import Demande
+
+from .serializers import (
         DemandeSerializer,
         DemandeFullSerializer)
-from serialize_utils import ValidationError
+from modules.utils.serialize import ValidationError
+
+
+DemandeFullSerializer.dem_fichiers.preparefn = prepare_fichiers(_db)
+DemandeFullSerializer.rea_fichiers.preparefn = prepare_fichiers(_db)
 
 
 routes = Blueprint('interventions', __name__)
@@ -130,12 +135,6 @@ def create_intervention():
     crée une nouvelle demande d'intervention
     """
     dem = request.json
-    dem['dem_fichiers'] = [
-            _db.session.query(Fichier).get(item['id'])
-            for item in dem.get('dem_fichiers', [])]
-    dem['rea_fichiers'] = [
-            _db.session.query(Fichier).get(item['id'])
-            for item in dem.get('rea_fichiers', [])]
     dem['dem_date'] = datetime.datetime.now()
 
     demande = Demande()
@@ -174,17 +173,11 @@ def update_intervention(id_intervention):
     met à jour une demande d'intervention identifée par id_intervention
     """
     dem = request.json
-    dem['dem_fichiers'] = [
-            _db.session.query(Fichier).get(item['id'])
-            for item in dem.get('dem_fichiers', [])]
-    dem['rea_fichiers'] = [
-            _db.session.query(Fichier).get(item['id'])
-            for item in dem.get('rea_fichiers', [])]
 
     demande = _db.session.query(Demande).get(id_intervention)
     try:
         DemandeFullSerializer(demande).populate(dem)
-        _db.session.add(demande)
+        #_db.session.add(demande)
         _db.session.commit()
 
         dem_loc = _db.session.query(Thesaurus).get(demande.dem_localisation).label

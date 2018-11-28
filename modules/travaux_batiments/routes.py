@@ -17,11 +17,12 @@ from modules.utils import (
         register_module,
         registered_funcs
         )
-from .models import (
-        TravauxBatiment,
+from .models import TravauxBatiment
+
+from .serializers import (
         TravauxBatimentSerializer,
         TravauxBatimentFullSerializer)
-from serialize_utils import ValidationError
+from modules.utils.serialize import ValidationError
 
 routes = Blueprint('travaux_batiments', __name__)
 

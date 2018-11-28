@@ -13,6 +13,12 @@ from .models import (
         Correspondant, CorrespondantValidateur,
         Entreprise, EntrepriseValidateur,
         RelationEntite, ValidationError)
+from .serializers import (
+        EntiteSerializer,
+        CommuneSerializer,
+        CorrespondantSerializer,
+        EntrepriseSerializer
+        )
 from ..utils import (
         normalize,
         json_resp,
@@ -33,6 +39,12 @@ TYPES_E = {
         'entreprise': Entreprise
         }
 
+SERIALIZERS_E = {
+        'entite': EntiteSerializer,
+        'commune': CommuneSerializer,
+        'correspondant': CorrespondantSerializer,
+        'entreprise': EntrepriseSerializer
+        }
 
 VALIDATEURS_E = {
         'entite': EntiteValidateur,
@@ -41,51 +53,6 @@ VALIDATEURS_E = {
         'entreprise': EntrepriseValidateur
         }
 
-vcard_tpl = '''BEGIN:VCARD
-VERSION:2.1
-N:%s;%s
-FN:%s
-TITLE:%s
-TEL;WORK;VOICE:%s%s
-EMAIL;PREF;INTERNET:%s
-REV:%s
-END:VCARD'''
-
-
-def format_vcard(entite):
-    '''
-    retourne une vcard formatee selon les donnees de l'entite fournie
-    '''
-    dtime = datetime.datetime.now()
-    return vcard_tpl % (
-        entite.nom or '',
-        entite.prenom or '',
-        entite.label or '',
-        entite.fonction or '',
-        format_phone(entite.telephone),
-        (
-            "\nTEL;CELL;VOICE:%s" % format_phone(entite.mobile)
-            if entite.mobile else ''
-        ),
-        entite.email or '',
-        dtime.strftime('%Y%m%dT%H%m%SZ')
-        )
-
-
-def format_csv(corresps, fields, sep=','):
-    '''
-    retourne une liste de correspondants sous format tabulaire CSV
-    '''
-    if not len(corresps):
-        return ''
-
-    correspondants = [corresp.to_json() for corresp in corresps]
-    outdata = [sep.join(fields)]
-    for item in correspondants:
-        outdata.append(
-                sep.join(['"%s"' % str(item.get(e) or '').replace('"', '""') for e in fields]))
-    out = '\r\n'.join(outdata)
-    return out.encode('latin1', 'replace')
 
 
 def get_entites_by_parent(entite_ids):
@@ -104,17 +71,6 @@ def get_entites_by_parent(entite_ids):
             .order_by(Entite.label)
             .all())
 
-
-def format_phone(tel):
-    '''
-    formate un noméro de téléphone
-    '''
-    try:
-        return ' '.join(a+b for a, b in zip(
-                    [x for x in tel[::2]],
-                    [y for y in tel[1::2]]))
-    except:
-        return tel
 
 
 @routes.route('/entites')
@@ -154,7 +110,8 @@ def get_entites():
                 ])
         return Response(vcards, headers=headers)
 
-    return [normalize(e) for e in entites]
+    return [SERIALIZERS_E[e.type_entite](e).serialize() for e in entites]
+    #return [normalize(e) for e in entites]
 
 
 @routes.route('/entite/<id_entite>')
@@ -178,7 +135,8 @@ def get_entite(id_entite):
                 filename=entite.label.encode('ascii', 'ignore')+b'.vcf')
         vcard = format_vcard(entite)
         return Response(vcard, headers=headers)
-    return normalize(entite)
+    return SERIALIZERS_E[entite.type_entite](entite).serialize()
+    #return normalize(entite)
 
 
 @routes.route('/entites/<nom>')
@@ -237,22 +195,20 @@ def create_entite():
     cree une nouvelle entite
     '''
     data = request.json
-    entite_type = data.pop('type_entite', 'entite')
-    validateur = VALIDATEURS_E[entite_type]()
+    entite_type = data.get('type_entite', 'entite')
+    entite = TYPES_E[entite_type]()
+    serializer = SERIALIZERS_E[entite_type](entite)
     parents = data.pop('parents', [])
     relations = data.pop('relations', [])
     try:
-        entite_class = TYPES_E[entite_type]
-        v_data, v_unhandled = validateur.validate(data)
-        entite = entite_class(**v_data)
+        serializer.populate(data)
     except ValidationError as e:
-        return {'errmsg': 'Données invalides', 'errors': e.error_list}, 400
+        return {'errors': e.errors}, 400
     _db.session.add(entite)
-    _db.session.flush()
-    entite.parents = [p['id'] for p in parents if p]
-    entite.relations = [r['id'] for r in relations if r]
+    serializer.parents = parents
+    serializer.relations = relations
     _db.session.commit()
-    return normalize(entite)
+    return serializer.serialize()
 
 
 @routes.route('/entite/<id_entite>', methods=['POST', 'PUT'])
@@ -263,26 +219,15 @@ def update_entite(id_entite):
     met à jour une entite
     '''
     data = request.json
-    entite_type = data.pop('type_entite', 'entite')
-    try:
-        validateur = VALIDATEURS_E[entite_type]()
-        v_data, v_unhandled = validateur.validate(data)
-    except ValidationError as e:
-        return {'errmsg': 'Données invalides', 'errors': e.error_list}, 400
-    parents = data.pop('parents', [])
-    relations = data.pop('relations', [])
+    entite_type = data.get('type_entite', 'entite')
     entite = Entite.query.get(id_entite)
-    if not entite:
-        return {'errmsg': 'Donnée inexistante'}, 404
-    if entite.type_entite != entite_type:
-        return {'errmsg': 'Impossible de changer le type de la donnée'}, 400
-    for attr, value in v_data.items():
-        setattr(entite, attr, value)
-    entite.parents = [p['id'] for p in parents if p]
-    entite.relations = [r['id'] for r in relations if r]
-
+    serializer = SERIALIZERS_E[entite_type](entite)
+    try:
+        serializer.populate(data)
+    except ValidationError as e:
+        return {'errors': e.errors}, 400
     _db.session.commit()
-    return normalize(entite)
+    return serializer.serialize()
 
 
 @routes.route('/entite/<id_entite>', methods=['DELETE'])

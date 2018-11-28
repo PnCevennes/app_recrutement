@@ -20,10 +20,12 @@ from modules.utils import (
 from .models import (
         Agent,
         AgentDetail,
-        AgentSerializer,
-        AgentDetailSerializer,
         RelAgentFichier)
-from serialize_utils import ValidationError
+from .serializers import (
+        AgentSerializer,
+        AgentDetailSerializer
+        )
+from modules.utils.serialize import ValidationError
 
 
 routes = Blueprint('recrutement', __name__)

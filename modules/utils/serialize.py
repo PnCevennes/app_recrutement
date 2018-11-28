@@ -41,22 +41,6 @@ def serialize_date(data):
     return str(data) if data else None
 
 
-def serializer(cls):
-    '''
-    Décorateur nécéssaire pour initialiser une classe dérivée de Serializer
-    TODO: voir si c'est remplaçable par une metaclasse
-    '''
-    if not hasattr(cls, '__fields_list__'):
-        cls.__fields_list__ = []
-    else:
-        cls.__fields_list__ = cls.__fields_list__[:]
-    for attr, field in cls.__dict__.items():
-        if isinstance(field, Field):
-            field.name = attr
-            cls.__fields_list__.append(attr)
-    return cls
-
-
 class Field:
     '''
     Attribute class
@@ -69,7 +53,8 @@ class Field:
             checkfn=lambda x: True,
             preparefn=lambda x: x,
             serializefn=lambda x: x,
-            default=None):
+            default=None,
+            readonly=False):
         '''
         Constructeur
         params (obligatoirement nommés) :
@@ -97,6 +82,10 @@ class Field:
         # valeur par défaut de l'attribut lors de la sérialisation uniquement
         self.default = default
 
+        # indique que la valeur est en lecture seule et qu'elle n'a pas à être passée 
+        # à l'instance DB
+        self.ro = readonly
+
     def __set__(self, instance, value):
         '''
         Transmet la valeur fournie a l'objet à "peupler"
@@ -105,14 +94,15 @@ class Field:
         Etape 2 : le résultat transformé est évalué par la fonction 'checkfn'
 
         '''
-        try:
-            value = self.preparefn(value)
-            if not self.checkfn(value):
+        if not self.ro:
+            try:
+                value = self.preparefn(value)
+                if not self.checkfn(value):
+                    raise ValueError
+                setattr(instance.obj, self.alias or self.name, value)
+            except Exception:
+                instance.errors[self.name] = value
                 raise ValueError
-            setattr(instance.obj, self.alias or self.name, value)
-        except Exception:
-            instance.errors[self.name] = value
-            raise ValueError
 
     def __get__(self, instance, owner):
         '''
@@ -132,7 +122,27 @@ class ValidationError(Exception):
         self.errors = errors
 
 
-class Serializer:
+class MetaSerializer(type):
+    '''
+    Metaclass de Serializer
+    Ajoute la liste des champs déclarés dans les classes héritant de Serializer
+    dans le liste de champs à traiter (__fields_list__)
+    affecte le nom de la variable déclarée dans la classe à la class attribut correspondante
+    '''
+    def __new__(cls, name, bases, props):
+        props['__fields_list__'] = []
+        for parent_class in bases:
+            props['__fields_list__'].extend(
+                    getattr(parent_class, '__fields_list__', []))
+            
+        for pname, pfield in props.items():
+            if isinstance(pfield, Field):
+                pfield.name = pname
+                props['__fields_list__'].append(pname)
+        return type.__new__(cls, name, bases, props)
+
+
+class Serializer(metaclass=MetaSerializer):
     '''
     Représentation d'un modele
     '''

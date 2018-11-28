@@ -5,15 +5,13 @@ import datetime
 import json
 
 from server import db
-from serialize_utils import (
-    serializer,
+from modules.utils.serialize import (
     Serializer,
     Field,
     prepare_date,
     serialize_date)
 
 
-@serializer
 class EquipementSerializer(Serializer):
     '''
     Serialisation d'un objet Equipement

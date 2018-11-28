@@ -4,7 +4,7 @@ import datetime
 from flask import Blueprint, request
 from server import db as _db
 from modules.utils import json_resp, register_module
-from serialize_utils import ValidationError
+from modules.utils.serialize import ValidationError
 from .models import Equipement, EquipementSerializer
 #from . import utils
 
