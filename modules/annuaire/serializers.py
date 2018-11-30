@@ -1,7 +1,7 @@
 '''
 Classes de sérialisation des données
 '''
-from modules.utils.serialize import Serializer, Field
+from core.utils.serialize import Serializer, Field
 
 
 def format_phone(tel):

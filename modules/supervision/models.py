@@ -5,7 +5,7 @@ import datetime
 import json
 
 from server import db
-from modules.utils.serialize import (
+from core.utils.serialize import (
     Serializer,
     Field,
     prepare_date,

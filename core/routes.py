@@ -10,8 +10,8 @@ from flask import Blueprint, request, current_app, Response
 from sqlalchemy.exc import InvalidRequestError
 from werkzeug.utils import secure_filename
 from server import db as _db
-from modules.utils import json_resp
-from models import Fichier
+from core.utils import json_resp
+from core.models import Fichier
 
 
 main = Blueprint('main', __name__)

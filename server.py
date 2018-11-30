@@ -25,8 +25,9 @@ def get_app():
     mail.init_app(app)
     cors.init_app(app)
 
-    from modules.utils import registered_modules
-    import routes
+    from core.utils import registered_modules
+    from core import routes
+    import modules
 
     app.register_blueprint(routes.main)
 
@@ -43,9 +44,9 @@ def get_app():
 
     return app
 
-app = get_app()
 
 
 if __name__ == '__main__':
+    app = get_app()
     from flask_script import Manager
     Manager(app).run()

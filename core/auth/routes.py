@@ -15,10 +15,13 @@ from flask import (
 from sqlalchemy.orm.exc import NoResultFound
 
 import config
-from server import get_app
-from server import db as _db
+from server import get_app, db as _db
+from core.utils import (
+        normalize,
+        json_resp,
+        register_module,
+        registered_funcs)
 from . import models, utils
-from modules.utils import normalize, json_resp, register_module, registered_funcs
 
 
 class InvalidAuth(Exception):

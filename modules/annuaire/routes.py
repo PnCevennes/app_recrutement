@@ -19,8 +19,7 @@ from .serializers import (
         CorrespondantSerializer,
         EntrepriseSerializer
         )
-from ..utils import (
-        normalize,
+from core.utils import (
         json_resp,
         register_module,
         registered_funcs)
@@ -111,7 +110,6 @@ def get_entites():
         return Response(vcards, headers=headers)
 
     return [SERIALIZERS_E[e.type_entite](e).serialize() for e in entites]
-    #return [normalize(e) for e in entites]
 
 
 @routes.route('/entite/<id_entite>')
@@ -136,7 +134,6 @@ def get_entite(id_entite):
         vcard = format_vcard(entite)
         return Response(vcard, headers=headers)
     return SERIALIZERS_E[entite.type_entite](entite).serialize()
-    #return normalize(entite)
 
 
 @routes.route('/entites/<nom>')

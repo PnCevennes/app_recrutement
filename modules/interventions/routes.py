@@ -8,9 +8,9 @@ from werkzeug.datastructures import Headers
 from sqlalchemy.exc import InvalidRequestError
 
 from server import db as _db
-from models import Fichier, prepare_fichiers
-from modules.thesaurus.models import Thesaurus
-from modules.utils import (
+from core.models import Fichier, prepare_fichiers
+from core.thesaurus.models import Thesaurus
+from core.utils import (
         json_resp,
         send_mail,
         register_module,
@@ -21,7 +21,7 @@ from .models import Demande
 from .serializers import (
         DemandeSerializer,
         DemandeFullSerializer)
-from modules.utils.serialize import ValidationError
+from core.utils.serialize import ValidationError
 
 
 DemandeFullSerializer.dem_fichiers.preparefn = prepare_fichiers(_db)

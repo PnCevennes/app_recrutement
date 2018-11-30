@@ -3,10 +3,9 @@ import datetime
 
 from flask import Blueprint, request
 from server import db as _db
-from modules.utils import json_resp, register_module
-from modules.utils.serialize import ValidationError
+from core.utils import json_resp, register_module
+from core.utils.serialize import ValidationError
 from .models import Equipement, EquipementSerializer
-#from . import utils
 
 routes = Blueprint('superv', __name__)
 

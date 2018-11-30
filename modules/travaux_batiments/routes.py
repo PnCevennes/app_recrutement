@@ -8,21 +8,21 @@ from flask import Blueprint, request, Response
 from werkzeug.datastructures import Headers
 
 from server import db as _db
-from models import Fichier
-from modules.thesaurus.models import Thesaurus
-from modules.refgeo.models import RefGeoCommunes, RefGeoBatiment
-from modules.utils import (
+from core.models import Fichier
+from core.thesaurus.models import Thesaurus
+from core.refgeo.models import RefGeoCommunes, RefGeoBatiment
+from core.utils import (
         json_resp,
         send_mail,
         register_module,
         registered_funcs
         )
+from core.utils.serialize import ValidationError
 from .models import TravauxBatiment
 
 from .serializers import (
         TravauxBatimentSerializer,
         TravauxBatimentFullSerializer)
-from modules.utils.serialize import ValidationError
 
 routes = Blueprint('travaux_batiments', __name__)
 

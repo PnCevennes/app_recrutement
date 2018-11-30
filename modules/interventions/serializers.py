@@ -1,5 +1,5 @@
-from modules.utils.serialize import Serializer, Field, prepare_date
-from models import serialize_files
+from core.utils.serialize import Serializer, Field, prepare_date
+from core.models import serialize_files
 
 
 class DemandeSerializer(Serializer):

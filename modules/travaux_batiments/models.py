@@ -3,7 +3,7 @@ mapping intervention
 '''
 
 from server import db
-from models import Fichier, serialize_files
+from core.models import Fichier, serialize_files
 
 
 class TravauxBatiment(db.Model):

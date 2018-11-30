@@ -2,8 +2,8 @@ from flask import Blueprint
 from server import db
 from sqlalchemy.exc import StatementError
 
-from modules.refgeo import models
-from modules.utils import normalize, json_resp, register_module
+from core.refgeo import models
+from core.utils import normalize, json_resp, register_module
 
 routes = Blueprint('rg_routes', __name__)
 

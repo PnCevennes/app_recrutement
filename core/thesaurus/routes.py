@@ -6,8 +6,8 @@ from flask import Blueprint, request
 from server import db as _db
 from sqlalchemy.exc import StatementError
 
-from modules.thesaurus import models
-from modules.utils import (
+from core.thesaurus import models
+from core.utils import (
         normalize,
         json_resp,
         register_module,

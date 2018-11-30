@@ -8,15 +8,16 @@ from flask import Blueprint, request, Response
 from werkzeug.datastructures import Headers
 
 from server import db as _db
-from models import Fichier
-from routes import upload_file, get_uploaded_file, delete_uploaded_file
-from modules.thesaurus.models import Thesaurus
-from modules.utils import (
+from core.models import Fichier
+from core.routes import upload_file, get_uploaded_file, delete_uploaded_file
+from core.thesaurus.models import Thesaurus
+from core.utils import (
         json_resp,
         send_mail,
         register_module,
         registered_funcs
         )
+from core.utils.serialize import ValidationError
 from .models import (
         Agent,
         AgentDetail,
@@ -25,7 +26,6 @@ from .serializers import (
         AgentSerializer,
         AgentDetailSerializer
         )
-from modules.utils.serialize import ValidationError
 
 
 routes = Blueprint('recrutement', __name__)

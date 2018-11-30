@@ -3,8 +3,8 @@ mapping agent
 '''
 
 from server import db
-from models import Fichier, serialize_files
-from modules.thesaurus.models import Thesaurus
+from core.models import Fichier, serialize_files
+from core.thesaurus.models import Thesaurus
 class Agent(db.Model):
     __tablename__ = 'recr_agent'
     id = db.Column(db.Integer, primary_key=True)

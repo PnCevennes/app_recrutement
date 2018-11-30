@@ -1,5 +1,5 @@
 from server import db
-from modules.utils.serialize import Serializer, Field
+from core.utils.serialize import Serializer, Field
 
 
 

@@ -1,9 +1,9 @@
-from modules.utils.serialize import (
+from core.utils.serialize import (
     Serializer,
     Field,
     prepare_date,
     serialize_date)
-from models import serialize_files
+from core.models import serialize_files
 
 
 class AgentSerializer(Serializer):

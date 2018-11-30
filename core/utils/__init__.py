@@ -8,7 +8,6 @@ import threading
 from functools import wraps
 from flask import Response
 from flask_mail import Message
-
 from server import get_app, db, mail
 
 registered_modules = {}
@@ -121,3 +120,4 @@ def send_mail(
 
     thr = threading.Thread(target=_send_async, args=[app, msg, groups])
     thr.start()
+

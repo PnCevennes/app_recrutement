@@ -9,9 +9,9 @@ from flask import redirect, url_for, g, request
 from sqlalchemy.orm.exc import NoResultFound
 
 import config
-from ..utils import registered_funcs
 from server import db
-from modules.auth.models import AuthStatus
+from core.utils import registered_funcs
+from core.auth.models import AuthStatus
 
 class AuthUser:
     '''
