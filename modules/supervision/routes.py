@@ -1,8 +1,9 @@
 import json
 import datetime
+import atexit
 
 from flask import Blueprint, request
-from server import db as _db
+from server import db as _db, get_app
 from core.utils import json_resp, register_module
 from core.utils.serialize import ValidationError
 from .models import Equipement, EquipementSerializer
@@ -11,6 +12,13 @@ routes = Blueprint('superv', __name__)
 
 register_module('/supervision', routes)
 
+app = get_app()
+
+if app.config.get('ENABLE_SUPERVISION', False):
+    from .tools import Scanner, shutdown_fn
+    scan = Scanner()
+
+    atexit.register(shutdown_fn, scan)
 
 
 @routes.route('/')

@@ -7,13 +7,27 @@ import os.path
 
 def shutdown_fn(scan):
     '''
-    Stoppe le thread de scan des serveurs et supprime le 
+    Stoppe le thread de scan des serveurs et supprime le
     fichier lock qui empèche la multiplication des threads
     lorsqu'il y a plusieurs workers en prod
     '''
     scan.evt.set()
     os.unlink('./supervision.lock')
     print('QUIT')
+
+
+def scan_ping(ip):
+    '''
+    retourne l'accessibilité de l'équipement réseau par PING
+    '''
+    res = subprocess.Popen(
+            ['fping', equip.ip_addr],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+    if res.wait():
+        return False
+    else:
+        return b'alive' in res.stdout.read():
 
 
 def _scan(app, session, evt):
@@ -32,11 +46,7 @@ def _scan(app, session, evt):
                 print('nouveau scan')
                 for equip in equips:
                     # compat 3.4
-                    res = subprocess.Popen(
-                            ['fping', equip.ip_addr],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-                    if res.wait():
+                    if not scan_ping(equip.ip_addr):
                         equip.status = 0
                     else:
                         equip.status = 1

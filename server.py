@@ -2,7 +2,6 @@
 Démarrage de l'application
 '''
 import os
-import atexit
 
 import flask
 from flask_cors import CORS
@@ -24,23 +23,19 @@ def get_app():
     db.init_app(app)
     mail.init_app(app)
     cors.init_app(app)
+    app_globals['app'] = app
 
+
+    # Import des modules coeur
     from core.utils import registered_modules
     from core import routes
-    import modules
-
     app.register_blueprint(routes.main)
+
+    # Import des modules applicatifs
+    import modules
 
     for prefix, blueprint in registered_modules.items():
         app.register_blueprint(blueprint, url_prefix=prefix)
-
-    app_globals['app'] = app
-
-    if app.config.get('ENABLE_SUPERVISION', False):
-        from modules.supervision.tools import Scanner, shutdown_fn
-        scan = Scanner()
-
-        atexit.register(shutdown_fn, scan)
 
     return app
 
