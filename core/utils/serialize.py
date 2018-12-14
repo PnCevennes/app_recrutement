@@ -186,3 +186,31 @@ class Serializer(metaclass=MetaSerializer):
             for field in fields:
                 out[field] = getattr(self, field, None)
             return out
+
+    @classmethod
+    def export_csv(cls, data, *, fields=None, sep=',', delimiter='"', eol='\n'):
+        '''
+        Exporte une liste d'objets sous la forme d'un fichier CSV
+        '''
+        _fields = []
+        _formatters = {}
+
+        if fields is None:
+            fields = cls.__fields_list__
+        for field in fields:
+            if isinstance(field, tuple):
+                fname, formatter = field
+            else:
+                fname = field
+                formatter = lambda x: x
+            _fields.append(fname)
+            _formatters[fname] = formatter
+
+        f_template = delimiter + '%s' + delimiter
+        lines = [sep.join([f_template % f for f in _fields])]
+        for item in data:
+            if not isinstance(item, cls):
+                item = cls(item)
+            lines.append(sep.join([f_template % (_formatters[f](getattr(item, f, '')) or '') for f in _fields]))
+        return eol.join(lines).encode('latin1', 'replace')
+

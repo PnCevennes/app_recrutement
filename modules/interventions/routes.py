@@ -12,6 +12,7 @@ from core.models import Fichier, prepare_fichiers
 from core.thesaurus.models import Thesaurus
 from core.utils import (
         json_resp,
+        csv_response,
         send_mail,
         register_module,
         registered_funcs
@@ -34,48 +35,34 @@ register_module('/interventions', routes)
 
 check_auth = registered_funcs['check_auth']
 
-def format_csv(data, sep='", "'):
-    _fields = [
-            'id',
-            'num_intv',
-            'dem_objet',
-            'dem_date',
-            'dem_localisation',
-            'dem_details',
-            'dmdr_service',
-            'dem_delai',
-            'dem_loc_commune',
-            'dem_loc_libelle',
-            'rea_duree',
-            'dmdr_contact_nom',
-            'plan_commentaire',
-            'plan_date',
-            'rea_date',
-            'rea_nb_agents',
-            'rea_commentaire']
-    out = ['"%s"' % sep.join(_fields)]
-    for item in data:
-        line = DemandeFullSerializer(item).serialize(_fields)
 
-        line['dem_localisation'] = (
-                _db.session.query(Thesaurus)
-                .get(line['dem_localisation'])
-                .label)
-        line['dem_objet'] = (
-                _db.session.query(Thesaurus)
-                .get(line['dem_objet'])
-                .label)
-        line['dmdr_service'] = (
-                _db.session.query(Thesaurus)
-                .get(line['dmdr_service'])
-                .label)
-        out.append('"%s"' % sep.join([
-            str(col) if col else ''
-            for col in line.values()]))
-    headers = Headers()
-    headers.add('Content-Type', 'text/plain')
-    headers.add('Content-Disposition', 'attachment', filename='export.csv')
-    return Response(('\n'.join(out)), headers=headers)
+csv_fields = [
+        'id',
+        'num_intv',
+        (
+            'dem_objet',
+            lambda x: _db.session.query(Thesaurus).get(x).label
+        ),
+        'dem_date',
+        (
+            'dem_localisation',
+            lambda x: _db.session.query(Thesaurus).get(x).label
+        ),
+        'dem_details',
+        (
+            'dmdr_service',
+            lambda x: _db.session.query(Thesaurus).get(x).label
+        ),
+        'dem_delai',
+        'dem_loc_commune',
+        'dem_loc_libelle',
+        'rea_duree',
+        'dmdr_contact_nom',
+        'plan_commentaire',
+        'plan_date',
+        'rea_date',
+        'rea_nb_agents',
+        'rea_commentaire']
 
 
 @routes.route('/', methods=['GET'])
@@ -102,16 +89,22 @@ def get_interventions():
 
         results = (
                 _db.session.query(Demande)
-                .filter(Demande.dem_date.between(annee_deb, annee_fin))
+                .filter(
+                    _db.and_(
+                        Demande.dem_date <= annee_fin,
+                        _db.or_(
+                            Demande.rea_date == None,
+                            Demande.rea_date >= annee_deb
+                        )
+                    )
+                )
                 .all())
     except Exception:
         import traceback
         return [{'msg': traceback.format_exc()}], 400
 
     if _format == 'csv':
-        return format_csv(results)
-    if _format == 'tsv':
-        return format_csv(results, "\t")
+        return csv_response(DemandeFullSerializer.export_csv(results, fields=csv_fields), filename='interventions.csv')
     else:
         return [DemandeSerializer(res).serialize() for res in results]
 

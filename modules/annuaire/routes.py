@@ -4,9 +4,15 @@ routes relatives à l'annuaire
 import datetime
 
 from flask import Blueprint, request, Response
-from werkzeug.datastructures import Headers
 
 from server import db as _db
+from core.utils import (
+        json_resp,
+        csv_response,
+        vcard_response,
+        register_module,
+        registered_funcs)
+
 from .models import (
         Entite, EntiteValidateur,
         Commune, CommuneValidateur,
@@ -19,10 +25,7 @@ from .serializers import (
         CorrespondantSerializer,
         EntrepriseSerializer
         )
-from core.utils import (
-        json_resp,
-        register_module,
-        registered_funcs)
+from .utils import format_vcard
 
 
 routes = Blueprint('annuaire', __name__)
@@ -45,11 +48,44 @@ SERIALIZERS_E = {
         'entreprise': EntrepriseSerializer
         }
 
-VALIDATEURS_E = {
-        'entite': EntiteValidateur,
-        'commune': CommuneValidateur,
-        'correspondant': CorrespondantValidateur,
-        'entreprise': EntrepriseValidateur
+FIELDS_E = {
+        'entite': [
+            'id',
+            'nom',
+            'observations'],
+        'commune': [
+            'id',
+            'nom',
+            'adresse',
+            'adresse2',
+            'code_postal',
+            'telephone',
+            'email',
+            'site_internet'],
+        'correspondant': [
+            'id',
+            'civilite',
+            'nom',
+            'prenom',
+            'adresse',
+            'adresse2',
+            'code_postal',
+            'telephone',
+            'mobile',
+            'email'],
+        'entreprise': [
+            'id',
+            'nom',
+            'adresse',
+            'adresse2',
+            'code_postal',
+            'nom_gerant',
+            'prenom_gerant',
+            'telephone',
+            'telephone2',
+            'email',
+            'alt_email',
+            'site_internet'],
         }
 
 
@@ -87,27 +123,19 @@ def get_entites():
     else:
         entites = get_entites_by_parent(entite_ids)
     if _format in ('csv', 'tsv'):
-        headers = Headers()
-        headers.add('Content-Type', 'text/plain')
-        headers.add('Content-Disposition', 'attachment', filename='export.csv')
+        serializer = SERIALIZERS_E[_etype]
+        entites = filter(lambda x: isinstance(x, TYPES_E[_etype]) ,entites)
         if _format == 'csv':
-            csv = format_csv(
-                    [e for e in entites if isinstance(e, TYPES_E[_etype])],
-                    VALIDATEURS_E[_etype].fields, ',')
+            csv = serializer.export_csv(entites, fields=FIELDS_E[_etype])
         else:
-            csv = format_csv(
-                    [e for e in entites if isinstance(e, TYPES_E[_etype])],
-                    VALIDATEURS_E[_etype].fields, '\t')
-        return Response(csv, headers=headers)
+            csv = serializer.export_csv(entites, fields=FIELDS_E[_etype], sep='\t')
+        return csv_response(csv, 'annuaire.csv')
     if _format == 'vcard':
-        headers = Headers()
-        headers.add('Content-Type', 'text/plain')
-        headers.add('Content-Disposition', 'attachment', filename='export.vcf')
         vcards = '\r\n'.join([
-                format_vcard(e) for e in entites
+                format_vcard(CorrespondantSerializer(e)) for e in entites
                 if isinstance(e, Correspondant)
                 ])
-        return Response(vcards, headers=headers)
+        return vcard_response(vcards, 'annuaire.vcf')
 
     return [SERIALIZERS_E[e.type_entite](e).serialize() for e in entites]
 

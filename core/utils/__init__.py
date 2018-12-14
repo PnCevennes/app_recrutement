@@ -8,10 +8,32 @@ import threading
 from functools import wraps
 from flask import Response
 from flask_mail import Message
+from werkzeug.datastructures import Headers
+
 from server import get_app, db, mail
 
 registered_modules = {}
 registered_funcs = {}
+
+
+def csv_response(data, filename='export.csv'):
+    '''
+    Retourne les entêtes HTTP pour les fichiers CSV
+    '''
+    headers = Headers()
+    headers.add('Content-Type', 'text/csv')
+    headers.add('Content-Disposition', 'attachment', filename=filename)
+    return Response(data, headers=headers)
+
+
+def vcard_response(data, filename='export.vcf'):
+    '''
+    Retourne les entêtes HTTP pour les fichiers VCARD
+    '''
+    headers = Headers()
+    headers.add('Content-Type', 'text/plain')
+    headers.add('Content-Disposition', 'attachment', filename='export.vcf')
+    return Response(data, headers=headers)
 
 
 def register_module(prefix, blueprint):

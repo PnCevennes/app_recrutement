@@ -21,13 +21,13 @@ def scan_ping(ip):
     retourne l'accessibilité de l'équipement réseau par PING
     '''
     res = subprocess.Popen(
-            ['fping', equip.ip_addr],
+            ['fping', ip],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
     if res.wait():
         return False
     else:
-        return b'alive' in res.stdout.read():
+        return b'alive' in res.stdout.read()
 
 
 def _scan(app, session, evt):

@@ -34,10 +34,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.Unicode(length=100))
     _password = db.Column('password', db.Unicode(length=100))
-    nom = db.Column(db.Unicode(length=100))
-    prenom = db.Column(db.Unicode(length=100))
+    name = db.Column(db.Unicode(length=100))
     email = db.Column(db.Unicode(length=250))
-    applications = db.relationship('AppUser', lazy='joined')
+    groups = db.relationship('Group', secondary='auth_rel_user_group', lazy='joined')
 
     @property
     def password(self):
@@ -51,52 +50,35 @@ class User(db.Model):
         return self._password == hashlib.sha256(pwd.encode('utf8')).hexdigest()
 
     def to_json(self):
-        out = {
-                'id': self.id,
-                'login': self.login,
-                'email': self.email,
-                'nom': self.nom,
-                'prenom': self.prenom,
-                'applications': []
-                }
-        for app_data in self.applications:
-            app = {
-                    'id': app_data.application_id,
-                    'nom': app_data.application.nom,
-                    'niveau': app_data.niveau
-                    }
-            out['applications'].append(app)
-        return out
+        return {
+            'id': self.id,
+            'login': self.login,
+            'mail': self.email,
+            'name': self.name,
+            'groups': [grp.name for grp in self.groups]
+            }
 
 
-class Application(db.Model):
+class Group(db.Model):
     '''
-    Représente une application ou un module
+    Représente un groupe de sécurité
     '''
-    __tablename__ = 'auth_application'
+    __tablename__ = 'auth_group'
     id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.Unicode(length=100))
+    name = db.Column(db.Unicode(length=100))
+    users = db.relationship('User', secondary='auth_rel_user_group')
 
 
-class AppUser(db.Model):
+class UserGroups(db.Model):
     '''
-    Relations entre applications et utilisateurs
+    Relations entre groupes et utilisateurs
     '''
-    __tablename__ = 'auth_rel_app_user'
+    __tablename__ = 'auth_rel_user_group'
     user_id = db.Column(
             db.Integer,
             db.ForeignKey('auth_utilisateur.id'),
             primary_key=True)
-    application_id = db.Column(
+    group_id = db.Column(
             db.Integer,
-            db.ForeignKey('auth_application.id'),
+            db.ForeignKey('auth_group.id'),
             primary_key=True)
-    niveau = db.Column(db.Integer)
-    user = db.relationship(
-            'User',
-            backref='relations',
-            lazy='joined')
-    application = db.relationship(
-            'Application',
-            backref='relations',
-            lazy='joined')

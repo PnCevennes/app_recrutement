@@ -13,6 +13,7 @@ from core.thesaurus.models import Thesaurus
 from core.refgeo.models import RefGeoCommunes, RefGeoBatiment
 from core.utils import (
         json_resp,
+        csv_response,
         send_mail,
         register_module,
         registered_funcs
@@ -30,57 +31,40 @@ register_module('/travaux_batiments', routes)
 
 check_auth = registered_funcs['check_auth']
 
-def format_csv(data, sep='", "'):
-    _fields = [
-            'id',
-            'dem_date',
-            'dem_commune',
-            'dem_designation',
-            'dmdr_service',
-            'dmdr_contact_nom',
-            'dem_importance_travaux',
-            'dem_type_travaux',
-            'dem_description_travaux',
-            'plan_service',
-            'plan_entreprise',
-            'plan_date',
-            'plan_commentaire',
-            'rea_date',
-            'rea_duree',
-            'rea_commentaire'
-            ]
-    out = ['"%s"' % sep.join(_fields)]
-    for item in data:
-        line = TravauxBatimentFullSerializer(item).serialize(_fields)
 
-        line['dem_commune'] = (
-                _db.session.query(RefGeoCommunes)
-                .get(line['dem_commune'])
-                .nom_commune)
-        line['dem_designation'] = (
-                _db.session.query(RefGeoBatiment)
-                .get(line['dem_designation'])
-                .designation)
-        line['dem_type_travaux'] = (
-                _db.session.query(Thesaurus)
-                .get(line['dem_type_travaux'])
-                .label)
-        line['dmdr_service'] = (
-                _db.session.query(Thesaurus)
-                .get(line['dmdr_service'])
-                .label)
-        if line['plan_service']:
-            line['plan_service'] = (
-                    _db.session.query(Thesaurus)
-                    .get(line['plan_service'])
-                    .label)
-        out.append('"%s"' % sep.join([
-            str(col) if col else ''
-            for col in line.values()]))
-    headers = Headers()
-    headers.add('Content-Type', 'text/plain')
-    headers.add('Content-Disposition', 'attachment', filename='export.csv')
-    return Response(('\n'.join(out)), headers=headers)
+csv_fields = [
+        'id',
+        'dem_date',
+        (
+            'dem_commune',
+            lambda x: _db.session.query(RefGeoCommunes).get(x).nom_commune
+        ),
+        (
+            'dem_designation',
+            lambda x: _db.session.query(RefGeoBatiment).get(x).designation
+        ),
+        (
+            'dmdr_service',
+            lambda x: _db.session.query(Thesaurus).get(x).label if x else ''
+        ),
+        'dmdr_contact_nom',
+        'dem_importance_travaux',
+        (
+            'dem_type_travaux',
+            lambda x: _db.session.query(Thesaurus).get(x).label if x else ''
+        ),
+        'dem_description_travaux',
+        (
+            'plan_service',
+            lambda x: _db.session.query(Thesaurus).get(x).label if x else ''
+        ),
+        'plan_entreprise',
+        'plan_date',
+        'plan_commentaire',
+        'rea_date',
+        'rea_duree',
+        'rea_commentaire'
+        ]
 
 
 @routes.route('/', methods=['GET'])
@@ -103,21 +87,28 @@ def get_all_trav_batiments():
     except ValueError:
         return [], 400
     try:
+        print(annee)
         annee_deb = datetime.date(annee, 1, 1)
         annee_fin = datetime.date(annee, 12, 31)
 
         results = (
                 _db.session.query(TravauxBatiment)
-                .filter(TravauxBatiment.dem_date.between(annee_deb, annee_fin))
+                .filter(
+                    _db.and_(
+                        TravauxBatiment.dem_date <= annee_fin,
+                        _db.or_(
+                            TravauxBatiment.rea_date == None,
+                            TravauxBatiment.rea_date >= annee_deb
+                        )
+                    )
+                )
                 .all())
     except Exception:
         import traceback
         return [{'msg': traceback.format_exc()}], 400
 
     if _format == 'csv':
-        return format_csv(results)
-    if _format == 'tsv':
-        return format_csv(results, "\t")
+        return csv_response(TravauxBatimentFullSerializer.export_csv(results, fields=csv_fields), filename='travaux.csv')
 
     return [TravauxBatimentSerializer(res).serialize() for res in results]
 

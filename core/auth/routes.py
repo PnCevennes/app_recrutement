@@ -39,7 +39,14 @@ def login_view():
 
 
     try:
-        user = utils.check_ldap_auth(login, passwd)
+        if config.AUTH_TYPE == 'ldap':
+            user = utils.check_ldap_auth(login, passwd)
+        else:
+            print('db auth')
+            user = utils.check_db_auth(login, passwd)
+            print('*'*20)
+            print(user.id)
+            print('*'*20)
         userdata = json.dumps(user.as_dict())
         token = uuid.uuid4().hex
         expiration = datetime.date.today() + datetime.timedelta(days=1)
@@ -101,8 +108,8 @@ def logout():
 @routes.route('/users', methods=['GET'])
 @json_resp
 def get_users():
-    users = models.User.query.all()
-    return [normalize(user) for user in users]
+    users = _db.session.query(models.User).all()
+    return [user.to_json() for user in users]
 
 
 @routes.route('/user/<id_user>', methods=['GET'])
@@ -112,3 +119,10 @@ def get_user(id_user):
     if not user:
         return [], 404
     return normalize(user)
+
+
+@routes.route('/groups', methods=['GET'])
+@json_resp
+def get_groups():
+    pass
+

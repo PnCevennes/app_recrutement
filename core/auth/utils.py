@@ -11,7 +11,7 @@ from sqlalchemy.orm.exc import NoResultFound
 import config
 from server import db
 from core.utils import registered_funcs
-from core.auth.models import AuthStatus
+from core.auth.models import AuthStatus, User
 
 class AuthUser:
     '''
@@ -107,9 +107,22 @@ def ldap_connect(login, passwd):
     raise InvalidAuthError
 
 
+def check_db_auth(login, passwd):
+    try:
+        user = db.session.query(User).filter(User.login==login).one()
+    except NoResultFound:
+        raise InvalidAuthError
+    else:
+        if not user.check_password(passwd):
+            raise InvalidAuthError
+        return AuthUser(user.to_json())
+
+
+
 def check_ldap_auth(login, passwd):
     '''
-    Vérifie les informations d'authentification et renvoie un objet AuthUser
+    Vérifie les informations d'authentification sur le serveur LDAP
+    et renvoie un objet AuthUser
     '''
     ldap_cnx = ldap_connect(login, passwd)
     ldap_cnx.search(

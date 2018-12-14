@@ -1,3 +1,6 @@
+import datetime
+
+
 '''
 Fonctions utilitaires de l'annuaire
 '''
@@ -20,33 +23,15 @@ def format_vcard(entite):
     '''
     dtime = datetime.datetime.now()
     return vcard_tpl % (
-        entite.nom or '',
-        entite.prenom or '',
-        entite.label or '',
-        entite.fonction or '',
-        format_phone(entite.telephone),
+        entite.nom,
+        entite.prenom,
+        entite.label,
+        entite.fonction,
+        entite.telephone,
         (
-            "\nTEL;CELL;VOICE:%s" % format_phone(entite.mobile)
+            "\nTEL;CELL;VOICE:%s" % entite.mobile
             if entite.mobile else ''
         ),
-        entite.email or '',
+        entite.email,
         dtime.strftime('%Y%m%dT%H%m%SZ')
         )
-
-
-def format_csv(corresps, fields, sep=','):
-    '''
-    retourne une liste de correspondants sous format tabulaire CSV
-    '''
-    if not len(corresps):
-        return ''
-
-    correspondants = [corresp.to_json() for corresp in corresps]
-    outdata = [sep.join(fields)]
-    for item in correspondants:
-        outdata.append(
-                sep.join(['"%s"' % str(item.get(e) or '').replace('"', '""') for e in fields]))
-    out = '\r\n'.join(outdata)
-    return out.encode('latin1', 'replace')
-
-
