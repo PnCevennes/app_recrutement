@@ -195,6 +195,8 @@ def update_intervention(id_intervention):
     except ValidationError as e:
         return e.errors, 400
     except:
+        import traceback
+        print(traceback.format_exc())
         _db.session.rollback()
         return {}, 400
 

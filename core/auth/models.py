@@ -25,7 +25,6 @@ class AuthStatus(db.Model):
                 }
 
 
-
 class User(db.Model):
     '''
     Représente un utilisateur
@@ -67,6 +66,13 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode(length=100))
     users = db.relationship('User', secondary='auth_rel_user_group')
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'users': [user.id for user in self.users]
+            }
 
 
 class UserGroups(db.Model):

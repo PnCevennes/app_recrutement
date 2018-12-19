@@ -17,36 +17,30 @@ from sqlalchemy.orm.exc import NoResultFound
 import config
 from server import get_app, db as _db
 from core.utils import (
-        normalize,
         json_resp,
         register_module,
         registered_funcs)
 from . import models, utils
+from .serializers import UserSerializer, UserFullSerializer
+from .exc import InvalidAuthError
 
-
-class InvalidAuth(Exception):
-    pass
 
 routes = Blueprint('auth', __name__)
 
 register_module('/auth', routes)
 
+
 @routes.route('/login', methods=['POST'])
 @json_resp
 def login_view():
+    '''
+    Connexion de l'utilisateur
+    '''
     login = request.json['login'].strip()
     passwd = request.json['passwd'].strip()
 
-
     try:
-        if config.AUTH_TYPE == 'ldap':
-            user = utils.check_ldap_auth(login, passwd)
-        else:
-            print('db auth')
-            user = utils.check_db_auth(login, passwd)
-            print('*'*20)
-            print(user.id)
-            print('*'*20)
+        user = utils.check_user_login(login, passwd)
         userdata = json.dumps(user.as_dict())
         token = uuid.uuid4().hex
         expiration = datetime.date.today() + datetime.timedelta(days=1)
@@ -69,13 +63,16 @@ def login_view():
             _db.session.commit()
 
         return authstatus.as_dict()
-    except utils.InvalidAuthError as err:
+    except InvalidAuthError as err:
         return Response('[]', 403)
 
 
 @routes.route('/reconnect', methods=['POST'])
 @json_resp
 def reconnect_view():
+    '''
+    Reconnexion de l'utilisateur si le jeton est encore valide
+    '''
     token = request.json['token']
     uid = request.json['id']
     now = datetime.date.today()
@@ -92,11 +89,12 @@ def reconnect_view():
     return authstatus.as_dict()
 
 
-
-
 @routes.route('/logout')
 @json_resp
 def logout():
+    '''
+    Déconnexion de l'utilisateur
+    '''
     token = request.json['token'].strip()
     uid = request.json['id'].strip()
     authstatus = _db.session.query(AuthStatus).get(uid)
@@ -105,24 +103,46 @@ def logout():
     return []
 
 
-@routes.route('/users', methods=['GET'])
+@routes.route('/users/', methods=['GET'])
 @json_resp
 def get_users():
+    '''
+    Liste des utilisateurs
+    '''
     users = _db.session.query(models.User).all()
-    return [user.to_json() for user in users]
+    return [UserSerializer(user).serialize() for user in users]
 
 
-@routes.route('/user/<id_user>', methods=['GET'])
+@routes.route('/users/<id_user>', methods=['GET'])
 @json_resp
 def get_user(id_user):
-    user = models.User.query.get(id_user)
+    '''
+    Détail d'un utilisateur
+    '''
+    user = _db.session.query(models.User).get(id_user)
     if not user:
         return [], 404
-    return normalize(user)
+    return UserFullSerializer(user).serialize()
 
 
 @routes.route('/groups', methods=['GET'])
 @json_resp
 def get_groups():
-    pass
+    '''
+    Liste des groupes
+    '''
+    groups = _db.session.query(models.Group).all()
+    return [{'id': group.id, 'name': group.name} for group in groups]
+
+
+@routes.route('/groups/<id_group>', methods=['GET'])
+@json_resp
+def get_group(id_group):
+    '''
+    Détail d'un groupe
+    '''
+    group = _db.session.query(models.Group).get(id_group)
+    if not group:
+        return [], 404
+    return group.to_json()
 

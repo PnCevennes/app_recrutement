@@ -37,16 +37,14 @@ class TravauxBatimentFullSerializer(TravauxBatimentSerializer):
     dem_importance_travaux = Field()
     dem_type_travaux = Field()
     dem_description_travaux = Field()
-    plan_service = Field()
+    plan_service = Field(preparefn=lambda val: val if val else None)
     plan_entreprise = Field()
-    plan_date = Field(
-            serializefn=serialize_date,
-            preparefn=prepare_date)
+    plan_date = Field()
     plan_commentaire = Field()
     rea_date = Field(
             serializefn=serialize_date,
             preparefn=prepare_date)
-    rea_duree = Field()
+    rea_duree = Field(preparefn=lambda val: val if val else 0)
     rea_commentaire = Field()
     dem_fichiers = Field(serializefn=serialize_files)
     plan_fichiers = Field(serializefn=serialize_files)

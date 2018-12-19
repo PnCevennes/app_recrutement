@@ -8,7 +8,6 @@ from sqlalchemy.exc import StatementError
 
 from core.thesaurus import models
 from core.utils import (
-        normalize,
         json_resp,
         register_module,
         registered_funcs
@@ -26,7 +25,8 @@ check_auth = registered_funcs['check_auth']
 @check_auth(groups=['tizoutis-admin'])
 def th_index():
     th_list = _db.session.query(models.Thesaurus).all()
-    return [normalize(item) for item in th_list]
+    return [models.ThesaurusSerializer(item).serialize()
+            for item in th_list]
 
 @routes.route('/ref/<int:id_ref>')
 @json_resp
@@ -38,7 +38,8 @@ def get_thesaurus(id_ref):
     try:
         th_list = _db.session.query(models.Thesaurus).filter(
                 models.Thesaurus.id_ref == id_ref).all()
-        return [normalize(item) for item in th_list]
+        return [models.ThesaurusSerializer(item).serialize()
+                for item in th_list]
     except StatementError:
         _db.session.rollback()
         return [], 400
@@ -53,7 +54,8 @@ def get_th_mnemo(label):
             ).one()
         th_list = _db.session.query(models.Thesaurus).filter(
                 models.Thesaurus.id_ref == id_ref.id).all()
-        return [normalize(item) for item in th_list]
+        return [models.ThesaurusSerializer(item).serialize()
+                for item in th_list]
     except StatementError:
         _db.session.rollback()
         return [], 400

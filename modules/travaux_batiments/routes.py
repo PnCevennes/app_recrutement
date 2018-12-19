@@ -8,7 +8,7 @@ from flask import Blueprint, request, Response
 from werkzeug.datastructures import Headers
 
 from server import db as _db
-from core.models import Fichier
+from core.models import Fichier, prepare_fichiers
 from core.thesaurus.models import Thesaurus
 from core.refgeo.models import RefGeoCommunes, RefGeoBatiment
 from core.utils import (
@@ -25,12 +25,17 @@ from .serializers import (
         TravauxBatimentSerializer,
         TravauxBatimentFullSerializer)
 
+
+TravauxBatimentFullSerializer.dem_fichiers.preparefn = prepare_fichiers(_db)
+TravauxBatimentFullSerializer.plan_fichiers.preparefn = prepare_fichiers(_db)
+TravauxBatimentFullSerializer.rea_fichiers.preparefn = prepare_fichiers(_db)
+
+
 routes = Blueprint('travaux_batiments', __name__)
 
 register_module('/travaux_batiments', routes)
 
 check_auth = registered_funcs['check_auth']
-
 
 csv_fields = [
         'id',
@@ -136,15 +141,6 @@ def create_trav_batiment():
     Crée une nouvelle demande de travaux
     """
     dem = request.json
-    dem['dem_fichiers'] = [
-            _db.session.query(Fichier).get(item['id'])
-            for item in dem.get('dem_fichiers', [])]
-    dem['plan_fichiers'] = [
-            _db.session.query(Fichier).get(item['id'])
-            for item in dem.get('plan_fichiers', [])]
-    dem['rea_fichiers'] = [
-            _db.session.query(Fichier).get(item['id'])
-            for item in dem.get('rea_fichiers', [])]
     dem['dem_date'] = datetime.datetime.now()
 
     demande = TravauxBatiment()
@@ -179,15 +175,6 @@ def update_trav_batiment(id_trav):
     Met à jour une demande de travaux
     """
     dem = request.json
-    dem['dem_fichiers'] = [
-            _db.session.query(Fichier).get(item['id'])
-            for item in dem.get('dem_fichiers', [])]
-    dem['plan_fichiers'] = [
-            _db.session.query(Fichier).get(item['id'])
-            for item in dem.get('plan_fichiers', [])]
-    dem['rea_fichiers'] = [
-            _db.session.query(Fichier).get(item['id'])
-            for item in dem.get('rea_fichiers', [])]
 
     trav = _db.session.query(TravauxBatiment).get(id_trav)
     try:

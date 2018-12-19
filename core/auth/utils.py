@@ -4,14 +4,14 @@ Fonctions relatives à l'authentification LDAP
 import json
 from functools import wraps
 
-import ldap3
 from flask import redirect, url_for, g, request
 from sqlalchemy.orm.exc import NoResultFound
 
 import config
 from server import db
 from core.utils import registered_funcs
-from core.auth.models import AuthStatus, User
+from core.auth.models import AuthStatus
+
 
 class AuthUser:
     '''
@@ -48,11 +48,12 @@ class AuthUser:
                 }
 
 
-class InvalidAuthError(Exception):
-    '''
-    Exception levée en cas d'erreur d'authentification
-    '''
-    pass
+
+if config.AUTH_TYPE == 'ldap':
+    from core.auth.backends.ldap import check_user_login, get_user_groups
+else:
+    from core.auth.backends.database import check_user_login, get_user_groups
+
 
 
 def check_auth(groups=None):
@@ -87,68 +88,6 @@ def check_auth(groups=None):
 registered_funcs['check_auth'] = check_auth
 
 
-def ldap_connect(login, passwd):
-    '''
-    fonction de connexion au LDAP pour vérification des logins utilisateurs
-    '''
-    ldap_srv = ldap3.Server(
-            'apollon.pnc.int',
-            get_info=ldap3.ALL)
-
-    ldap_cnx = ldap3.Connection(
-            ldap_srv,
-            user= config.LDAP_PREFIX % login,
-            password=passwd,
-            authentication=ldap3.NTLM)
-
-    if ldap_cnx.bind():
-        return ldap_cnx
-
-    raise InvalidAuthError
-
-
-def check_db_auth(login, passwd):
-    try:
-        user = db.session.query(User).filter(User.login==login).one()
-    except NoResultFound:
-        raise InvalidAuthError
-    else:
-        if not user.check_password(passwd):
-            raise InvalidAuthError
-        return AuthUser(user.to_json())
 
 
 
-def check_ldap_auth(login, passwd):
-    '''
-    Vérifie les informations d'authentification sur le serveur LDAP
-    et renvoie un objet AuthUser
-    '''
-    ldap_cnx = ldap_connect(login, passwd)
-    ldap_cnx.search(
-            config.LDAP_BASE_PATH,
-            '(sAMAccountName=%s)' % login,
-            attributes=['objectSid', 'cn', 'memberOf', 'mail'])
-    user_data = ldap_cnx.entries[0]
-    user_name = str(user_data.cn)
-    user_groups = get_user_groups(user_data)
-    user = AuthUser({
-            'id': str(user_data.objectSid)[-4:],
-            'name': user_name,
-            'groups': user_groups,
-            'mail': str(user_data.mail)
-            })
-
-    return user
-
-
-def get_user_groups(user_data):
-    '''
-    Retourne la liste des groupes de l'utilisateur.
-    '''
-    user_groups = []
-    if 'memberOf' in str(user_data):
-        for grp in user_data['memberOf']:
-            user_groups.append(
-                    [gr[1] for gr in ldap3.utils.dn.parse_dn(grp)][0])
-    return user_groups

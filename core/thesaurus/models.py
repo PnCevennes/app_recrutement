@@ -2,6 +2,13 @@
 mapping thésaurus
 '''
 from server import db
+from core.utils.serialize import Serializer, Field
+
+
+class ThesaurusSerializer(Serializer):
+    id = Field()
+    id_ref = Field()
+    label = Field()
 
 
 class Thesaurus(db.Model):
