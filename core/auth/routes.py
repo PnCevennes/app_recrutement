@@ -146,3 +146,52 @@ def get_group(id_group):
         return [], 404
     return group.to_json()
 
+
+@routes.route('/users/', methods=['POST', 'PUT'])
+@json_resp
+@utils.check_auth(groups=['admin-tizoutis'])
+def create_user():
+    data = request.json
+    # chargement des groupes
+    groups = _db.session.query(models.Group).filter(
+            models.Group.name.in_(data.get('groups', []))
+            ).all()
+    data['groups'] = groups
+    user = models.User()
+    serialize = UserFullSerializer(user)
+    serialize.populate(data)
+    _db.session.add(user)
+    _db.session.commit()
+    return [serialize.serialize()]
+
+
+@routes.route('/users/<id_user>', methods=['POST', 'PUT'])
+@json_resp
+@utils.check_auth(groups=['admin-tizoutis'])
+def update_user(id_user):
+    data = request.json
+    # chargement des groupes
+    groups = _db.session.query(models.Group).filter(
+            models.Group.name.in_(data.get('groups', []))
+            ).all()
+    data['groups'] = groups
+    if not len(data['password']):
+        del(data['password'])
+    user = _db.session.query(models.User).get(id_user)
+    if not user:
+        return [], 404
+    serialize = UserFullSerializer(user)
+    serialize.populate(data)
+    _db.session.commit()
+    return [serialize.serialize()]
+
+
+@routes.route('/users/<id_user>', methods=['DELETE'])
+@json_resp
+@utils.check_auth(groups=['admin-tizoutis'])
+def delete_user(id_user):
+    user = _db.session.query(models.User).get(id_user)
+    if not user:
+        return [], 404
+    _db.session.delete(user)
+    return {'id': id_user}

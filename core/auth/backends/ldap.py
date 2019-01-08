@@ -1,3 +1,6 @@
+'''
+Fonctions d'authentification via annuaire LDAP
+'''
 import ldap3
 import config
 from core.auth.utils import AuthUser

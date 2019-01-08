@@ -22,7 +22,7 @@ check_auth = registered_funcs['check_auth']
 
 @routes.route('/')
 @json_resp
-@check_auth(groups=['tizoutis-admin'])
+@check_auth(groups=['admin-tizoutis'])
 def th_index():
     th_list = _db.session.query(models.Thesaurus).all()
     return [models.ThesaurusSerializer(item).serialize()
@@ -63,7 +63,6 @@ def get_th_mnemo(label):
 
 @routes.route('/id/<id_thes>')
 @json_resp
-@check_auth(groups=['tizoutis-admin'])
 def get_by_id(id_thes):
     result = _db.session.query(models.Thesaurus).get(int(id_thes))
     if not result:
@@ -73,7 +72,7 @@ def get_by_id(id_thes):
 
 @routes.route('/', methods=['PUT', 'POST'])
 @json_resp
-@check_auth(groups=['tizoutis-admin'])
+@check_auth(groups=['admin-tizoutis'])
 def create_thesaurus():
     thes = models.Thesaurus()
     thes.id_ref = request.json['id_ref']
@@ -85,7 +84,7 @@ def create_thesaurus():
 
 @routes.route('/<int:id_ref>', methods=['PUT', 'POST'])
 @json_resp
-@check_auth(groups=['tizoutis-admin'])
+@check_auth(groups=['admin-tizoutis'])
 def update_thesaurus(id_ref):
     result = _db.session.query(models.Thesaurus).get(id_ref)
     result.label = request.json.get('label', '')
@@ -95,7 +94,7 @@ def update_thesaurus(id_ref):
 
 @routes.route('/<int:id_ref>', methods=['DELETE'])
 @json_resp
-@check_auth(groups=['tizoutis-admin'])
+@check_auth(groups=['admin-tizoutis'])
 def delete_thesaurus(id_ref):
     result = _db.session.query(models.Thesaurus).get(id_ref)
     _db.session.delete(result)

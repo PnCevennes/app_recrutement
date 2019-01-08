@@ -1,7 +1,7 @@
-from core.utils.serialize import Serializer, Field
+from core.utils.serialize import Serializer, Field, prepare_serial
 
 class UserSerializer(Serializer):
-    id = Field()
+    id = Field(preparefn=prepare_serial)
     name = Field()
 
 

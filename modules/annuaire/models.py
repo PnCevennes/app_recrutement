@@ -8,11 +8,6 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from server import db
 
 
-class ValidationError(Exception):
-    def __init__(self, errors):
-        self.error_list = errors
-
-
 class Validateur(object):
     def validate(self, data):
         print('validate')
@@ -29,15 +24,6 @@ class Validateur(object):
         if errors:
             raise ValidationError(errors)
         return out, unhandled
-
-
-class EntiteValidateur(Validateur):
-        fields = OrderedDict((
-                ('id', lambda x: True),
-                ('nom', lambda x: True),
-                ('type_entite', lambda x: True),
-                ('observations', lambda x: True)
-                ))
 
 
 class Entite(db.Model):
@@ -126,21 +112,6 @@ class Entite(db.Model):
         return out
 
 
-class CommuneValidateur(Validateur):
-    fields = OrderedDict((
-                ('id', lambda x: True),
-                ('nom', lambda x: True),
-                ('adresse', lambda x: True),
-                ('adresse2', lambda x: True),
-                ('code_postal', lambda x: True),
-                ('telephone', lambda x: True),
-                ('email', lambda x: True),
-                ('site_internet', lambda x: True),
-                ('type_entite', lambda x: True),
-                ('observations', lambda x: True)
-                ))
-
-
 class Commune(Entite):
     __tablename__ = 'ann_commune'
     __mapper_args__ = {
@@ -163,24 +134,6 @@ class Commune(Entite):
                 'code_postal', 'telephone', 'email', 'site_internet',
                 'type_entite', 'relations', 'parents', 'label']
         return {field: getattr(self, field, '') for field in fields}
-
-
-class CorrespondantValidateur(Validateur):
-    fields = OrderedDict((
-                ('id', lambda x: True),
-                ('civilite', lambda x: True),
-                ('nom', lambda x: True),
-                ('prenom', lambda x: True),
-                ('fonction', lambda x: True),
-                ('adresse', lambda x: True),
-                ('adresse2', lambda x: True),
-                ('code_postal', lambda x: True),
-                ('telephone', lambda x: True),
-                ('mobile', lambda x: True),
-                ('email', lambda x: True),
-                ('type_entite', lambda x: True),
-                ('observations', lambda x: True)
-                ))
 
 
 class Correspondant(Entite):
@@ -231,25 +184,6 @@ class Correspondant(Entite):
                 'email', 'type_entite', 'relations', 'parents', 'label',
                 'civilite']
         return {field: getattr(self, field, '') for field in fields}
-
-
-class EntrepriseValidateur(Validateur):
-    fields = OrderedDict((
-        ('id', lambda x: True),
-        ('nom', lambda x: True),
-        ('nom_gerant', lambda x: True),
-        ('prenom_gerant', lambda x: True),
-        ('fonction_gerant', lambda x: True),
-        ('adresse', lambda x: True),
-        ('adresse2', lambda x: True),
-        ('code_postal', lambda x: True),
-        ('telephone', lambda x: True),
-        ('telephone2', lambda x: True),
-        ('email', lambda x: True),
-        ('alt_email', lambda x: True),
-        ('site_internet', lambda x: True),
-        ('observations', lambda x: True)
-        ))
 
 
 class Entreprise(Entite):

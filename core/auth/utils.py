@@ -1,5 +1,5 @@
 '''
-Fonctions relatives à l'authentification LDAP
+Fonctions relatives à l'authentification
 '''
 import json
 from functools import wraps

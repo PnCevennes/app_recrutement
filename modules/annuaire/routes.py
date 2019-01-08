@@ -12,13 +12,14 @@ from core.utils import (
         vcard_response,
         register_module,
         registered_funcs)
+from core.utils.serialize import ValidationError
 
 from .models import (
-        Entite, EntiteValidateur,
-        Commune, CommuneValidateur,
-        Correspondant, CorrespondantValidateur,
-        Entreprise, EntrepriseValidateur,
-        RelationEntite, ValidationError)
+        Entite,
+        Commune,
+        Correspondant,
+        Entreprise,
+        RelationEntite)
 from .serializers import (
         EntiteSerializer,
         CommuneSerializer,
