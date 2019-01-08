@@ -37,16 +37,26 @@ register_module('/travaux_batiments', routes)
 
 check_auth = registered_funcs['check_auth']
 
+
+def load_attr(klass, attr):
+    def _load_attr(x):
+        obj = _db.session.query(klass).get(x)
+        if not obj:
+            return ''
+        return getattr(obj, attr, '')
+    return _load_attr
+
+
 csv_fields = [
         'id',
         'dem_date',
         (
             'dem_commune',
-            lambda x: _db.session.query(RefGeoCommunes).get(x).nom_commune
+            lambda x: _db.session.query(RefGeoCommunes).get(x).nom_commune if x else ''
         ),
         (
             'dem_designation',
-            lambda x: _db.session.query(RefGeoBatiment).get(x).designation
+            load_attr(RefGeoBatiment, 'designation') # _db.session.query(RefGeoBatiment).get(x).designation if x else ''
         ),
         (
             'dmdr_service',
