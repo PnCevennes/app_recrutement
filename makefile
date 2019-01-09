@@ -1,7 +1,7 @@
 HOST=0.0.0.0
 PORT=8000
 VENV=venv
-WORKERS=4
+WORKERS=2
 BSH=/bin/bash -c
 
 superv:
@@ -12,7 +12,7 @@ develop:
 
 
 prod:
-	@$(BSH) "source ../$(VENV)/bin/activate&&gunicorn --daemon --pid="tizoutis.pid" --error-log ../errors.log -w $(WORKERS) -b '$(HOST):$(PORT)' -n 'tizoutis' server:app"&&echo "Serveur activé sur '$(HOST):$(PORT)'"
+	@$(BSH) "source ../$(VENV)/bin/activate&&gunicorn --daemon --pid="tizoutis.pid" --error-log ../errors.log -w $(WORKERS) -b '$(HOST):$(PORT)' -n 'tizoutis' wsgi:app"&&echo "Serveur activé sur '$(HOST):$(PORT)'"
 
 
 prod-stop:

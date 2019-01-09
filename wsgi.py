@@ -1,5 +1,7 @@
 '''
-Fichier de démarrage pour flask run
+Fichier de démarrage pour serveur de prod
 '''
 
-from server import app 
+from server import get_app
+
+app = get_app()
