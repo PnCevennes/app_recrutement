@@ -65,7 +65,7 @@ def json_resp(fn):
 
 
 def _send_async(app, msg, groups):
-    from modules.auth.utils import ldap_connect, get_user_groups
+    from core.auth.utils import ldap_connect, get_user_groups
     with app.app_context():
         ldap_cnx = ldap_connect(
                 app.config['LDAP_USER'],
