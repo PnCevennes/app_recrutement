@@ -5,7 +5,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from server import db
 from core.auth.utils import AuthUser
-from core.auth.models import User
+from core.auth.models import User, Group
 from core.auth.exc import InvalidAuthError
 
 
@@ -29,3 +29,21 @@ def get_user_groups(user_data):
     Retourne la liste des groupes de l'utilisateur.
     '''
     return [grp.label for grp in user_data.groups]
+
+
+def get_members(groups):
+    '''
+    Retourne la liste des utilisateurs membres d'un groupe
+    '''
+    out = set()
+    results = db.session.query(Group).filter(Group.name.in_(groups)).all()
+    for grp in results:
+        out.update([user for user in grp.users])
+    yield from out
+
+
+def get_members_mails(groups):
+    '''
+    Retourne la liste des adresse mail des membres d'un groupe
+    '''
+    yield from [user.email for user in get_members(groups)]

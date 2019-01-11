@@ -8,16 +8,17 @@ from flask import Blueprint, request, Response
 from werkzeug.datastructures import Headers
 
 from server import db as _db
-from core.models import Fichier
+from core.models import Fichier, prepare_fichiers
 from core.routes import upload_file, get_uploaded_file, delete_uploaded_file
 from core.thesaurus.models import Thesaurus
 from core.utils import (
         json_resp,
         send_mail,
+        csv_response,
         register_module,
         registered_funcs
         )
-from core.utils.serialize import ValidationError
+from core.utils.serialize import load_ref, ValidationError
 from .models import (
         Agent,
         AgentDetail,
@@ -28,77 +29,49 @@ from .serializers import (
         )
 
 
+AgentDetailSerializer.fichiers.preparefn = prepare_fichiers(_db)
+
+
 routes = Blueprint('recrutement', __name__)
 
 register_module('/recrutement', routes)
 
 check_auth = registered_funcs['check_auth']
 
-def format_csv(data, sep='", "'):
-    _fields = [
-            'id',
-            'nom',
-            'prenom',
-            'intitule_poste',
+csv_fields = [
+        'id',
+        'nom',
+        'prenom',
+        'intitule_poste',
+        (
             'service_id',
-            'arrivee',
-            'depart',
-            'desc_mission',
+            load_ref(_db, Thesaurus, 'label')
+        ),
+        'arrivee',
+        'depart',
+        'desc_mission',
+        (
             'type_contrat',
+            load_ref(_db, Thesaurus, 'label')
+        ),
+        (
+            'service_id',
+            load_ref(_db, Thesaurus, 'label')
+        ),
+        (
             'lieu',
+            load_ref(_db, Thesaurus, 'label')
+        ),
+        (
             'categorie',
+            load_ref(_db, Thesaurus, 'label')
+        ),
+        (
             'temps_travail',
-            'temps_travail_autre'
-            ]
-    out = ['%s' % sep.join(_fields)]
-    for item in data:
-        try:
-            line = AgentDetailSerializer(item).serialize(_fields)
-        except ValidationError as e:
-            print(e.errors)
-
-        if line['type_contrat']:
-            line['type_contrat'] = (
-                    _db.session.query(Thesaurus)
-                    .get(line['type_contrat'])
-                    .label)
-        else:
-            line['type_contrat'] = None
-        if line['lieu']:
-            line['lieu'] = (
-                    _db.session.query(Thesaurus)
-                    .get(line['lieu'])
-                    .label)
-        else:
-            line['lieu'] = None
-        if line['service_id']:
-            line['service_id'] = (
-                    _db.session.query(Thesaurus)
-                    .get(line['service_id'])
-                    .label)
-        else:
-            line['service_id'] = None
-        if line['categorie']:
-            line['categorie'] = (
-                    _db.session.query(Thesaurus)
-                    .get(line['categorie'])
-                    .label)
-        else:
-            line['categorie'] = None
-        if line['temps_travail']:
-            line['temps_travail'] = (
-                    _db.session.query(Thesaurus)
-                    .get(line['temps_travail'])
-                    .label)
-        else:
-            line['temps_travail'] = None
-        out.append('%s' % sep.join([
-            str(col) if col else ''
-            for col in line.values()]))
-    headers = Headers()
-    headers.add('Content-Type', 'text/plain')
-    headers.add('Content-Disposition', 'attachment', filename='export.csv')
-    return Response(('\n'.join(out)), headers=headers)
+            load_ref(_db, Thesaurus, 'label')
+        ),
+        'temps_travail_autre'
+        ]
 
 
 @routes.route('/')
@@ -128,9 +101,8 @@ def get_agents():
 
         ag_list = qr.order_by(_db.asc(Agent.arrivee)).all()
         if _format == 'csv':
+            return csv_response(AgentDetailSerializer.export_csv(ag_list, fields=csv_fields), filename='recrutement.csv') 
             return format_csv(ag_list, ';')
-        if _format == 'tsv':
-            return format_csv(ag_list, "\t")
         else:
             return [AgentSerializer(res).serialize() for res in ag_list]
     except Exception:
@@ -160,26 +132,15 @@ def create_agent():
     '''
     try:
         ag = request.json
-        ag['arrivee'] = datetime.datetime.strptime(
-                ag['arrivee'], '%Y-%m-%d')
-        if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):  # noqa
-            ag['depart'] = datetime.datetime.strptime(
-                    ag['depart'], '%Y-%m-%d')
-        else:
-            ag.pop('depart', None)
-
+        ag.pop('meta_create')
         ag['materiel'] = [
                 _db.session.query(Thesaurus).get(item_id)
                 for item_id in ag.get('materiel', [])]
-
-        ag['fichiers'] = [
-                _db.session.query(Fichier).get(fich['id'])
-                for fich in ag.get('fichiers', [])]
-        ag['notif_list'] = ','.join(ag['notif_list'])
-        ag['meta_create'] = datetime.datetime.now()
         notif = ag.pop('ctrl_notif', False)
 
-        agent = AgentDetail(**ag)
+        # agent = AgentDetail(**ag)
+        agent = AgentDetail()
+        AgentDetailSerializer(agent).populate(ag)
         _db.session.add(agent)
         _db.session.commit()
 
@@ -201,7 +162,7 @@ def create_agent():
                     agent.arrivee.year,
                     agent.id
                     ),
-                add_dests=ag['notif_list'].split(',')
+                add_dests=ag['notif_list']
                 )
 
         return out
@@ -220,16 +181,6 @@ def update_agent(id_agent):
     '''
     try:
         ag = request.json
-        ag['notif_list'] = ','.join(ag['notif_list'])
-        ag['arrivee'] = datetime.datetime.strptime(
-                ag['arrivee'], '%Y-%m-%d')
-        ag['meta_create'] = datetime.datetime.strptime(
-                ag['meta_create'], '%Y-%m-%d')
-        if 'depart' in ag and not (ag['depart'] == '' or ag['depart'] == None):  # noqa
-            ag['depart'] = datetime.datetime.strptime(
-                    ag['depart'], '%Y-%m-%d')
-        else:
-            ag.pop('depart')
         agent = _db.session.query(AgentDetail).get(id_agent)
         if not agent:
             return [], 404
@@ -238,15 +189,10 @@ def update_agent(id_agent):
                 _db.session.query(Thesaurus).get(item_id)
                 for item_id in ag.get('materiel', [])]
 
-        ag['fichiers'] = [
-                _db.session.query(Fichier).get(fich['id'])
-                for fich in ag.get('fichiers', [])]
-
         ag['meta_update'] = datetime.datetime.now()
         notif = ag.pop('ctrl_notif', False)
 
-        for col in ag:
-            setattr(agent, col, ag[col])
+        AgentDetailSerializer(agent).populate(ag)
 
         _db.session.commit()
 
@@ -268,7 +214,7 @@ def update_agent(id_agent):
                     agent.arrivee.year,
                     agent.id
                     ),
-                add_dests=ag['notif_list'].split(',')
+                add_dests=ag['notif_list']
                 )
 
         return out

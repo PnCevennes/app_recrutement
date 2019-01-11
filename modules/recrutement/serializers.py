@@ -1,3 +1,4 @@
+import datetime
 from core.utils.serialize import (
     Serializer,
     Field,
@@ -51,11 +52,13 @@ class AgentDetailSerializer(AgentSerializer):
     observations = Field()
     meta_create = Field(
             serializefn=serialize_date,
-            preparefn=prepare_date
+            preparefn=prepare_date,
+            default=datetime.datetime.now()
             )
     meta_update = Field(
             serializefn=serialize_date,
-            preparefn=prepare_date
+            preparefn=prepare_date,
+            default=None
             )
     meta_createur_fiche = Field()
     materiel = Field(

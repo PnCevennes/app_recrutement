@@ -61,3 +61,28 @@ def get_user_groups(user_data):
                     [gr[1] for gr in ldap3.utils.dn.parse_dn(grp)][0])
     return user_groups
 
+
+def get_members(groups):
+    '''
+    Retourne la liste des membres d'un groupe
+    '''
+    ldap_cnx = ldap_connect(
+            config.LDAP_USER,
+            config.LDAP_PASS)
+    ldap_cnx.search(
+            'ou=Personnel,dc=pnc,dc=int',
+            '(sn=*)',
+            attributes=['cn', 'mail', 'memberOf'])
+    for entry in ldap_cnx.entries:
+        user_groups = get_user_groups(entry)
+        for grp in groups:
+            if grp in user_groups:
+                yield entry
+                break
+
+
+def get_members_mails(groups):
+    '''
+    Retourne l'adresse email des membres d'un groupe
+    '''
+    yield from [str(member.mail) for member in get_members(groups)]

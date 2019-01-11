@@ -49,10 +49,7 @@ class AuthUser:
 
 
 
-if config.AUTH_TYPE == 'ldap':
-    from core.auth.backends.ldap import check_user_login, get_user_groups
-else:
-    from core.auth.backends.database import check_user_login, get_user_groups
+from core.auth.backends import check_user_login, get_user_groups
 
 
 
@@ -86,8 +83,3 @@ def check_auth(groups=None):
     return _check_auth
 
 registered_funcs['check_auth'] = check_auth
-
-
-
-
-

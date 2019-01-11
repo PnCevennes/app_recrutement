@@ -22,7 +22,7 @@ from .models import Demande
 from .serializers import (
         DemandeSerializer,
         DemandeFullSerializer)
-from core.utils.serialize import ValidationError
+from core.utils.serialize import load_ref, ValidationError
 
 
 DemandeFullSerializer.dem_fichiers.preparefn = prepare_fichiers(_db)
@@ -41,17 +41,17 @@ csv_fields = [
         'num_intv',
         (
             'dem_objet',
-            lambda x: _db.session.query(Thesaurus).get(x).label
+            load_ref(_db, Thesaurus, 'label')
         ),
         'dem_date',
         (
             'dem_localisation',
-            lambda x: _db.session.query(Thesaurus).get(x).label
+            load_ref(_db, Thesaurus, 'label')
         ),
         'dem_details',
         (
             'dmdr_service',
-            lambda x: _db.session.query(Thesaurus).get(x).label
+            load_ref(_db, Thesaurus, 'label')
         ),
         'dem_delai',
         'dem_loc_commune',

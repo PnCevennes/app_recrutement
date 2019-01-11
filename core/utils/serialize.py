@@ -26,6 +26,8 @@ def prepare_date(data):
         return None
     if isinstance(data, datetime.datetime):
         return data
+    if not len(data):
+        return None
     try:
         return datetime.datetime.strptime(data, '%Y-%m-%d')
     except ValueError:
@@ -34,11 +36,28 @@ def prepare_date(data):
         except ValueError:
             return datetime.datetime.strptime(data, '%Y-%m-%d %H:%M:%S')
 
+
 def serialize_date(data):
     '''
     retourne une date sous forme de chaine
     '''
     return str(data) if data else None
+
+
+def load_ref(db, klass, attr=None):
+    '''
+    Lie un objet ou un champ externe
+    '''
+    def _load_ref(x):
+        if x is None:
+            return ''
+        obj = db.session.query(klass).get(x)
+        if not obj:
+            return ''
+        if attr is None:
+            return obj
+        return getattr(obj, attr, '')
+    return _load_ref
 
 
 class Field:
@@ -100,7 +119,9 @@ class Field:
                 if not self.checkfn(value):
                     raise ValueError
                 setattr(instance.obj, self.alias or self.name, value)
-            except Exception:
+            except Exception as exc:
+                print(exc.__class__)
+                print(exc)
                 instance.errors[self.name] = value
                 raise ValueError
 
@@ -161,12 +182,14 @@ class Serializer(metaclass=MetaSerializer):
         et les méthodes de transformation/vérification associées
         '''
         errors = False
-        for name, value in data.items():
+        #for name, value in data.items():
+        for name in self.__fields_list__:
             try:
-                setattr(self, name, value)
+                default_val = getattr(self.__class__, name).default
+                setattr(self, name, data.get(name, default_val))
             except ValueError as err:  # noqa
                 errors = True
-                self.errors[name] = value
+                self.errors[name] = data.get(name, None)
         if errors:
             raise ValidationError(self.errors)
 
@@ -211,6 +234,6 @@ class Serializer(metaclass=MetaSerializer):
         for item in data:
             if not isinstance(item, cls):
                 item = cls(item)
-            lines.append(sep.join([f_template % (_formatters[f](getattr(item, f, '')) or '') for f in _fields]))
+            lines.append(sep.join([f_template % str(_formatters[f](getattr(item, f, '')) or '').replace('"', '""') for f in _fields]))
         return eol.join(lines).encode('latin1', 'replace')
 

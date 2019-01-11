@@ -18,7 +18,7 @@ from core.utils import (
         register_module,
         registered_funcs
         )
-from core.utils.serialize import ValidationError
+from core.utils.serialize import load_ref, ValidationError
 from .models import TravauxBatiment
 
 from .serializers import (
@@ -38,40 +38,31 @@ register_module('/travaux_batiments', routes)
 check_auth = registered_funcs['check_auth']
 
 
-def load_attr(klass, attr):
-    def _load_attr(x):
-        obj = _db.session.query(klass).get(x)
-        if not obj:
-            return ''
-        return getattr(obj, attr, '')
-    return _load_attr
-
-
 csv_fields = [
         'id',
         'dem_date',
         (
             'dem_commune',
-            lambda x: _db.session.query(RefGeoCommunes).get(x).nom_commune if x else ''
+            load_ref(_db, RefGeoCommunes, 'nom_commune')
         ),
         (
             'dem_designation',
-            load_attr(RefGeoBatiment, 'designation') # _db.session.query(RefGeoBatiment).get(x).designation if x else ''
+            load_ref(_db, RefGeoBatiment, 'designation')
         ),
         (
             'dmdr_service',
-            lambda x: _db.session.query(Thesaurus).get(x).label if x else ''
+            load_ref(_db, Thesaurus, 'label')
         ),
         'dmdr_contact_nom',
         'dem_importance_travaux',
         (
             'dem_type_travaux',
-            lambda x: _db.session.query(Thesaurus).get(x).label if x else ''
+            load_ref(_db, Thesaurus, 'label')
         ),
         'dem_description_travaux',
         (
             'plan_service',
-            lambda x: _db.session.query(Thesaurus).get(x).label if x else ''
+            load_ref(_db, Thesaurus, 'label')
         ),
         'plan_entreprise',
         'plan_date',
