@@ -48,9 +48,7 @@ class AuthUser:
                 }
 
 
-
 from core.auth.backends import check_user_login, get_user_groups
-
 
 
 def check_auth(groups=None):
@@ -81,5 +79,6 @@ def check_auth(groups=None):
 
         return __check_auth
     return _check_auth
+
 
 registered_funcs['check_auth'] = check_auth

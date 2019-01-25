@@ -92,17 +92,18 @@ class Entite(db.Model):
             n = RelationEntite(id_parent=v, id_enfant=self.id)
             db.session.add(n)
 
-    def delete_relations(self):
-        rels = (RelationEntite.query
+    def delete_relations(self, dbsession):
+        rels = (dbsession.query(RelationEntite)
                 .filter(RelationEntite.id_parent == self.id)
                 .all())
-        parents = (RelationEntite.query
+        parents = (dbsession.query(RelationEntite)
                 .filter(RelationEntite.id_enfant == self.id)
                 .all())
         for r in rels:
-            db.session.delete(r)
+            dbsession.delete(r)
         for p in parents:
-            db.session.delete(p)
+            dbsession.delete(p)
+        dbsession.commit()
 
     def to_json(self):
         fields = [

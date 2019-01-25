@@ -101,7 +101,7 @@ def get_agents():
 
         ag_list = qr.order_by(_db.asc(Agent.arrivee)).all()
         if _format == 'csv':
-            return csv_response(AgentDetailSerializer.export_csv(ag_list, fields=csv_fields), filename='recrutement.csv') 
+            return csv_response(AgentDetailSerializer.export_csv(ag_list, fields=csv_fields), filename='recrutement.csv')
             return format_csv(ag_list, ';')
         else:
             return [AgentSerializer(res).serialize() for res in ag_list]
@@ -259,27 +259,3 @@ def delete_agent(id_agent):
         add_dests=agent.notif_list.split(',')
         )
     return []
-
-
-@routes.route('/upload', methods=['POST'])
-@json_resp
-def v_recr_upload_file():
-    if 'fichier' not in request.files:
-        return {}, 400
-    return upload_file(request.files['fichier'])
-
-
-@routes.route('/upload/<file_uri>', methods=['GET'])
-def v_recr_get_uploaded_file(file_uri):
-    return get_uploaded_file(file_uri)
-
-
-@routes.route('/upload/<fileid>', methods=['DELETE'])
-@json_resp
-def v_recr_delete_uploaded_file(fileid):
-    rels_fichiers = _db.session.query(RelAgentFichier).filter(
-            RelAgentFichier.id_fichier == fileid).all()
-    for rel in rels_fichiers:
-        _db.session.delete(rel)
-        _db.session.commit()
-    return delete_uploaded_file(fileid, db=_db)

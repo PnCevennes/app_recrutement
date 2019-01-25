@@ -4,6 +4,7 @@ routes relatives à l'annuaire
 import datetime
 
 from flask import Blueprint, request, Response
+from sqlalchemy.exc import InvalidRequestError
 
 from server import db as _db
 from core.utils import (
@@ -260,13 +261,17 @@ def update_entite(id_entite):
 @json_resp
 @check_auth(['tizoutis-annuaire'])
 def delete_entite(id_entite):
-    entite = Entite.query.get(id_entite)
+    entite = _db.session.query(Entite).get(id_entite)
     if not entite:
         return {'errmsg': 'Donnée inexistante'}, 404
     try:
-        entite.delete_relations()
-    except sqlalchemy.exc.InvalidRequestError:
+        entite.delete_relations(_db.session)
+        _db.session.delete(entite)
+        _db.session.commit()
+    except InvalidRequestError as excpt:
         _db.session.rollback()
-    _db.session.delete(entite)
-    _db.session.commit()
+        return {
+                'msg': 'Erreur à la suppression',
+                'trace': str(excpt)
+                }, 500
     return []
