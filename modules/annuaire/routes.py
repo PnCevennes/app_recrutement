@@ -227,6 +227,8 @@ def create_entite():
     serializer = SERIALIZERS_E[entite_type](entite)
     parents = data.pop('parents', [])
     relations = data.pop('relations', [])
+    data['parents'] = []
+    data['relations'] = []
     try:
         serializer.populate(data)
     except ValidationError as e:

@@ -1,5 +1,5 @@
 from server import db
-from core.utils.serialize import Serializer, Field
+from core.utils.serialize import Serializer, Field, serialize_files
 
 
 
@@ -24,12 +24,6 @@ class Fichier(db.Model):
                 'filename': self.filename,
                 'file_uri': self.file_uri
                 }
-
-
-def serialize_files(data):
-    if not data:
-        return []
-    return [FichierSerializer(item).serialize() for item in data]
 
 
 def prepare_fichiers(db):

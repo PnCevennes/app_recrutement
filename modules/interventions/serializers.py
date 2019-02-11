@@ -1,27 +1,29 @@
-from core.utils.serialize import Serializer, Field, prepare_date
-from core.models import serialize_files
+from core.utils.serialize import (
+        Serializer,
+        Field,
+        IntField,
+        DateField,
+        FileField)
 
 
 class DemandeSerializer(Serializer):
     id = Field()
     num_intv = Field()
-    dem_date = Field(serializefn=str, preparefn=prepare_date)
+    dem_date = DateField()
     dem_objet = Field()
     dem_loc_libelle = Field()
-    rea_date = Field(
-            serializefn=(lambda val: str(val) if val is not None else val),
-            preparefn=prepare_date)
+    rea_date = DateField()
 
 
 class DemandeFullSerializer(DemandeSerializer):
-    dem_localisation = Field()
+    dem_localisation = IntField()
     dem_loc_commune = Field()
     dem_details = Field()
     dem_delai = Field()
-    dem_fichiers = Field(serializefn=serialize_files)
+    dem_fichiers = FileField()
 
     dmdr_contact_nom = Field()
-    dmdr_service = Field()
+    dmdr_service = IntField()
     dmdr_contact_email = Field(
             serializefn=(
                 lambda val: [item for item in val.split(',') if item]),
@@ -31,8 +33,8 @@ class DemandeFullSerializer(DemandeSerializer):
     plan_date = Field()
     plan_commentaire = Field()
 
-    rea_duree = Field()
-    rea_nb_agents = Field()
+    rea_duree = Field(preparefn=lambda x: int(x) if x != '' else 0)
+    rea_nb_agents = Field(preparefn=lambda x: int(x) if x != '' else 0)
     rea_commentaire = Field()
-    rea_fichiers = Field(serializefn=serialize_files)
+    rea_fichiers = FileField()
 

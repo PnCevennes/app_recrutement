@@ -73,31 +73,8 @@ csv_fields = [
         ]
 
 
-@routes.route('/', methods=['GET'])
-@json_resp
-@check_auth(groups=[
-    'tizoutis-travaux-batiments-admin',
-    'tizoutis-travaux-batiments-user'])
-def get_all_trav_batiments():
-    """
-    retourne la liste des demandes de travaux sur batiments
-    """
-    today = datetime.date.today()
-    _format = request.args.get('format', 'dict')
-    try:
-        annee = request.args.get('annee', False)
-        if not annee:
-            annee = today.year
-        else:
-            annee = int(annee)
-    except ValueError:
-        return [], 400
-    try:
-        print(annee)
-        annee_deb = datetime.date(annee, 1, 1)
-        annee_fin = datetime.date(annee, 12, 31)
-
-        results = (
+def get_demande_encours(annee_deb, annee_fin):
+        return (
                 _db.session.query(TravauxBatiment)
                 .filter(
                     _db.and_(
@@ -109,14 +86,49 @@ def get_all_trav_batiments():
                     )
                 )
                 .all())
+
+
+def get_demande_annee(annee_deb, annee_fin):
+    return _db.session.query(TravauxBatiment).filter(TravauxBatiment.dem_date.between(annee_deb, annee_fin)).all()
+
+
+@routes.route('/', methods=['GET'])
+@json_resp
+@check_auth(groups=[
+    'tizoutis-travaux-batiments-admin',
+    'tizoutis-travaux-batiments-user'])
+def get_all_trav_batiments():
+    """
+    retourne la liste des demandes de travaux sur batiments
+    """
+    today = datetime.date.today()
+    _format = request.args.get('format', 'dict')
+    add_prev_years = request.args.get('add_prev_years', False)
+    if add_prev_years == 'false':
+        add_prev_years = False
+    try:
+        annee = request.args.get('annee', False)
+        if not annee:
+            annee = today.year
+        else:
+            annee = int(annee)
+    except ValueError:
+        return [], 400
+    try:
+        annee_deb = datetime.date(annee, 1, 1)
+        annee_fin = datetime.date(annee, 12, 31)
+        if not add_prev_years:
+            results = get_demande_annee(annee_deb, annee_fin)
+        else:
+            results = get_demande_encours(annee_deb, annee_fin)
+
+        if _format == 'csv':
+            return csv_response(TravauxBatimentFullSerializer.export_csv(results, fields=csv_fields), filename='travaux.csv')
+
+        return [TravauxBatimentSerializer(res).serialize() for res in results]
     except Exception:
         import traceback
         return [{'msg': traceback.format_exc()}], 400
-
-    if _format == 'csv':
-        return csv_response(TravauxBatimentFullSerializer.export_csv(results, fields=csv_fields), filename='travaux.csv')
-
-    return [TravauxBatimentSerializer(res).serialize() for res in results]
 
 
 @routes.route('/<id_trav>', methods=['GET'])

@@ -1,10 +1,9 @@
 from core.utils.serialize import (
     Serializer,
     Field,
-    prepare_date,
-    prepare_serial,
-    serialize_date)
-from core.models import serialize_files
+    IntField,
+    DateField,
+    FileField)
 
 
 class TravauxBatimentSerializer(Serializer):
@@ -12,22 +11,18 @@ class TravauxBatimentSerializer(Serializer):
     serialise une partie des données de la fiche pour
     un affichage en liste
     '''
-    id = Field(preparefn=prepare_serial)
-    dem_date = Field(
-            serializefn=serialize_date,
-            preparefn=prepare_date)
+    id = IntField()
+    dem_date = DateField()
     dem_commune = Field()
     dem_designation = Field()
-    rea_date = Field(
-            serializefn=serialize_date,
-            preparefn=prepare_date)
+    rea_date = DateField()
 
 
 class TravauxBatimentFullSerializer(TravauxBatimentSerializer):
     '''
     serialise la totalité de la fiche pour un affichage détaillé
     '''
-    dmdr_service = Field()
+    dmdr_service = IntField()
     dmdr_contact_nom = Field()
     dmdr_contact_email = Field(
             serializefn=(
@@ -37,18 +32,16 @@ class TravauxBatimentFullSerializer(TravauxBatimentSerializer):
     dem_importance_travaux = Field()
     dem_type_travaux = Field()
     dem_description_travaux = Field()
-    plan_service = Field(preparefn=lambda val: val if val else None)
+    plan_service = IntField()
     plan_entreprise = Field()
     plan_date = Field()
     plan_commentaire = Field()
-    rea_date = Field(
-            serializefn=serialize_date,
-            preparefn=prepare_date)
+    rea_date = DateField()
     rea_duree = Field(preparefn=lambda val: val if val else 0)
     rea_commentaire = Field()
-    dem_fichiers = Field(serializefn=serialize_files)
-    plan_fichiers = Field(serializefn=serialize_files)
-    rea_fichiers = Field(serializefn=serialize_files)
+    dem_fichiers = FileField()
+    plan_fichiers = FileField()
+    rea_fichiers = FileField()
 
 
 

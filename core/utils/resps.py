@@ -15,6 +15,7 @@ def csv_response(data, filename='export.csv'):
     headers = Headers()
     headers.add('Content-Type', 'text/csv')
     headers.add('Content-Disposition', 'attachment', filename=filename)
+    headers.add('Cache-Control', 'no-cache')
     return Response(data, headers=headers)
 
 

@@ -8,15 +8,15 @@ from server import db
 from core.utils.serialize import (
     Serializer,
     Field,
-    prepare_date,
-    serialize_date)
+    IntField,
+    DateField)
 
 
 class EquipementSerializer(Serializer):
     '''
     Serialisation d'un objet Equipement
     '''
-    id = Field()
+    id = IntField()
     ip_addr = Field()
     label = Field()
     equip_type = Field()
@@ -25,10 +25,7 @@ class EquipementSerializer(Serializer):
             serializefn=lambda x: json.loads(x) if x else [],
             preparefn=json.dumps
             )
-    last_up = Field(
-            serializefn=serialize_date,
-            preparefn=prepare_date
-            )
+    last_up = DateField()
     commentaires = Field()
 
 

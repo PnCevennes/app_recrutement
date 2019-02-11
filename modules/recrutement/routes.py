@@ -74,6 +74,36 @@ csv_fields = [
         ]
 
 
+def get_agents_annee(annee_deb, annee_fin, frmt='dict'):
+    '''
+    Retourne la liste des agents recrutés dans l'année
+    '''
+    if frmt == 'dict':
+        klass = Agent
+    else:
+        klass = AgentDetail
+    qr = klass.query.filter(klass.arrivee.between(annee_deb, annee_fin))
+    return qr.order_by(_db.asc(Agent.arrivee)).all()
+
+
+def get_agents_presents(annee_deb, annee_fin, frmt='dict'):
+    '''
+    Retourne la liste des agents présents au cours de l'année
+    '''
+    if frmt == 'dict':
+        klass = Agent
+    else:
+        klass = AgentDetail
+    qr = klass.query.filter(
+            _db.and_(
+                _db.or_(
+                    klass.depart > annee_deb,
+                    klass.depart == None),
+                klass.arrivee < annee_fin))
+    return qr.order_by(_db.asc(klass.arrivee)).all()
+
+
+
 @routes.route('/')
 @json_resp
 @check_auth()
@@ -83,6 +113,9 @@ def get_agents():
     '''
     today = datetime.date.today()
     _format = request.args.get('format', 'dict')
+    add_prev_years = request.args.get('add_prev_years', False)
+    if add_prev_years == 'false':
+        add_prev_years = False
     try:
         annee = request.args.get('annee', False)
         if not annee:
@@ -94,15 +127,12 @@ def get_agents():
     try:
         annee_deb = datetime.date(annee, 1, 1)
         annee_fin = datetime.date(annee, 12, 31)
-        if _format == 'dict':
-            qr = Agent.query.filter(Agent.arrivee.between(annee_deb, annee_fin))
+        if not add_prev_years:
+            ag_list = get_agents_annee(annee_deb, annee_fin, _format)
         else:
-            qr = AgentDetail.query.filter(AgentDetail.arrivee.between(annee_deb, annee_fin))
-
-        ag_list = qr.order_by(_db.asc(Agent.arrivee)).all()
+            ag_list = get_agents_presents(annee_deb, annee_fin, _format)
         if _format == 'csv':
             return csv_response(AgentDetailSerializer.export_csv(ag_list, fields=csv_fields), filename='recrutement.csv')
-            return format_csv(ag_list, ';')
         else:
             return [AgentSerializer(res).serialize() for res in ag_list]
     except Exception:

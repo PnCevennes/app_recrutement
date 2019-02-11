@@ -65,6 +65,24 @@ csv_fields = [
         'rea_commentaire']
 
 
+def get_demande_encours(annee_deb, annee_fin):
+    return (
+            _db.session.query(Demande)
+            .filter(
+                _db.and_(
+                    Demande.dem_date <= annee_fin,
+                    _db.or_(
+                        Demande.rea_date == None,
+                        Demande.rea_date >= annee_deb
+                    )
+                )
+            )
+            .all())
+
+def get_demande_annee(annee_deb, annee_fin):
+    return _db.session.query(Demande).filter(Demande.dem_date.between(annee_deb, annee_fin)).all()
+
+
 @routes.route('/', methods=['GET'])
 @json_resp
 @check_auth()
@@ -75,6 +93,9 @@ def get_interventions():
 
     today = datetime.date.today()
     _format = request.args.get('format', 'dict')
+    add_prev_years = request.args.get('add_prev_years', False)
+    if add_prev_years == 'false':
+        add_prev_years = False
     try:
         annee = request.args.get('annee', False)
         if not annee:
@@ -86,27 +107,19 @@ def get_interventions():
     try:
         annee_deb = datetime.date(annee, 1, 1)
         annee_fin = datetime.date(annee, 12, 31)
+        if not add_prev_years:
+            results = get_demande_annee(annee_deb, annee_fin)
+        else:
+            results = get_demande_encours(annee_deb, annee_fin)
 
-        results = (
-                _db.session.query(Demande)
-                .filter(
-                    _db.and_(
-                        Demande.dem_date <= annee_fin,
-                        _db.or_(
-                            Demande.rea_date == None,
-                            Demande.rea_date >= annee_deb
-                        )
-                    )
-                )
-                .all())
+        print(len(results))
+        if _format == 'csv':
+            return csv_response(DemandeFullSerializer.export_csv(results, fields=csv_fields), filename='interventions.csv')
+        else:
+            return [DemandeSerializer(res).serialize() for res in results]
     except Exception:
         import traceback
         return [{'msg': traceback.format_exc()}], 400
-
-    if _format == 'csv':
-        return csv_response(DemandeFullSerializer.export_csv(results, fields=csv_fields), filename='interventions.csv')
-    else:
-        return [DemandeSerializer(res).serialize() for res in results]
 
 
 @routes.route('/<id_intervention>', methods=['GET'])

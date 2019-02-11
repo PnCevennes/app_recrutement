@@ -1,7 +1,7 @@
 '''
 Classes de sérialisation des données
 '''
-from core.utils.serialize import Serializer, Field
+from core.utils.serialize import Serializer, Field, IntField
 
 
 def format_phone(tel):
@@ -21,7 +21,7 @@ def format_phone(tel):
 
 
 class EntiteSerializer(Serializer):
-    id = Field()
+    id = IntField()
     nom = Field()
     label = Field(readonly=True)
     type_entite = Field()
@@ -66,4 +66,3 @@ class EntrepriseSerializer(EntiteSerializer):
     email = Field()
     alt_email = Field()
     site_internet = Field()
-

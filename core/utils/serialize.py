@@ -13,7 +13,7 @@ def prepare_serial(val):
     '''
     Retourne int ou None pour int serial/autoincrement
     '''
-    if val == '':
+    if val is None or val == '':
         return None
     return int(val)
 
@@ -35,6 +35,13 @@ def prepare_date(data):
             return datetime.datetime.strptime(data, '%Y-%m-%dT%H:%M:%S.%fZ')
         except ValueError:
             return datetime.datetime.strptime(data, '%Y-%m-%d %H:%M:%S')
+
+
+def serialize_files(data):
+    from core.models import FichierSerializer
+    if not data:
+        return []
+    return [FichierSerializer(item).serialize() for item in data]
 
 
 def serialize_date(data):
@@ -118,7 +125,8 @@ class Field:
                 value = self.preparefn(value)
                 if not self.checkfn(value):
                     raise ValueError
-                setattr(instance.obj, self.alias or self.name, value)
+                if value:
+                    setattr(instance.obj, self.alias or self.name, value)
             except Exception as exc:
                 print(exc.__class__)
                 print(exc)
@@ -133,6 +141,110 @@ class Field:
             return self
         val = getattr(instance.obj, self.alias or self.name, self.default)
         return self.serializefn(val)
+
+
+class IntField(Field):
+    '''
+    Attribute class
+    Représente un attribut de type Int à serialiser
+    '''
+    def __init__(
+            self,
+            *,
+            alias=None,
+            checkfn=lambda x: True,
+            preparefn=None,
+            serializefn=lambda x: x,
+            default=None,
+            readonly=False):
+        '''
+        Constructeur
+        params (obligatoirement nommés) :
+            checkfn : fonction de vérification - doit renvoyer booleen
+            preparefn : fonction de transformation en vue de l'insertion
+            serializefn : fonction de transformation pour la serialisation
+            default : valeur par défaut lors de la serialisation
+        '''
+        if preparefn is None:
+            preparefn=prepare_serial
+
+        super(IntField, self).__init__(
+                alias=alias,
+                checkfn=checkfn,
+                preparefn=preparefn,
+                serializefn=serializefn,
+                default=default,
+                readonly=readonly)
+
+
+class DateField(Field):
+    '''
+    Attribute class
+    Représente un attribut de type Date à serialiser
+    '''
+    def __init__(
+            self,
+            *,
+            alias=None,
+            checkfn=lambda x: True,
+            preparefn=None,
+            serializefn=None,
+            default=None,
+            readonly=False):
+        '''
+        Constructeur
+        params (obligatoirement nommés) :
+            checkfn : fonction de vérification - doit renvoyer booleen
+            preparefn : fonction de transformation en vue de l'insertion
+            serializefn : fonction de transformation pour la serialisation
+            default : valeur par défaut lors de la serialisation
+        '''
+        if preparefn is None:
+            preparefn = prepare_date
+        if serializefn is None:
+            serializefn = serialize_date
+
+        super(DateField, self).__init__(
+                alias=alias,
+                checkfn=checkfn,
+                preparefn=preparefn,
+                serializefn=serializefn,
+                default=default,
+                readonly=readonly)
+
+
+class FileField(Field):
+    '''
+    Attribute class
+    Représente un attribut de type Date à serialiser
+    '''
+    def __init__(
+            self,
+            *,
+            alias=None,
+            checkfn=lambda x: True,
+            preparefn=lambda x: x,
+            serializefn=None,
+            default=None,
+            readonly=False):
+        '''
+        Constructeur
+        params (obligatoirement nommés) :
+            checkfn : fonction de vérification - doit renvoyer booleen
+            preparefn : fonction de transformation en vue de l'insertion
+            serializefn : fonction de transformation pour la serialisation
+            default : valeur par défaut lors de la serialisation
+        '''
+        if serializefn is None:
+            serializefn = serialize_files
+
+        super(FileField, self).__init__(
+                alias=alias,
+                checkfn=checkfn,
+                preparefn=preparefn,
+                serializefn=serializefn,
+                default=default,
+                readonly=readonly)
 
 
 class ValidationError(Exception):
