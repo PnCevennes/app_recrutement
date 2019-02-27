@@ -83,7 +83,6 @@ def reconnect_view():
         return {'err': 'invalid token'}, 403
     if authstatus.expiration < now:
         return {'err': 'expired'}, 403
-    # authstatus.token = uuid.uuid4().hex
     authstatus.expiration = now + datetime.timedelta(days=1)
     _db.session.commit()
     return authstatus.as_dict()

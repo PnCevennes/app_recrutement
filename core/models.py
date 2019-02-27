@@ -2,6 +2,37 @@ from server import db
 from core.utils.serialize import Serializer, Field, serialize_files
 
 
+class Chrono(db.Model):
+    __tablename__ = 'commons_chrono'
+    reference = db.Column(db.Unicode(length=50), primary_key=True)
+    cur_id = db.Column(db.Integer)
+
+
+def get_chrono(reference):
+    '''
+    Retourne un numéro de chrono relatif à la référence fournie
+    '''
+    current = db.session.query(Chrono).get(reference)
+    if not current:
+        current = Chrono(reference=reference, cur_id=1)
+        db.session.add(current)
+    else:
+        current.cur_id += 1
+    db.session.commit()
+    return '{}{:03}'.format(current.reference, current.cur_id)
+
+
+def amend_chrono(reference):
+    '''
+    Annule la précédente demande de chrono relatif à la référence fournie
+    '''
+    current = db.session.query(Chrono).get(reference)
+    if current:
+        current.cur_id -= 1
+        db.session.commit()
+        return True
+    return False
+
 
 class FichierSerializer(Serializer):
     id = Field()

@@ -8,7 +8,7 @@ from werkzeug.datastructures import Headers
 from sqlalchemy.exc import InvalidRequestError
 
 from server import db as _db
-from core.models import Fichier, prepare_fichiers
+from core.models import Fichier, prepare_fichiers, get_chrono, amend_chrono
 from core.thesaurus.models import Thesaurus
 from core.utils import (
         json_resp,
@@ -142,9 +142,12 @@ def create_intervention():
     """
     dem = request.json
     dem['dem_date'] = datetime.datetime.now()
+    ref_chrono = '{}-INTV-'.format(dem['dem_date'].year)
 
     demande = Demande()
     try:
+        chrono = get_chrono(ref_chrono)
+        dem['num_intv'] = chrono
         DemandeFullSerializer(demande).populate(dem)
         _db.session.add(demande)
         _db.session.commit()
@@ -168,6 +171,7 @@ def create_intervention():
 
         return {'id': demande.id}
     except ValidationError as e:
+        amend_chrono(ref_chrono)
         return e.errors, 400
 
 
