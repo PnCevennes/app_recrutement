@@ -9,13 +9,13 @@ import datetime
 from collections import OrderedDict
 
 
-def prepare_serial(val):
+def prepare(cast=str, default=''):
     '''
-    Retourne int ou None pour int serial/autoincrement
+    Transforme la donnée selon le type fourni si elle n'est pas nulle, sinon retourne défault
     '''
-    if val is None or val == '':
-        return None
-    return int(val)
+    def _prepare_lambda(val):
+        return cast(val) if val not in (None, '') else default
+    return _prepare_lambda
 
 
 def prepare_date(data):
@@ -153,7 +153,7 @@ class IntField(Field):
             *,
             alias=None,
             checkfn=lambda x: True,
-            preparefn=None,
+            preparefn=lambda x: x,
             serializefn=lambda x: x,
             default=None,
             readonly=False):
@@ -166,7 +166,7 @@ class IntField(Field):
             default : valeur par défaut lors de la serialisation
         '''
         if preparefn is None:
-            preparefn=prepare_serial
+            preparefn=prepare(int, default)
 
         super(IntField, self).__init__(
                 alias=alias,

@@ -37,7 +37,7 @@ class TravauxBatimentFullSerializer(TravauxBatimentSerializer):
     plan_date = Field()
     plan_commentaire = Field()
     rea_date = DateField()
-    rea_duree = Field(preparefn=lambda val: val if val else 0)
+    rea_duree = IntField(default=0)
     rea_commentaire = Field()
     dem_fichiers = FileField()
     plan_fichiers = FileField()

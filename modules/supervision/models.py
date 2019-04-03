@@ -12,6 +12,13 @@ from core.utils.serialize import (
     DateField)
 
 
+class EvtEquipementSerializer(Serializer):
+    id = IntField()
+    equip_id = IntField()
+    evt_type = IntField()
+    evt_date = DateField()
+
+
 class EquipementSerializer(Serializer):
     '''
     Serialisation d'un objet Equipement
@@ -27,6 +34,26 @@ class EquipementSerializer(Serializer):
             )
     last_up = DateField()
     commentaires = Field()
+    evts = Field(
+            serializefn=lambda x: [
+                EvtEquipementSerializer(evt).serialize()
+                for evt in reversed(x)
+                ] if x else []
+            )
+
+
+class EvtEquipement(db.Model):
+    '''
+    Mapping d'un événement sur un équipement
+    '''
+    __tablename__ = 'sup_evt_equipement'
+    id = db.Column(db.Integer, primary_key=True)
+    equip_id = db.Column(
+            db.Integer,
+            db.ForeignKey('sup_equipement.id')
+            )
+    evt_type = db.Column(db.Integer)
+    evt_date = db.Column(db.DateTime)
 
 
 class Equipement(db.Model):
@@ -42,4 +69,6 @@ class Equipement(db.Model):
     stats = db.Column(db.UnicodeText)
     last_up = db.Column(db.DateTime)
     commentaires = db.Column(db.UnicodeText)
+    evts = db.relationship(EvtEquipement, lazy='joined', cascade='delete')
+
 
