@@ -4,6 +4,22 @@ import datetime
 import os
 import os.path
 
+from sqlalchemy.orm.exc import ObjectDeletedError
+
+
+def create_evt_equip(equip_id, evt_type):
+    '''
+    Crée un evenement sur un équipement
+    equip_id : id de l'equipement
+    evt_type : 0 down, 1 up
+    '''
+    from .models import EvtEquipement
+    evt = EvtEquipement()
+    evt.equip_id = equip_id
+    evt.evt_type = evt_type
+    evt.evt_date = datetime.datetime.now()
+    return evt
+
 
 def shutdown_fn(scan):
     '''
@@ -39,21 +55,28 @@ def _scan(app, session, evt):
         counter = 0
         while not evt.is_set():
             print('nouvelle boucle')
-            equips = session.query(Equipement).all()
-            out = []
-            if counter % 3 == 0:
+            if counter % app.config['SUP_INTERVAL'] == 0:
                 counter = 0
                 print('nouveau scan')
-                for equip in equips:
-                    # compat 3.4
-                    if not scan_ping(equip.ip_addr):
-                        equip.status = 0
-                    else:
-                        equip.status = 1
-                        equip.last_up = datetime.datetime.now()
-                    out.append(EquipementSerializer(equip).serialize())
-                    session.flush()
-                    session.commit()
+                try:
+                    equips = session.query(Equipement).all()
+                    for equip in equips:
+                        # compat 3.4
+                        if not scan_ping(equip.ip_addr):
+                            if equip.status == 1:
+                                eq_evt = create_evt_equip(equip.id, 0)
+                                session.add(eq_evt)
+                            equip.status = 0
+                        else:
+                            if equip.status == 0:
+                                eq_evt = create_evt_equip(equip.id, 1)
+                                session.add(eq_evt)
+                            equip.status = 1
+                            equip.last_up = datetime.datetime.now()
+                        session.flush()
+                        session.commit()
+                except ObjectDeletedError:
+                    print('objet supprimé rencontré')
             counter += 1
             evt.wait(60)
 
