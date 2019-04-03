@@ -7,7 +7,7 @@ from core.utils.serialize import (
 
 
 class DemandeSerializer(Serializer):
-    id = Field()
+    id = IntField()
     num_intv = Field()
     dem_date = DateField()
     dem_objet = Field()
@@ -33,8 +33,8 @@ class DemandeFullSerializer(DemandeSerializer):
     plan_date = Field()
     plan_commentaire = Field()
 
-    rea_duree = Field(preparefn=lambda x: int(x) if x != '' else 0)
-    rea_nb_agents = Field(preparefn=lambda x: int(x) if x != '' else 0)
+    rea_duree = IntField(default=0)
+    rea_nb_agents = IntField(default=0)
     rea_commentaire = Field()
     rea_fichiers = FileField()
 
