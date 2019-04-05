@@ -288,7 +288,7 @@ class Serializer(metaclass=MetaSerializer):
         self.obj = obj
         self.errors = {}
 
-    def populate(self, data):
+    def load(self, data):
         '''
         "Peuple" un objet en passant par les attribute class Field
         et les méthodes de transformation/vérification associées
@@ -305,7 +305,10 @@ class Serializer(metaclass=MetaSerializer):
         if errors:
             raise ValidationError(self.errors)
 
-    def serialize(self, fields=None):
+    # alias pour ancien code
+    populate = load
+
+    def dump(self, fields=None):
         '''
         Sérialise un objet en passant par les attribute class Field
         et les méthodes de transformation associées
@@ -319,8 +322,15 @@ class Serializer(metaclass=MetaSerializer):
         else:
             out = OrderedDict()
             for field in fields:
-                out[field] = getattr(self, field, None)
+                if isinstance(field, tuple):
+                    fname, formatter = field
+                    out[fname] = formatter(getattr(self, fname, None))
+                else:
+                    out[field] = getattr(self, field, None)
             return out
+
+    # alias pour ancien code
+    serialize = dump
 
     @classmethod
     def export_csv(cls, data, *, fields=None, sep=',', delimiter='"', eol='\n'):
