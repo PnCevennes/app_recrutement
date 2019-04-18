@@ -177,6 +177,42 @@ class IntField(Field):
                 readonly=readonly)
 
 
+class FloatField(Field):
+    '''
+    Attribute class
+    Représente un attribut de type Float à serialiser
+    '''
+    def __init__(
+            self,
+            *,
+            alias=None,
+            checkfn=lambda x: True,
+            preparefn=lambda x: x,
+            serializefn=None,
+            default=None,
+            readonly=False):
+        '''
+        Constructeur
+        params (obligatoirement nommés) :
+            checkfn : fonction de vérification - doit renvoyer booleen
+            preparefn : fonction de transformation en vue de l'insertion
+            serializefn : fonction de transformation pour la serialisation
+            default : valeur par défaut lors de la serialisation
+        '''
+        if preparefn is None:
+            preparefn = prepare(float, default)
+        if serializefn is None:
+            serializefn = lambda x: float(x) if x else 0
+
+        super(FloatField, self).__init__(
+                alias=alias,
+                checkfn=checkfn,
+                preparefn=preparefn,
+                serializefn=serializefn,
+                default=default,
+                readonly=readonly)
+
+
 class DateField(Field):
     '''
     Attribute class
