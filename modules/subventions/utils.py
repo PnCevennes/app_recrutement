@@ -10,7 +10,7 @@ def render(templatename, filename, data):
     with open(os.path.join(path, templatename), 'r') as fp:
         template = fp.read().encode('ascii')
         for varname, value in data.items():
-            varmod = b'__%s__' % varname.encode('ascii')
+            varmod = b'#%s#' % varname.encode('ascii')
             template = template.replace(varmod, str(value).encode('rtfunicode') if value and len(str(value)) else b'')
 
     headers = Headers()

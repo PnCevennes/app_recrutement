@@ -3,6 +3,7 @@ from core.utils.serialize import (
     Serializer,
     Field,
     IntField,
+    FloatField,
     DateField,
     FileField
     )
@@ -29,6 +30,7 @@ class SubvFullSerializer(SubvSerializer):
     # Petitionnaire
     pet_civ = Field()
     pet_adresse = Field()
+    pet_adresse2 = Field()
     pet_cpostal = Field()
     pet_commune = Field()
     pet_telephone = Field()
@@ -47,9 +49,9 @@ class SubvFullSerializer(SubvSerializer):
     sub_commune = Field()
     sub_zc = IntField(default=0)
     sub_ctr_patri = IntField()
-    sub_montant = IntField(default=0)
-    sub_cout_total = IntField(default=0)
-    sub_taux = IntField(default=0)
+    sub_montant = FloatField(default=0)
+    sub_cout_total = FloatField(default=0)
+    sub_taux = FloatField(default=0)
     sub_date_rcpt = DateField()
     sub_dem_pc = DateField()
     sub_date_ar = DateField()
@@ -58,9 +60,9 @@ class SubvFullSerializer(SubvSerializer):
     dec_num_delib = Field()
     dec_motif_refus = Field()
     dec_conditions = Field()
-    dec_montant = IntField(default=0)
+    dec_montant = FloatField(default=0)
     dec_tva = IntField(default=0)
-    dec_taux = IntField(default=0)
+    dec_taux = FloatField(default=0)
     dec_compte = IntField()
     dec_code_ug = IntField()
     dec_operation = IntField()
@@ -70,24 +72,24 @@ class SubvFullSerializer(SubvSerializer):
     dec_prorogation = DateField()
     # Paiement
     pai_date_recept_demande = DateField()
-    pai_accpt1_montant = IntField()
+    pai_accpt1_montant = FloatField()
     pai_accpt1_date = DateField()
     pai_accpt1_dp = Field()
-    pai_accpt2_montant = IntField()
+    pai_accpt2_montant = FloatField()
     pai_accpt2_date = DateField()
     pai_accpt2_dp = Field()
-    pai_accpt3_montant = IntField()
+    pai_accpt3_montant = FloatField()
     pai_accpt3_date = DateField()
     pai_accpt3_dp = Field()
-    pai_accpt4_montant = IntField()
+    pai_accpt4_montant = FloatField()
     pai_accpt4_date = DateField()
     pai_accpt4_dp = Field()
-    pai_accpt5_montant = IntField()
+    pai_accpt5_montant = FloatField()
     pai_accpt5_date = DateField()
     pai_accpt5_dp = Field()
-    pai_total_verse = IntField()
-    pai_reste_du = IntField()
-    pai_mnt_annule = IntField()
+    pai_total_verse = FloatField()
+    pai_reste_du = FloatField()
+    pai_mnt_annule = FloatField()
 
     sub_fichiers = FileField()
     dec_fichiers = FileField()

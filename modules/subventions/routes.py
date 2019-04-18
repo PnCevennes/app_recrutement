@@ -42,6 +42,7 @@ csv_fields = [
         'pet_nom',
         'pet_civ',
         'pet_adresse',
+        'pet_adresse2',
         'pet_cpostal',
         'pet_commune',
         'pet_telephone',
@@ -71,7 +72,7 @@ csv_fields = [
         'dec_motif_refus',
         'dec_conditions',
         'dec_montant',
-        'dec_tva',
+        ('dec_tva', lambda x: 'HT' if x == 1 else 'TTC'),
         'dec_taux',
         ('dec_compte', load_ref(_db, Thesaurus, 'label')),
         ('dec_code_ug', load_ref(_db, Thesaurus, 'label')),
@@ -103,6 +104,10 @@ csv_fields = [
         ]
 
 
+#
+# Routes gestion des subventions
+#
+
 @routes.route('/')
 @json_resp
 def get_subs():
@@ -123,7 +128,7 @@ def get_detail_subv(id_sub):
     if _format == 'document':
         _data = SubvFullSerializer(subv).dump(csv_fields)
         if _template:
-            return render(_template, 'subv.rtf', _data)
+            return render('%s.rtf' % _template, 'subv.rtf', _data)
         else:
             return _data
 
@@ -171,3 +176,13 @@ def delete_subv(id_sub):
     _db.session.delete(demande)
     _db.session.commit()
     return {'id': demande.id}
+
+
+#
+# Routes gestion des modèles
+#
+
+@routes.route('/templates', methods=['GET'])
+@json_resp
+def get_templates():
+    return ['templates']
