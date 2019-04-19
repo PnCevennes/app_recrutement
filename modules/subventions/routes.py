@@ -1,7 +1,9 @@
 import datetime
+import os, os.path
 
-from flask import Blueprint, request, Response
+from flask import Blueprint, request, Response, current_app
 from werkzeug.datastructures import Headers
+from werkzeug.utils import secure_filename
 
 from server import db as _db
 from core.models import Fichier, prepare_fichiers, get_chrono, amend_chrono
@@ -15,8 +17,12 @@ from core.utils import (
         registered_funcs
         )
 from core.utils.serialize import ValidationError, load_ref
-from .models import DemandeSubvention
-from .serializers import SubvSerializer, SubvFullSerializer
+from .models import DemandeSubvention, SubvTemplate
+from .serializers import (
+        SubvSerializer,
+        SubvFullSerializer,
+        SubvTemplateSerializer
+        )
 from .utils import render
 
 
@@ -111,7 +117,6 @@ csv_fields = [
 @routes.route('/')
 @json_resp
 def get_subs():
-    print('subs')
     _format = request.args.get('format', 'dict')
     subs = _db.session.query(DemandeSubvention).all()
     if _format == 'csv':
@@ -128,7 +133,7 @@ def get_detail_subv(id_sub):
     if _format == 'document':
         _data = SubvFullSerializer(subv).dump(csv_fields)
         if _template:
-            return render('%s.rtf' % _template, 'subv.rtf', _data)
+            return render(_template, 'subv.rtf', _data)
         else:
             return _data
 
@@ -185,4 +190,45 @@ def delete_subv(id_sub):
 @routes.route('/templates', methods=['GET'])
 @json_resp
 def get_templates():
-    return ['templates']
+    tpls = _db.session.query(SubvTemplate).all()
+    return [SubvTemplateSerializer(tpl).dump() for tpl in tpls]
+
+
+
+@routes.route('/templates', methods=['POST'])
+@json_resp
+def add_template():
+    if not 'id' in request.form:
+        tpl = SubvTemplate()
+        if not 'fichier' in request.files:
+            return {'err': 'No File'}, 400
+    else:
+        tpl = _db.session.query(SubvTemplate).get(request.form['id'])
+
+    ser = SubvTemplateSerializer(tpl)
+    ser.load(request.form)
+
+    if 'fichier' in request.files:
+        fichier = request.files['fichier']
+        fname = secure_filename(fichier.filename)
+        path = os.path.join(current_app.config['TEMPLATES_DIR'], 'subventions', fname)
+        fichier.save(path)
+        ser.path = path
+    if not tpl.id:
+        _db.session.add(tpl)
+        _db.session.flush()
+    _db.session.commit()
+    return ser.dump()
+
+@routes.route('/templates/<id_template>', methods=['DELETE'])
+@json_resp
+def remove_template(id_template):
+    tpl = _db.session.query(SubvTemplate).get(id_template)
+    if not tpl:
+        return {}, 404
+    _db.session.delete(tpl)
+    _db.session.commit()
+    same_path = _db.session.query(SubvTemplate).filter(SubvTemplate.path == tpl.path).all()
+    if not len(same_path):
+        os.unlink(tpl.path)
+    return {'deleted_id': tpl.id}

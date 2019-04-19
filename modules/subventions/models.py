@@ -137,3 +137,12 @@ class RelPaiFichier(db.Model):
             db.Integer,
             db.ForeignKey(Fichier.id),
             primary_key=True)
+
+
+class SubvTemplate(db.Model):
+    __tablename__ = 'subv_template'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Unicode(50))
+    label = db.Column(db.Unicode(50))
+    public = db.Column(db.Integer)
+    path = db.Column(db.Unicode(255))

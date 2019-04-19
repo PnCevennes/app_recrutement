@@ -11,7 +11,7 @@ from core.utils.serialize import (
 
 class SubvSerializer(Serializer):
     '''
-    Serialize une partie des données pour un affichage 
+    Serialize une partie des données pour un affichage
     résumé en liste
     '''
     id = Field()
@@ -24,7 +24,7 @@ class SubvSerializer(Serializer):
 
 
 class SubvFullSerializer(SubvSerializer):
-    meta_createur = Field() 
+    meta_createur = Field()
     meta_createur_mail = Field()
     meta_observations = Field()
     # Petitionnaire
@@ -94,3 +94,14 @@ class SubvFullSerializer(SubvSerializer):
     sub_fichiers = FileField()
     dec_fichiers = FileField()
     pai_fichiers = FileField()
+
+
+class SubvTemplateSerializer(Serializer):
+    id = IntField()
+    name = Field()
+    label = Field()
+    public = Field(
+            preparefn=lambda x: 1 if x == 'true' else 0,
+            serializefn=lambda x: x == 1
+            )
+    path = Field()

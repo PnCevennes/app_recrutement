@@ -4,10 +4,13 @@ import rtfunicode
 from flask import Response, current_app
 from werkzeug.datastructures import Headers
 
+from server import db
+from .models import SubvTemplate
+
 
 def render(templatename, filename, data):
-    path = current_app.config['TEMPLATES_DIR']
-    with open(os.path.join(path, templatename), 'r') as fp:
+    tpl = db.session.query(SubvTemplate).filter(SubvTemplate.name == templatename).one()
+    with open(tpl.path, 'r') as fp:
         template = fp.read().encode('ascii')
         for varname, value in data.items():
             varmod = b'#%s#' % varname.encode('ascii')
