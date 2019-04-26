@@ -32,6 +32,7 @@ class Demande(db.Model):
     rea_duree = db.Column(db.Integer)
     rea_nb_agents = db.Column(db.Integer)
     rea_commentaire = db.Column(db.UnicodeText)
+    rea_annulation = db.Column(db.Integer)
 
     dem_fichiers = db.relationship(
             Fichier,

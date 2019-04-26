@@ -37,6 +37,22 @@ def prepare_date(data):
             return datetime.datetime.strptime(data, '%Y-%m-%d %H:%M:%S')
 
 
+def format_phone(tel):
+    '''
+    formate un numéro de téléphone
+    '''
+    try:
+        tel = (tel.replace(' ', '')
+                .replace('.', '')
+                .replace('/', '')
+                .replace('-', ''))
+        return ' '.join(a+b for a, b in zip(
+                    [x for x in tel[::2]],
+                    [y for y in tel[1::2]]))
+    except:
+        return tel
+
+
 def serialize_files(data):
     from core.models import FichierSerializer
     if not data:

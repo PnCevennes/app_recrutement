@@ -1,23 +1,7 @@
 '''
 Classes de sérialisation des données
 '''
-from core.utils.serialize import Serializer, Field, IntField
-
-
-def format_phone(tel):
-    '''
-    formate un numéro de téléphone
-    '''
-    try:
-        tel = (tel.replace(' ', '')
-                .replace('.', '')
-                .replace('/', '')
-                .replace('-', ''))
-        return ' '.join(a+b for a, b in zip(
-                    [x for x in tel[::2]],
-                    [y for y in tel[1::2]]))
-    except:
-        return tel
+from core.utils.serialize import Serializer, Field, IntField, format_phone
 
 
 class EntiteSerializer(Serializer):

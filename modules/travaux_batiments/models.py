@@ -31,6 +31,7 @@ class TravauxBatiment(db.Model):
     rea_date = db.Column(db.Date)
     rea_duree = db.Column(db.Integer)
     rea_commentaire = db.Column(db.UnicodeText)
+    rea_annulation = db.Column(db.Integer)
 
     dem_fichiers = db.relationship(
             Fichier,

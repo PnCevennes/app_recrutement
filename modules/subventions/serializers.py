@@ -5,7 +5,7 @@ from core.utils.serialize import (
     IntField,
     FloatField,
     DateField,
-    FileField
+    FileField,
     )
 
 

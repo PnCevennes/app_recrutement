@@ -16,6 +16,11 @@ class TravauxBatimentSerializer(Serializer):
     dem_commune = Field()
     dem_designation = Field()
     rea_date = DateField()
+    rea_annulation = IntField(
+            default=0,
+            serializefn = lambda x: x==1,
+            preparefn = lambda x: 1 if x else 2
+            )
 
 
 class TravauxBatimentFullSerializer(TravauxBatimentSerializer):

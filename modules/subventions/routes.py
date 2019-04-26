@@ -16,14 +16,14 @@ from core.utils import (
         register_module,
         registered_funcs
         )
-from core.utils.serialize import ValidationError, load_ref
+from core.utils.serialize import ValidationError, load_ref, format_phone
 from .models import DemandeSubvention, SubvTemplate
 from .serializers import (
         SubvSerializer,
         SubvFullSerializer,
         SubvTemplateSerializer
         )
-from .utils import render
+from .utils import render, montant2txt
 
 
 SubvFullSerializer.sub_fichiers.preparefn = prepare_fichiers(_db)
@@ -51,13 +51,13 @@ csv_fields = [
         'pet_adresse2',
         'pet_cpostal',
         'pet_commune',
-        'pet_telephone',
-        'pet_mobile',
+        ('pet_telephone', format_phone),
+        ('pet_mobile', format_phone),
         'pet_mail',
         ('sa_massif', load_ref(_db, Thesaurus, 'label')),
         ('sa_service', load_ref(_db, Thesaurus, 'label')),
         'sa_instructeur',
-        'sa_tel_instr',
+        ('sa_tel_instr', format_phone),
         'sa_mail_instr',
         ('sa_commission', load_ref(_db, Thesaurus, 'label')),
         ('sa_axe_charte', load_ref(_db, Thesaurus, 'label')),
@@ -67,9 +67,9 @@ csv_fields = [
         'sub_commune',
         'sub_zc',
         'sub_ctr_patri',
-        'sub_montant',
-        'sub_cout_total',
-        'sub_taux',
+        ('sub_montant', lambda x: ('%.2f' % x).replace('.', ',')),
+        ('sub_cout_total', lambda x: ('%.2f' % x).replace('.', ',')),
+        ('sub_taux', lambda x: ('%.2f' % x).replace('.', ',')),
         ('sub_date_rcpt', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),
         'sub_dem_pc',
         ('sub_date_ar', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),
@@ -77,9 +77,9 @@ csv_fields = [
         'dec_num_delib',
         'dec_motif_refus',
         'dec_conditions',
-        'dec_montant',
+        ('dec_montant', lambda x: ('%.2f' % x).replace('.', ',')),
         ('dec_tva', lambda x: 'HT' if x == 1 else 'TTC'),
-        'dec_taux',
+        ('dec_taux', lambda x: ('%.2f' % x).replace('.', ',')),
         ('dec_compte', load_ref(_db, Thesaurus, 'label')),
         ('dec_code_ug', load_ref(_db, Thesaurus, 'label')),
         ('dec_operation', load_ref(_db, Thesaurus, 'label')),
@@ -89,24 +89,24 @@ csv_fields = [
         ('dec_echeance', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),
         ('dec_prorogation', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),
         ('pai_date_recept_demande', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),
-        'pai_accpt1_montant',
+        ('pai_accpt1_montant', lambda x: ('%.2f' % x).replace('.', ',')),
         'pai_accpt1_date',
         'pai_accpt1_dp',
-        'pai_accpt2_montant',
+        ('pai_accpt2_montant', lambda x: ('%.2f' % x).replace('.', ',')),
         'pai_accpt2_date',
         'pai_accpt2_dp',
-        'pai_accpt3_montant',
+        ('pai_accpt3_montant', lambda x: ('%.2f' % x).replace('.', ',')),
         'pai_accpt3_date',
         'pai_accpt3_dp',
-        'pai_accpt4_montant',
+        ('pai_accpt4_montant', lambda x: ('%.2f' % x).replace('.', ',')),
         'pai_accpt4_date',
         'pai_accpt4_dp',
-        'pai_accpt5_montant',
+        ('pai_accpt5_montant', lambda x: ('%.2f' % x).replace('.', ',')),
         'pai_accpt5_date',
         'pai_accpt5_dp',
-        'pai_total_verse',
-        'pai_reste_du',
-        'pai_mnt_annule',
+        ('pai_total_verse', lambda x: ('%.2f' % x).replace('.', ',')),
+        ('pai_reste_du', lambda x: ('%.2f' % x).replace('.', ',')),
+        ('pai_mnt_annule', lambda x: ('%.2f' % x).replace('.', ',')),
         ]
 
 
@@ -133,7 +133,9 @@ def get_detail_subv(id_sub):
     if _format == 'document':
         _data = SubvFullSerializer(subv).dump(csv_fields)
         if _template:
-            return render(_template, 'subv.rtf', _data)
+            _data['sub_montant_txt'] = montant2txt(_data['sub_montant'], sep=',').upper()
+            _data['dec_montant_txt'] = montant2txt(_data['dec_montant'], sep=',').upper()
+            return render(_template, _data)
         else:
             return _data
 
