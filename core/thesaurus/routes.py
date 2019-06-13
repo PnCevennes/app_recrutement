@@ -89,7 +89,7 @@ def create_thesaurus():
 def update_thesaurus(id_ref):
     result = _db.session.query(models.Thesaurus).get(id_ref)
     result.label = request.json.get('label', '')
-    thes.menu = 1 if request.json['menu'] else 0
+    result.menu = 1 if request.json['menu'] else 0
     _db.session.commit()
     return {'value': 'ok'}
 
