@@ -1,5 +1,56 @@
+import datetime
+import json
+from enum import Enum
+
+from flask import g
+
 from server import db
 from core.utils.serialize import Serializer, Field, serialize_files
+
+class ChangeType(Enum):
+    CREATE = 1
+    UPDATE = 2
+    DELETE = 3
+
+
+class Changelog(db.Model):
+    __tablename__ = 'commons_changelog'
+    id = db.Column(db.Integer, primary_key=True)
+    module_name = db.Column(db.Unicode(length=50))
+    model_name = db.Column(db.Unicode(length=50))
+    entity_id = db.Column(db.Integer)
+    author = db.Column(db.Unicode(length=100))
+    change_type = db.Column(db.Integer)
+    change_date = db.Column(db.Date)
+    changes = db.Column(db.UnicodeText)
+
+
+def record_changes(model, changes, change_type, pkname='id'):
+    logger = Changelog()
+    logger.model_name = model.__class__.__name__
+    logger.module_name = model.__class__.__module__
+    logger.entity_id = getattr(model, pkname)
+    logger.author = g.userdata['name']
+    logger.change_type = change_type.value
+    logger.change_date = datetime.datetime.today()
+    logger.changes = json.dumps(changes)
+    db.session.add(logger)
+    db.session.commit()
+
+def map_changes(log):
+    log.changes = json.loads(log.changes)
+    log.change_type = ChangeType(log.change_type)
+    return log
+
+def load_changes(instance):
+    results = db.session.query(Changelog).filter(
+            db.and_(
+                Changelog.module_name==instance.__class__.__module__,
+                Changelog.model_name==instance.__class__.__name__,
+                Changelog.entity_id==instance.id
+                )
+            ).all()
+    return [map_changes(x) for x in results]
 
 
 class Chrono(db.Model):

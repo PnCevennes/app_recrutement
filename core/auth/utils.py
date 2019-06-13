@@ -72,6 +72,7 @@ def check_auth(groups=None):
                                 lambda x: x in userdata['groups'],
                                 groups + ['admin-tizoutis'])):
                             return {'err': 'invalid groups'}, 403
+                    g.userdata = userdata
                 except NoResultFound as err:
                     return {'err': 'invalid auth'}, 403
             return fn(*args_, **kwargs_)

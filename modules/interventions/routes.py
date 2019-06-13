@@ -141,8 +141,8 @@ def create_intervention():
     crée une nouvelle demande d'intervention
     """
     dem = request.json
-    dem['dem_date'] = datetime.datetime.now()
-    ref_chrono = '{}-INTV-'.format(dem['dem_date'].year)
+    dem['dem_date'] = datetime.date.today()
+    ref_chrono = '{}INTV'.format(str(dem['dem_date'].year)[2:4])
 
     demande = Demande()
     try:
