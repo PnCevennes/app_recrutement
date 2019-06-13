@@ -25,7 +25,7 @@ check_auth = registered_funcs['check_auth']
 @check_auth(groups=['admin-tizoutis'])
 def th_index():
     th_list = _db.session.query(models.Thesaurus).all()
-    return [models.ThesaurusSerializer(item).serialize()
+    return [models.ThesaurusSerializer(item).dump()
             for item in th_list]
 
 @routes.route('/ref/<int:id_ref>')
@@ -38,7 +38,7 @@ def get_thesaurus(id_ref):
     try:
         th_list = _db.session.query(models.Thesaurus).filter(
                 models.Thesaurus.id_ref == id_ref).all()
-        return [models.ThesaurusSerializer(item).serialize()
+        return [models.ThesaurusSerializer(item).dump()
                 for item in th_list]
     except StatementError:
         _db.session.rollback()
@@ -54,7 +54,7 @@ def get_th_mnemo(label):
             ).one()
         th_list = _db.session.query(models.Thesaurus).filter(
                 models.Thesaurus.id_ref == id_ref.id).all()
-        return [models.ThesaurusSerializer(item).serialize()
+        return [models.ThesaurusSerializer(item).dump()
                 for item in th_list]
     except StatementError:
         _db.session.rollback()
@@ -77,6 +77,7 @@ def create_thesaurus():
     thes = models.Thesaurus()
     thes.id_ref = request.json['id_ref']
     thes.label = request.json['label']
+    thes.menu = 1 if request.json['menu'] else 0
     _db.session.add(thes)
     _db.session.commit()
     return {'value': 'ok'}
@@ -88,6 +89,7 @@ def create_thesaurus():
 def update_thesaurus(id_ref):
     result = _db.session.query(models.Thesaurus).get(id_ref)
     result.label = request.json.get('label', '')
+    thes.menu = 1 if request.json['menu'] else 0
     _db.session.commit()
     return {'value': 'ok'}
 

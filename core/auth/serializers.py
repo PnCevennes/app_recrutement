@@ -1,4 +1,10 @@
-from core.utils.serialize import Serializer, Field, IntField
+from core.utils.serialize import (
+        Serializer,
+        Field,
+        IntField,
+        PasswordField,
+        MultipleField
+        )
 
 class UserSerializer(Serializer):
     id = IntField()
@@ -6,8 +12,8 @@ class UserSerializer(Serializer):
 
 
 class UserFullSerializer(UserSerializer):
-    password = Field(serializefn=lambda x: '')
+    password = PasswordField(serializefn=lambda x: '')
     login = Field()
     email = Field()
-    groups = Field(
+    groups = MultipleField(
         serializefn=lambda grps: [grp.name for grp in grps])

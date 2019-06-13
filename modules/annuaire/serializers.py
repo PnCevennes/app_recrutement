@@ -11,10 +11,12 @@ class EntiteSerializer(Serializer):
     type_entite = Field()
     observations = Field()
     parents = Field(
-            preparefn=lambda data: [item['id'] for item in data if item]
+            preparefn=lambda data: [item['id'] for item in data if item],
+            default=[]
             )
     relations = Field(
-            preparefn=lambda data: [item['id'] for item in data if item]
+            preparefn=lambda data: [item['id'] for item in data if item],
+            default=[]
             )
 
 

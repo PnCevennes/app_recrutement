@@ -4,5 +4,6 @@ static
 *.pyc
 *.db
 *.swp
+*.rtf
 supervision.lock
 templates/*

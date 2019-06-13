@@ -3,7 +3,7 @@ routes relatives à l'annuaire
 '''
 import datetime
 
-from flask import Blueprint, request, Response
+from flask import Blueprint, request, Response, g
 from sqlalchemy.exc import InvalidRequestError
 
 from server import db as _db
@@ -14,6 +14,7 @@ from core.utils import (
         register_module,
         registered_funcs)
 from core.utils.serialize import ValidationError
+from core.models import record_changes, ChangeType
 
 from .models import (
         Entite,
@@ -231,6 +232,7 @@ def create_entite():
     data['relations'] = []
     try:
         serializer.populate(data)
+        # record_changes(entite, ChangeType.CREATE, {})
     except ValidationError as e:
         return {'errors': e.errors}, 400
     _db.session.add(entite)
@@ -250,9 +252,10 @@ def update_entite(id_entite):
     data = request.json
     entite_type = data.get('type_entite', 'entite')
     entite = Entite.query.get(id_entite)
-    serializer = SERIALIZERS_E[entite_type](entite)
+    serializer = SERIALIZERS_E[entite.type_entite](entite)
     try:
         serializer.populate(data)
+        record_changes(entite, ChangeType.UPDATE, serializer.changelog)
     except ValidationError as e:
         return {'errors': e.errors}, 400
     _db.session.commit()
@@ -266,10 +269,12 @@ def delete_entite(id_entite):
     entite = _db.session.query(Entite).get(id_entite)
     if not entite:
         return {'errmsg': 'Donnée inexistante'}, 404
+    serializer = SERIALIZERS_E[entite_type](entite)
     try:
         entite.delete_relations(_db.session)
         _db.session.delete(entite)
         _db.session.commit()
+        record_changes(entite, ChangeType.DELETE, serializer.dump())
     except InvalidRequestError as excpt:
         _db.session.rollback()
         return {

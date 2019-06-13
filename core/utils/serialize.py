@@ -24,12 +24,12 @@ def prepare_date(data):
     '''
     if not data:
         return None
-    if isinstance(data, datetime.datetime):
+    if isinstance(data, datetime.datetime) or isinstance(data, datetime.date):
         return data
     if not len(data):
         return None
     try:
-        return datetime.datetime.strptime(data, '%Y-%m-%d')
+        return datetime.datetime.strptime(data, '%Y-%m-%d').date()
     except ValueError:
         try:
             return datetime.datetime.strptime(data, '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -124,7 +124,7 @@ class Field:
         # valeur par défaut de l'attribut lors de la sérialisation uniquement
         self.default = default
 
-        # indique que la valeur est en lecture seule et qu'elle n'a pas à être passée 
+        # indique que la valeur est en lecture seule et qu'elle n'a pas à être passée
         # à l'instance DB
         self.ro = readonly
 
@@ -141,8 +141,10 @@ class Field:
                 value = self.preparefn(value)
                 if not self.checkfn(value):
                     raise ValueError
-                if value:
-                    setattr(instance.obj, self.alias or self.name, value)
+                old_value = getattr(instance.obj, self.alias or self.name, None)
+                if old_value != value:
+                    instance.changed(self.alias or self.name, old_value)
+                setattr(instance.obj, self.alias or self.name, value)
             except Exception as exc:
                 print(exc.__class__)
                 print(exc)
@@ -265,10 +267,18 @@ class DateField(Field):
                 readonly=readonly)
 
 
-class FileField(Field):
+class PasswordField(Field):
     '''
     Attribute class
-    Représente un attribut de type Date à serialiser
+    Représente un attribut de type password à serialiser
+    '''
+    pass
+
+
+class MultipleField(Field):
+    '''
+    Attribute class
+    Représente un attribut de type list à serialiser
     '''
     def __init__(
             self,
@@ -287,6 +297,42 @@ class FileField(Field):
             serializefn : fonction de transformation pour la serialisation
             default : valeur par défaut lors de la serialisation
         '''
+        if default is None:
+            default = []
+
+        super(MultipleField, self).__init__(
+                alias=alias,
+                checkfn=checkfn,
+                preparefn=preparefn,
+                serializefn=serializefn,
+                default=default,
+                readonly=readonly)
+
+
+class FileField(Field):
+    '''
+    Attribute class
+    Représente un attribut de type relation fichier à serialiser
+    '''
+    def __init__(
+            self,
+            *,
+            alias=None,
+            checkfn=lambda x: True,
+            preparefn=lambda x: x,
+            serializefn=None,
+            default=None,
+            readonly=False):
+        '''
+        Constructeur
+        params (obligatoirement nommés) :
+            checkfn : fonction de vérification - doit renvoyer booleen
+            preparefn : fonction de transformation en vue de l'insertion
+            serializefn : fonction de transformation pour la serialisation
+            default : valeur par défaut lors de la serialisation
+        '''
+        if default is None:
+            default = []
         if serializefn is None:
             serializefn = serialize_files
 
@@ -319,7 +365,6 @@ class MetaSerializer(type):
         for parent_class in bases:
             props['__fields_list__'].extend(
                     getattr(parent_class, '__fields_list__', []))
-            
         for pname, pfield in props.items():
             if isinstance(pfield, Field):
                 pfield.name = pname
@@ -339,6 +384,10 @@ class Serializer(metaclass=MetaSerializer):
         '''
         self.obj = obj
         self.errors = {}
+        self.changelog = {}
+
+    def changed(self, name, old):
+        self.changelog[name] = old
 
     def load(self, data):
         '''
@@ -350,7 +399,14 @@ class Serializer(metaclass=MetaSerializer):
         for name in self.__fields_list__:
             try:
                 default_val = getattr(self.__class__, name).default
-                setattr(self, name, data.get(name, default_val))
+                value = data.get(name, None)
+                if not value:
+                    # si le champ n'est pas un mot de passe il est mis a jour avec la valeur par défaut
+                    # si il est de type PasswordField, il est ignoré
+                    if not isinstance(getattr(self.__class__, name), PasswordField):
+                        setattr(self, name, default_val)
+                else:
+                    setattr(self, name, value)
             except ValueError as err:  # noqa
                 errors = True
                 self.errors[name] = data.get(name, None)
