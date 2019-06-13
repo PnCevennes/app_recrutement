@@ -5,3 +5,4 @@ static
 *.db
 *.swp
 supervision.lock
+templates/*

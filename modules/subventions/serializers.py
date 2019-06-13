@@ -19,7 +19,9 @@ class SubvSerializer(Serializer):
     pet_nom = Field()
     sa_massif = IntField()
     sa_commission = IntField()
+    dec_date_notif = DateField()
     dec_echeance = DateField()
+    pai_reste_du = FloatField()
     meta_statut = IntField()
 
 
@@ -67,7 +69,6 @@ class SubvFullSerializer(SubvSerializer):
     dec_code_ug = IntField()
     dec_operation = IntField()
     dec_num_ej = Field()
-    dec_date_notif = DateField()
     dec_date_retour = DateField()
     dec_prorogation = DateField()
     # Paiement
@@ -88,7 +89,6 @@ class SubvFullSerializer(SubvSerializer):
     pai_accpt5_date = DateField()
     pai_accpt5_dp = Field()
     pai_total_verse = FloatField()
-    pai_reste_du = FloatField()
     pai_mnt_annule = FloatField()
 
     sub_fichiers = FileField()
