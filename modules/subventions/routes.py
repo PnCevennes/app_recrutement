@@ -86,6 +86,7 @@ csv_fields = [
         'dec_num_ej',
         ('dec_date_notif', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),
         ('dec_date_retour', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),
+        ('dec_relance', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),
         ('dec_echeance', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),
         ('dec_prorogation', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),
         ('pai_date_recept_demande', lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''),

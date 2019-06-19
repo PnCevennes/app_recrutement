@@ -61,6 +61,7 @@ class DemandeSubvention(db.Model):
     dec_num_ej = db.Column(db.Unicode(20))
     dec_date_notif = db.Column(db.Date)
     dec_date_retour = db.Column(db.Date)
+    dec_relance = db.Column(db.Date)
     dec_echeance = db.Column(db.Date)
     dec_prorogation = db.Column(db.Date)
     # Paiement

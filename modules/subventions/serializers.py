@@ -70,6 +70,7 @@ class SubvFullSerializer(SubvSerializer):
     dec_operation = IntField()
     dec_num_ej = Field()
     dec_date_retour = DateField()
+    dec_relance = DateField()
     dec_prorogation = DateField()
     # Paiement
     pai_date_recept_demande = DateField()
