@@ -12,14 +12,14 @@ def ldap_connect(login, passwd):
     fonction de connexion au LDAP pour vérification des logins utilisateurs
     '''
     ldap_srv = ldap3.Server(
-            'apollon.pnc.int',
-            get_info=ldap3.ALL)
+        config.LDAP_SERVER,
+        get_info=ldap3.ALL)
 
     ldap_cnx = ldap3.Connection(
-            ldap_srv,
-            user= config.LDAP_PREFIX % login,
-            password=passwd,
-            authentication=ldap3.NTLM)
+        ldap_srv,
+        user=config.LDAP_PREFIX % login,
+        password=passwd,
+        authentication=ldap3.NTLM)
 
     if ldap_cnx.bind():
         return ldap_cnx
@@ -34,18 +34,18 @@ def check_user_login(login, passwd):
     '''
     ldap_cnx = ldap_connect(login, passwd)
     ldap_cnx.search(
-            config.LDAP_BASE_PATH,
-            '(sAMAccountName=%s)' % login,
-            attributes=['objectSid', 'cn', 'memberOf', 'mail'])
+        config.LDAP_BASE_PATH,
+        '(sAMAccountName=%s)' % login,
+        attributes=['objectSid', 'cn', 'memberOf', 'mail'])
     user_data = ldap_cnx.entries[0]
     user_name = str(user_data.cn)
     user_groups = get_user_groups(user_data)
     user = AuthUser({
-            'id': str(user_data.objectSid)[-4:],
-            'name': user_name,
-            'groups': user_groups,
-            'mail': str(user_data.mail)
-            })
+        'id': str(user_data.objectSid)[-4:],
+        'name': user_name,
+        'groups': user_groups,
+        'mail': str(user_data.mail)
+    })
 
     return user
 
@@ -58,7 +58,8 @@ def get_user_groups(user_data):
     if 'memberOf' in str(user_data):
         for grp in user_data['memberOf']:
             user_groups.append(
-                    [gr[1] for gr in ldap3.utils.dn.parse_dn(grp)][0])
+                [gr[1] for gr in ldap3.utils.dn.parse_dn(grp)][0]
+            )
     return user_groups
 
 
@@ -67,12 +68,12 @@ def get_members(groups):
     Retourne la liste des membres d'un groupe
     '''
     ldap_cnx = ldap_connect(
-            config.LDAP_USER,
-            config.LDAP_PASS)
+        config.LDAP_USER,
+        config.LDAP_PASS)
     ldap_cnx.search(
-            'ou=Personnel,dc=pnc,dc=int',
-            '(sn=*)',
-            attributes=['cn', 'mail', 'memberOf'])
+        'ou=Personnel,dc=pnc,dc=int',
+        '(sn=*)',
+        attributes=['cn', 'mail', 'memberOf'])
     for entry in ldap_cnx.entries:
         user_groups = get_user_groups(entry)
         for grp in groups:

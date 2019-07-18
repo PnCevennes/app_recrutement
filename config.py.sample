@@ -4,6 +4,7 @@ Fichier de configuration générale de l'application
 
 # chaine de connexion à la base de données
 SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
+SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # token administrateur pour débogage
 # permet d'accéder aux méthodes de l'API protégées par jeton d'identification
@@ -27,6 +28,8 @@ SUP_INTERVAL = 3
 
 # dossier des fichiers uploadés
 UPLOAD_DIR = 'static/upload'
+# upload spécifique templates
+TEMPLATES_DIR = 'templates'
 
 # gestion des utilisateurs locale ou via un serveur LDAP
 # AUTH_TYPE = 'local'
@@ -35,6 +38,7 @@ AUTH_TYPE = 'ldap'
 # options LDAP
 
 # chaine de connexion LDAP
+LDAP_SERVER = 'myserver.mydomain'
 LDAP_PREFIX = 'MyCompany\\%s'
 
 # utilisateur pour acces LDAP service (envoi mails)

@@ -3,6 +3,7 @@ mapping ref geo
 '''
 from server import db
 
+
 class RefGeoCommunes(db.Model):
     """
     Communes sur lesquelles le parc entretien des bâtiments
@@ -22,4 +23,3 @@ class RefGeoBatiment(db.Model):
     reference = db.Column(db.Unicode(10))
     lieu_dit = db.Column(db.Unicode(255))
     designation = db.Column(db.Unicode(255))
-

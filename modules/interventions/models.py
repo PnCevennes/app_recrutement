@@ -1,7 +1,6 @@
 '''
 mapping intervention
 '''
-
 from server import db
 from core.models import Fichier, serialize_files
 
@@ -35,16 +34,16 @@ class Demande(db.Model):
     rea_annulation = db.Column(db.Integer)
 
     dem_fichiers = db.relationship(
-            Fichier,
-            secondary='intv_rel_demande_fichier',
-            lazy='joined'
-            )
+        Fichier,
+        secondary='intv_rel_demande_fichier',
+        lazy='joined'
+    )
 
     rea_fichiers = db.relationship(
-            Fichier,
-            secondary='intv_rel_rea_fichier',
-            lazy='joined'
-            )
+        Fichier,
+        secondary='intv_rel_rea_fichier',
+        lazy='joined'
+    )
 
 
 class DemandeFichier(db.Model):
@@ -53,13 +52,13 @@ class DemandeFichier(db.Model):
     """
     __tablename__ = 'intv_rel_demande_fichier'
     id_demande = db.Column(
-            db.Integer,
-            db.ForeignKey('intv_demande.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('intv_demande.id'),
+        primary_key=True)
     id_fichier = db.Column(
-            db.Integer,
-            db.ForeignKey(Fichier.id, ondelete='cascade'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey(Fichier.id, ondelete='cascade'),
+        primary_key=True)
 
 
 class ReaFichier(db.Model):
@@ -69,10 +68,10 @@ class ReaFichier(db.Model):
     """
     __tablename__ = 'intv_rel_rea_fichier'
     id_demande = db.Column(
-            db.Integer,
-            db.ForeignKey('intv_demande.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('intv_demande.id'),
+        primary_key=True)
     id_fichier = db.Column(
-            db.Integer,
-            db.ForeignKey(Fichier.id, ondelete='cascade'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey(Fichier.id, ondelete='cascade'),
+        primary_key=True)

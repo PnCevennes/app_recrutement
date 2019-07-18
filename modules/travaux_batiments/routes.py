@@ -12,18 +12,19 @@ from core.models import Fichier, prepare_fichiers
 from core.thesaurus.models import Thesaurus
 from core.refgeo.models import RefGeoCommunes, RefGeoBatiment
 from core.utils import (
-        json_resp,
-        csv_response,
-        send_mail,
-        register_module,
-        registered_funcs
-        )
+    json_resp,
+    csv_response,
+    send_mail,
+    register_module,
+    registered_funcs
+)
 from core.utils.serialize import load_ref, ValidationError
 from .models import TravauxBatiment
 
 from .serializers import (
-        TravauxBatimentSerializer,
-        TravauxBatimentFullSerializer)
+    TravauxBatimentSerializer,
+    TravauxBatimentFullSerializer
+)
 
 
 TravauxBatimentFullSerializer.dem_fichiers.preparefn = prepare_fichiers(_db)
@@ -39,38 +40,38 @@ check_auth = registered_funcs['check_auth']
 
 
 csv_fields = [
-        'id',
-        'dem_date',
-        (
-            'dem_commune',
-            load_ref(_db, RefGeoCommunes, 'nom_commune')
-        ),
-        (
-            'dem_designation',
-            load_ref(_db, RefGeoBatiment, 'designation')
-        ),
-        (
-            'dmdr_service',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        'dmdr_contact_nom',
-        'dem_importance_travaux',
-        (
-            'dem_type_travaux',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        'dem_description_travaux',
-        (
-            'plan_service',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        'plan_entreprise',
-        'plan_date',
-        'plan_commentaire',
-        'rea_date',
-        'rea_duree',
-        'rea_commentaire'
-        ]
+    'id',
+    'dem_date',
+    (
+        'dem_commune',
+        load_ref(_db, RefGeoCommunes, 'nom_commune')
+    ),
+    (
+        'dem_designation',
+        load_ref(_db, RefGeoBatiment, 'designation')
+    ),
+    (
+        'dmdr_service',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    'dmdr_contact_nom',
+    'dem_importance_travaux',
+    (
+        'dem_type_travaux',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    'dem_description_travaux',
+    (
+        'plan_service',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    'plan_entreprise',
+    'plan_date',
+    'plan_commentaire',
+    'rea_date',
+    'rea_duree',
+    'rea_commentaire'
+]
 
 
 def get_demande_encours(annee_deb, annee_fin):
@@ -80,7 +81,7 @@ def get_demande_encours(annee_deb, annee_fin):
                     _db.and_(
                         TravauxBatiment.dem_date <= annee_fin,
                         _db.or_(
-                            TravauxBatiment.rea_date == None,
+                            TravauxBatiment.rea_date == None,  # noqa
                             TravauxBatiment.rea_date >= annee_deb
                         )
                     )
@@ -89,7 +90,9 @@ def get_demande_encours(annee_deb, annee_fin):
 
 
 def get_demande_annee(annee_deb, annee_fin):
-    return _db.session.query(TravauxBatiment).filter(TravauxBatiment.dem_date.between(annee_deb, annee_fin)).all()
+    return _db.session.query(TravauxBatiment).filter(
+        TravauxBatiment.dem_date.between(annee_deb, annee_fin)
+    ).all()
 
 
 @routes.route('/', methods=['GET'])
@@ -123,7 +126,13 @@ def get_all_trav_batiments():
             results = get_demande_encours(annee_deb, annee_fin)
 
         if _format == 'csv':
-            return csv_response(TravauxBatimentFullSerializer.export_csv(results, fields=csv_fields), filename='travaux.csv')
+            return csv_response(
+                TravauxBatimentFullSerializer.export_csv(
+                    results,
+                    fields=csv_fields
+                ),
+                filename='travaux.csv'
+            )
 
         return [TravauxBatimentSerializer(res).serialize() for res in results]
     except Exception:
@@ -162,17 +171,18 @@ def create_trav_batiment():
         _db.session.add(demande)
         _db.session.commit()
 
-
         send_mail(
-                ['tizoutis-travaux-batiments-admin', 'admin-tizoutis'],
-                "Création de la demande de travaux n°%s" % demande.id,
-                '''
-                Une nouvelle demande de travaux a été créée.
-                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/batiments?fiche=%s pour voir les détails de cette demande.
-                ''' % demande.id,
-                add_dests=demande.dmdr_contact_email.split(','),
-                sendername='travaux-batiments'
-                )
+            ['tizoutis-travaux-batiments-admin', 'admin-tizoutis'],
+            "Création de la demande de travaux n°%s" % demande.id,
+            '''
+            Une nouvelle demande de travaux a été créée.
+            Vous pouvez vous connecter sur
+            http://tizoutis.pnc.int/#/batiments?fiche=%s
+            pour voir les détails de cette demande.
+            ''' % demande.id,
+            add_dests=demande.dmdr_contact_email.split(','),
+            sendername='travaux-batiments'
+        )
         return {'id': demande.id}
     except ValidationError as e:
         return e.errors, 400
@@ -195,15 +205,17 @@ def update_trav_batiment(id_trav):
         _db.session.commit()
 
         send_mail(
-                ['tizoutis-travaux-batiments-admin', 'admin-tizoutis'],
-                "Mise à jour de la fiche n°%s" % trav.id,
-                '''
-                La fiche n°{0} a été modifiée.
-                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/batiments?fiche={0} pour voir les détails de cette demande.
-                '''.format(trav.id),
-                add_dests=trav.dmdr_contact_email.split(','),
-                sendername='travaux-batiments'
-                )
+            ['tizoutis-travaux-batiments-admin', 'admin-tizoutis'],
+            "Mise à jour de la fiche n°%s" % trav.id,
+            '''
+            La fiche n°{0} a été modifiée.
+            Vous pouvez vous connecter sur
+            http://tizoutis.pnc.int/#/batiments?fiche={0}
+            pour voir les détails de cette demande.
+            '''.format(trav.id),
+            add_dests=trav.dmdr_contact_email.split(','),
+            sendername='travaux-batiments'
+        )
 
         return {'id': trav.id}
     except ValidationError as e:
@@ -222,13 +234,15 @@ def delete_trav_batiment(id_trav):
     _db.session.commit()
 
     send_mail(
-            ['tizoutis-travaux-batiments-admin', 'admin-tizoutis'],
-            "Suppression de la fiche n°%s" % trav.id,
-            '''
-            La fiche n°{0} a été supprimée.
-            Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/batiments pour voir la liste des travaux en cours.
-            '''.format(trav.id),
-            add_dests=trav.dmdr_contact_email.split(','),
-            sendername='travaux-batiments'
-            )
+        ['tizoutis-travaux-batiments-admin', 'admin-tizoutis'],
+        "Suppression de la fiche n°%s" % trav.id,
+        '''
+        La fiche n°{0} a été supprimée.
+        Vous pouvez vous connecter sur
+        http://tizoutis.pnc.int/#/batiments
+        pour voir la liste des travaux en cours.
+        '''.format(trav.id),
+        add_dests=trav.dmdr_contact_email.split(','),
+        sendername='travaux-batiments'
+    )
     return {'id': id_trav}

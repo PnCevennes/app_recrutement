@@ -11,17 +11,18 @@ from server import db as _db
 from core.models import Fichier, prepare_fichiers, get_chrono, amend_chrono
 from core.thesaurus.models import Thesaurus
 from core.utils import (
-        json_resp,
-        csv_response,
-        send_mail,
-        register_module,
-        registered_funcs
-        )
+    json_resp,
+    csv_response,
+    send_mail,
+    register_module,
+    registered_funcs
+)
 from .models import Demande
 
 from .serializers import (
-        DemandeSerializer,
-        DemandeFullSerializer)
+    DemandeSerializer,
+    DemandeFullSerializer
+)
 from core.utils.serialize import load_ref, ValidationError
 
 
@@ -37,50 +38,55 @@ check_auth = registered_funcs['check_auth']
 
 
 csv_fields = [
-        'id',
-        'num_intv',
-        (
-            'dem_objet',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        'dem_date',
-        (
-            'dem_localisation',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        'dem_details',
-        (
-            'dmdr_service',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        'dem_delai',
-        'dem_loc_commune',
-        'dem_loc_libelle',
-        'rea_duree',
-        'dmdr_contact_nom',
-        'plan_commentaire',
-        'plan_date',
-        'rea_date',
-        'rea_nb_agents',
-        'rea_commentaire']
+    'id',
+    'num_intv',
+    (
+        'dem_objet',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    'dem_date',
+    (
+        'dem_localisation',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    'dem_details',
+    (
+        'dmdr_service',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    'dem_delai',
+    'dem_loc_commune',
+    'dem_loc_libelle',
+    'rea_duree',
+    'dmdr_contact_nom',
+    'plan_commentaire',
+    'plan_date',
+    'rea_date',
+    'rea_nb_agents',
+    'rea_commentaire'
+]
 
 
 def get_demande_encours(annee_deb, annee_fin):
     return (
-            _db.session.query(Demande)
-            .filter(
-                _db.and_(
-                    Demande.dem_date <= annee_fin,
-                    _db.or_(
-                        Demande.rea_date == None,
-                        Demande.rea_date >= annee_deb
-                    )
+        _db.session.query(Demande)
+        .filter(
+            _db.and_(
+                Demande.dem_date <= annee_fin,
+                _db.or_(
+                    Demande.rea_date == None,  # noqa
+                    Demande.rea_date >= annee_deb
                 )
             )
-            .all())
+        )
+        .all()
+    )
+
 
 def get_demande_annee(annee_deb, annee_fin):
-    return _db.session.query(Demande).filter(Demande.dem_date.between(annee_deb, annee_fin)).all()
+    return _db.session.query(Demande).filter(
+        Demande.dem_date.between(annee_deb, annee_fin)
+    ).all()
 
 
 @routes.route('/', methods=['GET'])
@@ -114,7 +120,13 @@ def get_interventions():
 
         print(len(results))
         if _format == 'csv':
-            return csv_response(DemandeFullSerializer.export_csv(results, fields=csv_fields), filename='interventions.csv')
+            return csv_response(
+                DemandeFullSerializer.export_csv(
+                    results,
+                    fields=csv_fields
+                ),
+                filename='interventions.csv'
+            )
         else:
             return [DemandeSerializer(res).serialize() for res in results]
     except Exception:
@@ -152,22 +164,26 @@ def create_intervention():
         _db.session.add(demande)
         _db.session.commit()
 
-        dem_loc = _db.session.query(Thesaurus).get(demande.dem_localisation).label
+        dem_loc = _db.session.query(Thesaurus).get(
+            demande.dem_localisation
+        ).label
         dem_objet = _db.session.query(Thesaurus).get(demande.dem_objet).label
         send_mail(
-                ['tizoutis-interventions', 'admin-tizoutis'],
-                "Création de la demande d'intervention n°%s - %s %s" % (
-                    demande.id,
-                    dem_objet,
-                    dem_loc
-                    ),
-                '''
-                Une nouvelle demande d'intervention a été créée.
-                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?fiche=%s pour voir les détails de cette demande.
-                ''' % demande.id,
-                add_dests=demande.dmdr_contact_email.split(','),
-                sendername='interventions'
-                )
+            ['tizoutis-interventions', 'admin-tizoutis'],
+            "Création de la demande d'intervention n°%s - %s %s" % (
+                demande.id,
+                dem_objet,
+                dem_loc
+            ),
+            '''
+            Une nouvelle demande d'intervention a été créée.
+            Vous pouvez vous connecter sur
+            http://tizoutis.pnc.int/#/interventions?fiche=%s
+            pour voir les détails de cette demande.
+            ''' % demande.id,
+            add_dests=demande.dmdr_contact_email.split(','),
+            sendername='interventions'
+        )
 
         return {'id': demande.id}
     except ValidationError as e:
@@ -187,31 +203,34 @@ def update_intervention(id_intervention):
     demande = _db.session.query(Demande).get(id_intervention)
     try:
         DemandeFullSerializer(demande).populate(dem)
-        #_db.session.add(demande)
         _db.session.commit()
 
-        dem_loc = _db.session.query(Thesaurus).get(demande.dem_localisation).label
+        dem_loc = _db.session.query(Thesaurus).get(
+            demande.dem_localisation
+        ).label
         dem_objet = _db.session.query(Thesaurus).get(demande.dem_objet).label
 
         send_mail(
-                ['tizoutis-interventions', 'admin-tizoutis'],
-                "Mise à jour de la demande d'intervention n°%s - %s %s" % (
-                    demande.id,
-                    dem_objet,
-                    dem_loc
-                    ),
-                '''
-                La demande d'intervention n°%s a été modifiée.
-                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions?fiche=%s pour voir les détails de cette demande.
-                ''' % (demande.id, demande.id),
-                add_dests=demande.dmdr_contact_email.split(','),
-                sendername='interventions'
-                )
+            ['tizoutis-interventions', 'admin-tizoutis'],
+            "Mise à jour de la demande d'intervention n°%s - %s %s" % (
+                demande.id,
+                dem_objet,
+                dem_loc
+            ),
+            '''
+            La demande d'intervention n°%s a été modifiée.
+            Vous pouvez vous connecter sur
+            http://tizoutis.pnc.int/#/interventions?fiche=%s
+            pour voir les détails de cette demande.
+            ''' % (demande.id, demande.id),
+            add_dests=demande.dmdr_contact_email.split(','),
+            sendername='interventions'
+        )
 
         return {'id': demande.id}
     except ValidationError as e:
         return e.errors, 400
-    except:
+    except Exception:
         import traceback
         print(traceback.format_exc())
         _db.session.rollback()
@@ -233,17 +252,20 @@ def delete_intervention(id_intervention):
     dem_objet = _db.session.query(Thesaurus).get(demande.dem_objet).label
 
     send_mail(
-            ['tizoutis-interventions', 'admin-tizoutis'],
-            "Annulation de la demande d'intervention n°%s - %s %s" % (
-                    demande.id,
-                    dem_objet,
-                    dem_loc
-                    ),
-            '''
-            La demande d'intervention n°%s a été annulée.
-            Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/interventions/ pour voir la liste des demandes en cours.
-            ''',
-            add_dests=demande.dmdr_contact_email.split(','),
-            sendername='interventions')
+        ['tizoutis-interventions', 'admin-tizoutis'],
+        "Annulation de la demande d'intervention n°%s - %s %s" % (
+            demande.id,
+            dem_objet,
+            dem_loc
+        ),
+        '''
+        La demande d'intervention n°%s a été annulée.
+        Vous pouvez vous connecter sur
+        http://tizoutis.pnc.int/#/interventions/
+        pour voir la liste des demandes en cours.
+        ''',
+        add_dests=demande.dmdr_contact_email.split(','),
+        sendername='interventions'
+    )
 
     return {'id': demande.id}

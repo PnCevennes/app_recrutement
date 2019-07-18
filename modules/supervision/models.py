@@ -9,7 +9,8 @@ from core.utils.serialize import (
     Serializer,
     Field,
     IntField,
-    DateField)
+    DateField
+)
 
 
 class EvtEquipementSerializer(Serializer):
@@ -29,17 +30,17 @@ class EquipementSerializer(Serializer):
     equip_type = Field()
     status = Field()
     stats = Field(
-            serializefn=lambda x: json.loads(x) if x else [],
-            preparefn=json.dumps
-            )
+        serializefn=lambda x: json.loads(x) if x else [],
+        preparefn=json.dumps
+    )
     last_up = DateField()
     commentaires = Field()
     evts = Field(
-            serializefn=lambda x: [
-                EvtEquipementSerializer(evt).serialize()
-                for evt in reversed(x)
-                ] if x else []
-            )
+        serializefn=lambda x: [
+            EvtEquipementSerializer(evt).serialize()
+            for evt in reversed(x)
+        ] if x else []
+    )
 
 
 class EvtEquipement(db.Model):
@@ -49,9 +50,9 @@ class EvtEquipement(db.Model):
     __tablename__ = 'sup_evt_equipement'
     id = db.Column(db.Integer, primary_key=True)
     equip_id = db.Column(
-            db.Integer,
-            db.ForeignKey('sup_equipement.id')
-            )
+        db.Integer,
+        db.ForeignKey('sup_equipement.id')
+    )
     evt_type = db.Column(db.Integer)
     evt_date = db.Column(db.DateTime)
 
@@ -70,5 +71,3 @@ class Equipement(db.Model):
     last_up = db.Column(db.DateTime)
     commentaires = db.Column(db.UnicodeText)
     evts = db.relationship(EvtEquipement, lazy='joined', cascade='delete')
-
-

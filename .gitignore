@@ -7,3 +7,4 @@ static
 *.rtf
 supervision.lock
 templates/*
+imports/*

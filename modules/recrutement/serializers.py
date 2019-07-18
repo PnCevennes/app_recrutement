@@ -5,7 +5,7 @@ from core.utils.serialize import (
     IntField,
     DateField,
     FileField
-    )
+)
 
 
 class AgentSerializer(Serializer):
@@ -29,10 +29,10 @@ class AgentDetailSerializer(AgentSerializer):
     id_agent = IntField()
     desc_mission = Field()
     notif_list = Field(
-            serializefn=(
-                lambda val: [item for item in val.split(',') if item]),
-            preparefn=lambda val: ','.join(val)
-            )
+        serializefn=(
+            lambda val: [item for item in val.split(',') if item]),
+        preparefn=lambda val: ','.join(val)
+    )
     type_contrat = IntField()
     lieu = IntField()
     logement = IntField()  # TH ref 10
@@ -45,14 +45,10 @@ class AgentDetailSerializer(AgentSerializer):
     convention_signee = Field()
     bureau = Field()
     observations = Field()
-    meta_create = DateField(
-            default=datetime.datetime.now()
-            )
-    meta_update = DateField(
-            default=None
-            )
+    meta_create = DateField(default=datetime.datetime.now())
+    meta_update = DateField(default=None)
     meta_createur_fiche = Field()
     materiel = Field(
-            serializefn=lambda val: [item.id for item in val]
-            )
+        serializefn=lambda val: [item.id for item in val]
+    )
     fichiers = FileField()

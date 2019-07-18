@@ -10,44 +10,7 @@ from sqlalchemy.orm.exc import NoResultFound
 import config
 from server import db
 from core.utils import registered_funcs
-from core.auth.models import AuthStatus
-
-
-class AuthUser:
-    '''
-    Classe représentant un utilisateur avec son nom et les groupes auxquels il appartient
-    '''
-    def __init__(self, data=None):
-        try:
-            self.id = data['id']
-            self.name = data['name']
-            self.groups = data['groups']
-            self.mail = data['mail']
-            self.is_valid = True
-        except TypeError:
-            self.id = None
-            self.name = None
-            self.mail = None
-            self.groups = []
-            self.is_valid = False
-
-    def has_group(self, group):
-        return group in self.groups
-
-    @property
-    def is_admin(self):
-        return any([x in self.groups for x in ['admin-tizoutis', 'Administrateurs']])
-
-    def as_dict(self):
-        return {
-                'id': self.id,
-                'name': self.name,
-                'groups': self.groups,
-                'mail': self.mail,
-                'is_valid': self.is_valid
-                }
-
-
+from core.auth.models import AuthStatus, AuthUser
 from core.auth.backends import check_user_login, get_user_groups
 
 
@@ -65,7 +28,9 @@ def check_auth(groups=None):
                 return {'err': 'not authentified'}, 403
             if token != config.ADMIN_DEBUG_TOKEN:
                 try:
-                    userinfo = db.session.query(AuthStatus).filter(AuthStatus.token == token).one()
+                    userinfo = db.session.query(AuthStatus).filter(
+                        AuthStatus.token == token
+                    ).one()
                     userdata = json.loads(userinfo.userdata)
                     if groups is not None:
                         if not any(map(
@@ -76,8 +41,6 @@ def check_auth(groups=None):
                 except NoResultFound as err:
                     return {'err': 'invalid auth'}, 403
             return fn(*args_, **kwargs_)
-
-
         return __check_auth
     return _check_auth
 

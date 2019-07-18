@@ -34,4 +34,4 @@ def format_vcard(entite):
         ),
         entite.email,
         dtime.strftime('%Y%m%dT%H%m%SZ')
-        )
+    )

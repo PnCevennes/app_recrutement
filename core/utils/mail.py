@@ -8,7 +8,6 @@ from flask_mail import Message
 from server import get_app, db, mail
 
 
-
 def _send_async(app, msg, groups):
     # TODO utiliser backends authentif pour gérer les envois mails
 
@@ -38,11 +37,10 @@ def send_mail(
     dests = add_dests
 
     msg = Message(
-            '[%s] %s' % (sendername, subject),
-            sender=app.config['MAIL_SENDER'],
-            recipients=dests)
+        '[%s] %s' % (sendername, subject),
+        sender=app.config['MAIL_SENDER'],
+        recipients=dests)
     msg.body = msg_body
 
     thr = threading.Thread(target=_send_async, args=[app, msg, groups])
     thr.start()
-

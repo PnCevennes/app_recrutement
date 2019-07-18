@@ -5,8 +5,8 @@ from core.utils.serialize import (
     IntField,
     FloatField,
     DateField,
-    FileField,
-    )
+    FileField
+)
 
 
 class SubvSerializer(Serializer):
@@ -102,8 +102,7 @@ class SubvTemplateSerializer(Serializer):
     name = Field()
     label = Field()
     public = Field(
-            preparefn=lambda x: 1 if x == 'true' else 0,
-            serializefn=lambda x: x == 1
-            )
+        preparefn=lambda x: 1 if x == 'true' else 0,
+        serializefn=lambda x: x == 1
+    )
     path = Field()
-

@@ -8,10 +8,10 @@ from sqlalchemy.exc import StatementError
 
 from core.thesaurus import models
 from core.utils import (
-        json_resp,
-        register_module,
-        registered_funcs
-        )
+    json_resp,
+    register_module,
+    registered_funcs
+)
 
 routes = Blueprint('th_routes', __name__)
 
@@ -25,8 +25,11 @@ check_auth = registered_funcs['check_auth']
 @check_auth(groups=['admin-tizoutis'])
 def th_index():
     th_list = _db.session.query(models.Thesaurus).all()
-    return [models.ThesaurusSerializer(item).dump()
-            for item in th_list]
+    return [
+        models.ThesaurusSerializer(item).dump()
+        for item in th_list
+    ]
+
 
 @routes.route('/ref/<int:id_ref>')
 @json_resp
@@ -37,9 +40,11 @@ def get_thesaurus(id_ref):
     '''
     try:
         th_list = _db.session.query(models.Thesaurus).filter(
-                models.Thesaurus.id_ref == id_ref).all()
-        return [models.ThesaurusSerializer(item).dump()
-                for item in th_list]
+            models.Thesaurus.id_ref == id_ref).all()
+        return [
+            models.ThesaurusSerializer(item).dump()
+            for item in th_list
+        ]
     except StatementError:
         _db.session.rollback()
         return [], 400
@@ -51,11 +56,13 @@ def get_th_mnemo(label):
     try:
         id_ref = _db.session.query(models.Thesaurus).filter(
             models.Thesaurus.label == label
-            ).one()
+        ).one()
         th_list = _db.session.query(models.Thesaurus).filter(
-                models.Thesaurus.id_ref == id_ref.id).all()
-        return [models.ThesaurusSerializer(item).dump()
-                for item in th_list]
+            models.Thesaurus.id_ref == id_ref.id).all()
+        return [
+            models.ThesaurusSerializer(item).dump()
+            for item in th_list
+        ]
     except StatementError:
         _db.session.rollback()
         return [], 400
@@ -64,8 +71,11 @@ def get_th_mnemo(label):
 @routes.route('/id/<id_thes>')
 @json_resp
 def get_by_id(id_thes):
-    result = _db.session.query(models.Thesaurus).get(int(id_thes))
-    if not result:
+    try:
+        result = _db.session.query(models.Thesaurus).get(int(id_thes))
+        if not result:
+            return [], 404
+    except ValueError:
         return [], 404
     return {'id': result.id, 'label': result.label}
 

@@ -8,18 +8,18 @@ import uuid
 from functools import wraps
 
 from flask import (
-        Blueprint,
-        request,
-        g,
-        Response)
+    Blueprint,
+    request,
+    g,
+    Response)
 from sqlalchemy.orm.exc import NoResultFound
 
 import config
 from server import get_app, db as _db
 from core.utils import (
-        json_resp,
-        register_module,
-        registered_funcs)
+    json_resp,
+    register_module,
+    registered_funcs)
 from . import models, utils
 from .serializers import UserSerializer, UserFullSerializer
 from .exc import InvalidAuthError
@@ -54,11 +54,11 @@ def login_view():
 
         else:
             authstatus = models.AuthStatus(
-                    user_id=user.id,
-                    token=token,
-                    expiration=expiration,
-                    userdata=userdata
-                    )
+                user_id=user.id,
+                token=token,
+                expiration=expiration,
+                userdata=userdata
+            )
             _db.session.add(authstatus)
             _db.session.commit()
 
@@ -94,9 +94,8 @@ def logout():
     '''
     Déconnexion de l'utilisateur
     '''
-    token = request.json['token'].strip()
     uid = request.json['id'].strip()
-    authstatus = _db.session.query(AuthStatus).get(uid)
+    authstatus = _db.session.query(models.AuthStatus).get(uid)
     if authstatus:
         _db.session.delete(authstatus)
     return []
@@ -153,8 +152,8 @@ def create_user():
     data = request.json
     # chargement des groupes
     groups = _db.session.query(models.Group).filter(
-            models.Group.name.in_(data.get('groups', []))
-            ).all()
+        models.Group.name.in_(data.get('groups', []))
+    ).all()
     data['groups'] = groups
     user = models.User()
     serialize = UserFullSerializer(user)
@@ -171,8 +170,8 @@ def update_user(id_user):
     data = request.json
     # chargement des groupes
     groups = _db.session.query(models.Group).filter(
-            models.Group.name.in_(data.get('groups', []))
-            ).all()
+        models.Group.name.in_(data.get('groups', []))
+    ).all()
     data['groups'] = groups
     if not len(data['password']):
         del(data['password'])

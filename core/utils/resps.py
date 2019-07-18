@@ -25,7 +25,7 @@ def vcard_response(data, filename='export.vcf'):
     '''
     headers = Headers()
     headers.add('Content-Type', 'text/plain')
-    headers.add('Content-Disposition', 'attachment', filename='export.vcf')
+    headers.add('Content-Disposition', 'attachment', filename=filename)
     return Response(data, headers=headers)
 
 
@@ -44,7 +44,7 @@ def json_resp(fn):
         if isinstance(res, Response):
             return res
         return Response(
-                json.dumps(res),
-                status=status,
-                mimetype='application/json')
+            json.dumps(res),
+            status=status,
+            mimetype='application/json')
     return _json_resp

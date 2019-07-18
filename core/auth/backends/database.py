@@ -15,7 +15,7 @@ def check_user_login(login, passwd):
     objet AuthUser
     '''
     try:
-        user = db.session.query(User).filter(User.login==login).one()
+        user = db.session.query(User).filter(User.login == login).one()
     except NoResultFound:
         raise InvalidAuthError
     else:

@@ -33,10 +33,10 @@ db.session.flush()
 db.session.commit()
 '''
 
-ope_sub = Thesaurus.query.filter(Thesaurus.label=='operation_sub').one()
-commission = Thesaurus.query.filter(Thesaurus.label=='commission').one()
-axe_charte = Thesaurus.query.filter(Thesaurus.label=='axe_charte').one()
-service_desc = Thesaurus.query.filter(Thesaurus.label=='services_desc').one()
+ope_sub = Thesaurus.query.filter(Thesaurus.label == 'operation_sub').one()
+commission = Thesaurus.query.filter(Thesaurus.label == 'commission').one()
+axe_charte = Thesaurus.query.filter(Thesaurus.label == 'axe_charte').one()
+service_desc = Thesaurus.query.filter(Thesaurus.label == 'services_desc').one()
 
 th_ope = (
     'VALOPAT',
@@ -49,7 +49,7 @@ th_ope = (
     'SYLVDURABLE',
     'URBANISME',
     'GENIEMILIEUX'
-    )
+)
 
 th_com = (
     'Agriculture',
@@ -60,7 +60,7 @@ th_com = (
     'Forêt',
     'Patrimoine Culturel',
     'Tourisme'
-    )
+)
 
 th_charte = (
     'Axe 1 : Faire vivre notre culture',
@@ -71,7 +71,7 @@ th_charte = (
     'Axe 6 : Valoriser la forêt',
     'Axe 7 : Dynamiser le tourisme',
     'Axe 8 : Soutenir une chasse gestionnaire'
-    )
+)
 
 th_servdesc = (
     'Service Direction',
@@ -79,12 +79,16 @@ th_servdesc = (
     'Service Connaissance et Veille du Territoire',
     'Service Développement Durable',
     'Secrétariat Général'
-    )
+)
 
-for r, th in ((ope_sub, th_ope),(commission, th_com), (axe_charte, th_charte), (service_desc, th_servdesc)):
+for r, th in (
+    (ope_sub, th_ope),
+    (commission, th_com),
+    (axe_charte, th_charte),
+    (service_desc, th_servdesc)
+):
     for t in th:
         item = Thesaurus(id_ref=r.id, label=t)
         db.session.add(item)
 
 db.session.commit()
-

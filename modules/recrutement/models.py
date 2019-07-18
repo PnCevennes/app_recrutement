@@ -5,6 +5,8 @@ mapping agent
 from server import db
 from core.models import Fichier, serialize_files
 from core.thesaurus.models import Thesaurus
+
+
 class Agent(db.Model):
     __tablename__ = 'recr_agent'
     id = db.Column(db.Integer, primary_key=True)
@@ -19,9 +21,9 @@ class Agent(db.Model):
 class AgentDetail(Agent):
     __tablename__ = 'recr_agent_detail'
     id_agent = db.Column(
-            db.Integer,
-            db.ForeignKey('recr_agent.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('recr_agent.id'),
+        primary_key=True)
     desc_mission = db.Column(db.UnicodeText)
     notif_list = db.Column(db.UnicodeText)
     type_contrat = db.Column(db.Integer)  # TH ref 14
@@ -40,36 +42,36 @@ class AgentDetail(Agent):
     meta_update = db.Column(db.Date)
     meta_createur_fiche = db.Column(db.Unicode(length=100))
     materiel = db.relationship(
-            Thesaurus,
-            secondary='recr_rel_agent_thesaurus_materiel',
-            lazy='joined'
-            )
+        Thesaurus,
+        secondary='recr_rel_agent_thesaurus_materiel',
+        lazy='joined'
+    )
     fichiers = db.relationship(
-            Fichier,
-            secondary='recr_rel_agent_fichier',
-            lazy='joined'
-            )
+        Fichier,
+        secondary='recr_rel_agent_fichier',
+        lazy='joined'
+    )
 
 
 class RelAgentMateriel(db.Model):
     __tablename__ = 'recr_rel_agent_thesaurus_materiel'
     id_agent = db.Column(
-            db.Integer,
-            db.ForeignKey('recr_agent.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('recr_agent.id'),
+        primary_key=True)
     id_thesaurus = db.Column(
-            db.Integer,
-            db.ForeignKey(Thesaurus.id),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey(Thesaurus.id),
+        primary_key=True)
 
 
 class RelAgentFichier(db.Model):
     __tablename__ = 'recr_rel_agent_fichier'
     id_agent = db.Column(
-            db.Integer,
-            db.ForeignKey('recr_agent.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('recr_agent.id'),
+        primary_key=True)
     id_fichier = db.Column(
-            db.Integer,
-            db.ForeignKey(Fichier.id),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey(Fichier.id),
+        primary_key=True)

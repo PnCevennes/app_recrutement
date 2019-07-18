@@ -7,7 +7,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from server import db
 
-
+'''
 class Validateur(object):
     def validate(self, data):
         print('validate')
@@ -24,14 +24,15 @@ class Validateur(object):
         if errors:
             raise ValidationError(errors)
         return out, unhandled
+'''
 
 
 class Entite(db.Model):
     __tablename__ = 'ann_entite'
     __mapper_args__ = {
-            'polymorphic_identity': 'entite',
-            'polymorphic_on': 'type_entite'
-            }
+        'polymorphic_identity': 'entite',
+        'polymorphic_on': 'type_entite'
+    }
     id = db.Column(db.Integer, primary_key=True)
     _nom = db.Column(db.Unicode(length=255))
     _label = db.Column('nom_complet', db.Unicode(length=255))
@@ -53,18 +54,24 @@ class Entite(db.Model):
 
     @property
     def relations(self):
-        rels = (RelationEntite.query
-                .filter(RelationEntite.id_parent == self.id).all())
-        relations = (Entite.query
-                .filter(Entite.id.in_([r.id_enfant for r in rels]))
-                .order_by(Entite.label).all())
+        rels = (
+            RelationEntite.query
+            .filter(RelationEntite.id_parent == self.id).all()
+        )
+        relations = (
+            Entite.query
+            .filter(Entite.id.in_([r.id_enfant for r in rels]))
+            .order_by(Entite.label).all()
+        )
         return [{'id': rel.id, 'label': rel.label} for rel in relations]
 
     @relations.setter
     def relations(self, values):
-        rels = (RelationEntite.query
-                .filter(RelationEntite.id_parent == self.id)
-                .all())
+        rels = (
+            RelationEntite.query
+            .filter(RelationEntite.id_parent == self.id)
+            .all()
+        )
         for r in rels:
             db.session.delete(r)
         for v in values:
@@ -73,19 +80,25 @@ class Entite(db.Model):
 
     @property
     def parents(self):
-        rels = (RelationEntite.query
-                .filter(RelationEntite.id_enfant == self.id)
-                .all())
-        parents = (Entite.query
-                .filter(Entite.id.in_([r.id_parent for r in rels]))
-                .all())
+        rels = (
+            RelationEntite.query
+            .filter(RelationEntite.id_enfant == self.id)
+            .all()
+        )
+        parents = (
+            Entite.query
+            .filter(Entite.id.in_([r.id_parent for r in rels]))
+            .all()
+        )
         return [{'id': rel.id, 'label': rel.label} for rel in parents]
 
     @parents.setter
     def parents(self, values):
-        rels = (RelationEntite.query
-                .filter(RelationEntite.id_enfant == self.id)
-                .all())
+        rels = (
+            RelationEntite.query
+            .filter(RelationEntite.id_enfant == self.id)
+            .all()
+        )
         for r in rels:
             db.session.delete(r)
         for v in values:
@@ -93,12 +106,16 @@ class Entite(db.Model):
             db.session.add(n)
 
     def delete_relations(self, dbsession):
-        rels = (dbsession.query(RelationEntite)
-                .filter(RelationEntite.id_parent == self.id)
-                .all())
-        parents = (dbsession.query(RelationEntite)
-                .filter(RelationEntite.id_enfant == self.id)
-                .all())
+        rels = (
+            dbsession.query(RelationEntite)
+            .filter(RelationEntite.id_parent == self.id)
+            .all()
+        )
+        parents = (
+            dbsession.query(RelationEntite)
+            .filter(RelationEntite.id_enfant == self.id)
+            .all()
+        )
         for r in rels:
             dbsession.delete(r)
         for p in parents:
@@ -107,8 +124,8 @@ class Entite(db.Model):
 
     def to_json(self):
         fields = [
-                'id', 'nom', 'observations', 'type_entite',
-                'relations', 'label', 'parents']
+            'id', 'nom', 'observations', 'type_entite',
+            'relations', 'label', 'parents']
         out = {field: getattr(self, field, '') for field in fields}
         return out
 
@@ -116,12 +133,12 @@ class Entite(db.Model):
 class Commune(Entite):
     __tablename__ = 'ann_commune'
     __mapper_args__ = {
-            'polymorphic_identity': 'commune',
-            }
+        'polymorphic_identity': 'commune',
+    }
     id_entite = db.Column(
-            db.Integer,
-            db.ForeignKey('ann_entite.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('ann_entite.id'),
+        primary_key=True)
     adresse = db.Column(db.Unicode(length=255))
     adresse2 = db.Column(db.Unicode(length=255))
     code_postal = db.Column(db.Unicode(length=50))
@@ -131,21 +148,21 @@ class Commune(Entite):
 
     def to_json(self):
         fields = [
-                'id', 'nom', 'observations', 'adresse', 'adresse2',
-                'code_postal', 'telephone', 'email', 'site_internet',
-                'type_entite', 'relations', 'parents', 'label']
+            'id', 'nom', 'observations', 'adresse', 'adresse2',
+            'code_postal', 'telephone', 'email', 'site_internet',
+            'type_entite', 'relations', 'parents', 'label']
         return {field: getattr(self, field, '') for field in fields}
 
 
 class Correspondant(Entite):
     __tablename__ = 'ann_correspondant'
     __mapper_args__ = {
-            'polymorphic_identity': 'correspondant',
-            }
+        'polymorphic_identity': 'correspondant',
+    }
     id_entite = db.Column(
-            db.Integer,
-            db.ForeignKey('ann_entite.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('ann_entite.id'),
+        primary_key=True)
     civilite = db.Column(db.Unicode(length=50))
     _prenom = db.Column('prenom', db.Unicode(length=100))
     adresse = db.Column(db.Unicode(length=255))
@@ -180,22 +197,22 @@ class Correspondant(Entite):
 
     def to_json(self):
         fields = [
-                'id', 'nom', 'observations', 'prenom', 'fonction',
-                'adresse', 'adresse2', 'code_postal', 'telephone', 'mobile',
-                'email', 'type_entite', 'relations', 'parents', 'label',
-                'civilite']
+            'id', 'nom', 'observations', 'prenom', 'fonction',
+            'adresse', 'adresse2', 'code_postal', 'telephone', 'mobile',
+            'email', 'type_entite', 'relations', 'parents', 'label',
+            'civilite']
         return {field: getattr(self, field, '') for field in fields}
 
 
 class Entreprise(Entite):
     __tablename__ = 'ann_entreprise'
     __mapper_args__ = {
-            'polymorphic_identity': 'entreprise',
-            }
+        'polymorphic_identity': 'entreprise',
+    }
     id_entite = db.Column(
-            db.Integer,
-            db.ForeignKey('ann_entite.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('ann_entite.id'),
+        primary_key=True)
     nom_gerant = db.Column(db.Unicode(length=100))
     prenom_gerant = db.Column(db.Unicode(length=100))
     fonction_gerant = db.Column(db.Unicode(length=255))
@@ -210,34 +227,34 @@ class Entreprise(Entite):
 
     def to_json(self):
         fields = [
-                'id',
-                'nom',
-                'observations',
-                'nom_gerant',
-                'prenom_gerant',
-                'fonction_gerant',
-                'adresse',
-                'adresse2',
-                'code_postal',
-                'telephone',
-                'telephone2',
-                'email',
-                'alt_email',
-                'site_internet',
-                'relations',
-                'parents',
-                'label',
-                'type_entite']
+            'id',
+            'nom',
+            'observations',
+            'nom_gerant',
+            'prenom_gerant',
+            'fonction_gerant',
+            'adresse',
+            'adresse2',
+            'code_postal',
+            'telephone',
+            'telephone2',
+            'email',
+            'alt_email',
+            'site_internet',
+            'relations',
+            'parents',
+            'label',
+            'type_entite']
         return {field: getattr(self, field, '') for field in fields}
 
 
 class RelationEntite(db.Model):
     __tablename__ = 'ann_relations'
     id_parent = db.Column(
-            db.Integer,
-            db.ForeignKey('ann_entite.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('ann_entite.id'),
+        primary_key=True)
     id_enfant = db.Column(
-            db.Integer,
-            db.ForeignKey('ann_entite.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('ann_entite.id'),
+        primary_key=True)

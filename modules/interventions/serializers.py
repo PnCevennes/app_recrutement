@@ -1,9 +1,10 @@
 from core.utils.serialize import (
-        Serializer,
-        Field,
-        IntField,
-        DateField,
-        FileField)
+    Serializer,
+    Field,
+    IntField,
+    DateField,
+    FileField
+)
 
 
 class DemandeSerializer(Serializer):
@@ -14,10 +15,10 @@ class DemandeSerializer(Serializer):
     dem_loc_libelle = Field()
     rea_date = DateField()
     rea_annulation = IntField(
-            default=0,
-            serializefn = lambda x: x==1,
-            preparefn = lambda x: 1 if x else 2
-            )
+        default=0,
+        serializefn=lambda x: x == 1,
+        preparefn=lambda x: 1 if x else 2
+    )
 
 
 class DemandeFullSerializer(DemandeSerializer):
@@ -30,16 +31,14 @@ class DemandeFullSerializer(DemandeSerializer):
     dmdr_contact_nom = Field()
     dmdr_service = IntField()
     dmdr_contact_email = Field(
-            serializefn=(
-                lambda val: [item for item in val.split(',') if item]),
-            preparefn=lambda val: ','.join(val)
-            )
+        serializefn=(
+            lambda val: [item for item in val.split(',') if item]),
+        preparefn=lambda val: ','.join(val)
+    )
 
     plan_date = Field()
     plan_commentaire = Field()
-
     rea_duree = IntField(default=0)
     rea_nb_agents = IntField(default=0)
     rea_commentaire = Field()
     rea_fichiers = FileField()
-

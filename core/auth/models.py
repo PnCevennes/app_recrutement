@@ -19,10 +19,10 @@ class AuthStatus(db.Model):
 
     def as_dict(self):
         return {
-                'id': self.user_id,
-                'token': self.token,
-                'userdata': json.loads(self.userdata)
-                }
+            'id': self.user_id,
+            'token': self.token,
+            'userdata': json.loads(self.userdata)
+        }
 
 
 class User(db.Model):
@@ -35,7 +35,10 @@ class User(db.Model):
     _password = db.Column('password', db.Unicode(length=100))
     name = db.Column(db.Unicode(length=100))
     email = db.Column(db.Unicode(length=250))
-    groups = db.relationship('Group', secondary='auth_rel_user_group', lazy='joined')
+    groups = db.relationship(
+        'Group',
+        secondary='auth_rel_user_group',
+        lazy='joined')
 
     @property
     def password(self):
@@ -55,7 +58,7 @@ class User(db.Model):
             'mail': self.email,
             'name': self.name,
             'groups': [grp.name for grp in self.groups]
-            }
+        }
 
 
 class Group(db.Model):
@@ -72,7 +75,7 @@ class Group(db.Model):
             'id': self.id,
             'name': self.name,
             'users': [user.id for user in self.users]
-            }
+        }
 
 
 class UserGroups(db.Model):
@@ -81,10 +84,48 @@ class UserGroups(db.Model):
     '''
     __tablename__ = 'auth_rel_user_group'
     user_id = db.Column(
-            db.Integer,
-            db.ForeignKey('auth_utilisateur.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('auth_utilisateur.id'),
+        primary_key=True)
     group_id = db.Column(
-            db.Integer,
-            db.ForeignKey('auth_group.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('auth_group.id'),
+        primary_key=True)
+
+
+class AuthUser:
+    '''
+    Classe représentant un utilisateur avec son nom et les groupes
+    auxquels il appartient
+    '''
+    def __init__(self, data=None):
+        try:
+            self.id = data['id']
+            self.name = data['name']
+            self.groups = data['groups']
+            self.mail = data['mail']
+            self.is_valid = True
+        except TypeError:
+            self.id = None
+            self.name = None
+            self.mail = None
+            self.groups = []
+            self.is_valid = False
+
+    def has_group(self, group):
+        return group in self.groups
+
+    @property
+    def is_admin(self):
+        return any([x in self.groups for x in [
+            'admin-tizoutis',
+            'Administrateurs']])
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'groups': self.groups,
+            'mail': self.mail,
+            'is_valid': self.is_valid
+        }

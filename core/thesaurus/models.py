@@ -18,4 +18,3 @@ class Thesaurus(db.Model):
     id_ref = db.Column(db.Integer)
     label = db.Column(db.Unicode(length=50))
     menu = db.Column(db.Integer)
-

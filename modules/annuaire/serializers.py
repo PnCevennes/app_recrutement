@@ -11,13 +11,13 @@ class EntiteSerializer(Serializer):
     type_entite = Field()
     observations = Field()
     parents = Field(
-            preparefn=lambda data: [item['id'] for item in data if item],
-            default=[]
-            )
+        preparefn=lambda data: [item['id'] for item in data if item],
+        default=[]
+    )
     relations = Field(
-            preparefn=lambda data: [item['id'] for item in data if item],
-            default=[]
-            )
+        preparefn=lambda data: [item['id'] for item in data if item],
+        default=[]
+    )
 
 
 class CommuneSerializer(EntiteSerializer):

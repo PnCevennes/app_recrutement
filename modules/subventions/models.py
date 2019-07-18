@@ -18,7 +18,7 @@ class DemandeSubvention(db.Model):
     meta_observations = db.Column(db.UnicodeText)
     # Petitionnaire
     pet_nom = db.Column(db.Unicode(150))
-    pet_civ = db.Column(db.Unicode(20))
+    pet_civ = db.Column(db.Unicode(40))
     pet_adresse = db.Column(db.Unicode(255))
     pet_adresse2 = db.Column(db.Unicode(255))
     pet_cpostal = db.Column(db.Unicode(10))
@@ -86,58 +86,58 @@ class DemandeSubvention(db.Model):
     pai_mnt_annule = db.Column(db.Numeric(10, 2))
 
     sub_fichiers = db.relationship(
-            Fichier,
-            secondary='subv_rel_sub_fichier',
-            lazy='joined'
-            )
+        Fichier,
+        secondary='subv_rel_sub_fichier',
+        lazy='joined'
+    )
 
     dec_fichiers = db.relationship(
-            Fichier,
-            secondary='subv_rel_dec_fichier',
-            lazy='joined'
-            )
+        Fichier,
+        secondary='subv_rel_dec_fichier',
+        lazy='joined'
+    )
 
     pai_fichiers = db.relationship(
-            Fichier,
-            secondary='subv_rel_pai_fichier',
-            lazy='joined'
-            )
+        Fichier,
+        secondary='subv_rel_pai_fichier',
+        lazy='joined'
+    )
 
 
 class RelSubFichier(db.Model):
     __tablename__ = 'subv_rel_sub_fichier'
     id_dem_sub = db.Column(
-            db.Integer,
-            db.ForeignKey('subv_demande.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('subv_demande.id'),
+        primary_key=True)
     id_fichier = db.Column(
-            db.Integer,
-            db.ForeignKey(Fichier.id),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey(Fichier.id),
+        primary_key=True)
 
 
 class RelDecFichier(db.Model):
     __tablename__ = 'subv_rel_dec_fichier'
     id_dem_sub = db.Column(
-            db.Integer,
-            db.ForeignKey('subv_demande.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('subv_demande.id'),
+        primary_key=True)
     id_fichier = db.Column(
-            db.Integer,
-            db.ForeignKey(Fichier.id),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey(Fichier.id),
+        primary_key=True)
 
 
 class RelPaiFichier(db.Model):
     __tablename__ = 'subv_rel_pai_fichier'
     id_dem_sub = db.Column(
-            db.Integer,
-            db.ForeignKey('subv_demande.id'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('subv_demande.id'),
+        primary_key=True)
     id_fichier = db.Column(
-            db.Integer,
-            db.ForeignKey(Fichier.id),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey(Fichier.id),
+        primary_key=True)
 
 
 class SubvTemplate(db.Model):

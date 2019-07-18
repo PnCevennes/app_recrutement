@@ -9,6 +9,7 @@ routes = Blueprint('rg_routes', __name__)
 
 register_module('/refgeo', routes)
 
+
 @routes.route('/commune')
 @json_resp
 def get_communes():
@@ -19,7 +20,7 @@ def get_communes():
             out.append({'id': item.id, 'label': item.nom_commune})
         return out
     except StatementError:
-        _db.session.rollback()
+        db.session.rollback()
         return [], 400
 
 
@@ -42,10 +43,11 @@ def get_all_batiments():
             'id': result.id,
             'ref_commune': result.ref_commune,
             'label': '[%s] - %s - %s' % (
-            result.reference,
-            result.lieu_dit,
-            result.designation
-        )})
+                result.reference,
+                result.lieu_dit,
+                result.designation
+            )
+        })
     return out
 
 
@@ -53,8 +55,8 @@ def get_all_batiments():
 @json_resp
 def get_batiments_by_commune(id_com):
     bat_list = db.session.query(models.RefGeoBatiment).filter(
-            models.RefGeoBatiment.ref_commune == id_com
-            ).all()
+        models.RefGeoBatiment.ref_commune == id_com
+    ).all()
     out = []
     for result in bat_list:
         out.append({'id': result.id, 'label': '[%s] - %s - %s' % (
@@ -71,8 +73,11 @@ def get_one_batiment(id_bat):
     result = db.session.query(models.RefGeoBatiment).get(int(id_bat))
     if not result:
         return [], 404
-    return {'id': result.id, 'label': '[%s] - %s - %s' % (
-        result.reference,
-        result.lieu_dit,
-        result.designation
-        )}
+    return {
+        'id': result.id,
+        'label': '[%s] - %s - %s' % (
+            result.reference,
+            result.lieu_dit,
+            result.designation
+        )
+    }

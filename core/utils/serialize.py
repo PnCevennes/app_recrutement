@@ -9,9 +9,14 @@ import datetime
 from collections import OrderedDict
 
 
+def do_nothing(x):
+    return x
+
+
 def prepare(cast=str, default=''):
     '''
-    Transforme la donnée selon le type fourni si elle n'est pas nulle, sinon retourne défault
+    Transforme la donnée selon le type fourni si elle n'est pas nulle,
+    sinon retourne défault
     '''
     def _prepare_lambda(val):
         return cast(val) if val not in (None, '') else default
@@ -42,14 +47,16 @@ def format_phone(tel):
     formate un numéro de téléphone
     '''
     try:
-        tel = (tel.replace(' ', '')
-                .replace('.', '')
-                .replace('/', '')
-                .replace('-', ''))
-        return ' '.join(a+b for a, b in zip(
-                    [x for x in tel[::2]],
-                    [y for y in tel[1::2]]))
-    except:
+        tel = (
+            tel.replace(' ', '')
+            .replace('.', '')
+            .replace('/', '')
+            .replace('-', '')
+        )
+        return ' '.join(str(a) + str(b) for a, b in zip(
+            [x for x in tel[::2]],
+            [y for y in tel[1::2]]))
+    except Exception:
         return tel
 
 
@@ -93,8 +100,8 @@ class Field:
             *,
             alias=None,
             checkfn=lambda x: True,
-            preparefn=lambda x: x,
-            serializefn=lambda x: x,
+            preparefn=do_nothing,
+            serializefn=do_nothing,
             default=None,
             readonly=False):
         '''
@@ -124,8 +131,8 @@ class Field:
         # valeur par défaut de l'attribut lors de la sérialisation uniquement
         self.default = default
 
-        # indique que la valeur est en lecture seule et qu'elle n'a pas à être passée
-        # à l'instance DB
+        # indique que la valeur est en lecture seule et qu'elle n'a pas à être
+        # passée à l'instance DB
         self.ro = readonly
 
     def __set__(self, instance, value):
@@ -141,7 +148,11 @@ class Field:
                 value = self.preparefn(value)
                 if not self.checkfn(value):
                     raise ValueError
-                old_value = getattr(instance.obj, self.alias or self.name, None)
+                old_value = getattr(
+                    instance.obj,
+                    self.alias or self.name,
+                    None
+                )
                 if old_value != value:
                     instance.changed(self.alias or self.name, old_value)
                 setattr(instance.obj, self.alias or self.name, value)
@@ -171,8 +182,8 @@ class IntField(Field):
             *,
             alias=None,
             checkfn=lambda x: True,
-            preparefn=lambda x: x,
-            serializefn=lambda x: x,
+            preparefn=do_nothing,
+            serializefn=do_nothing,
             default=None,
             readonly=False):
         '''
@@ -184,15 +195,27 @@ class IntField(Field):
             default : valeur par défaut lors de la serialisation
         '''
         if preparefn is None:
-            preparefn=prepare(int, default)
+            preparefn = prepare(int, default)
 
         super(IntField, self).__init__(
-                alias=alias,
-                checkfn=checkfn,
-                preparefn=preparefn,
-                serializefn=serializefn,
-                default=default,
-                readonly=readonly)
+            alias=alias,
+            checkfn=checkfn,
+            preparefn=preparefn,
+            serializefn=serializefn,
+            default=default,
+            readonly=readonly)
+
+
+def defaultPrepareFloat(value):
+    '''
+    transforme une chaîne en float
+    '''
+    try:
+        if value:
+            return float(value)
+        return 0
+    except ValueError:
+        return 0
 
 
 class FloatField(Field):
@@ -205,7 +228,7 @@ class FloatField(Field):
             *,
             alias=None,
             checkfn=lambda x: True,
-            preparefn=lambda x: x,
+            preparefn=do_nothing,
             serializefn=None,
             default=None,
             readonly=False):
@@ -220,15 +243,15 @@ class FloatField(Field):
         if preparefn is None:
             preparefn = prepare(float, default)
         if serializefn is None:
-            serializefn = lambda x: float(x) if x else 0
+            serializefn = defaultPrepareFloat
 
         super(FloatField, self).__init__(
-                alias=alias,
-                checkfn=checkfn,
-                preparefn=preparefn,
-                serializefn=serializefn,
-                default=default,
-                readonly=readonly)
+            alias=alias,
+            checkfn=checkfn,
+            preparefn=preparefn,
+            serializefn=serializefn,
+            default=default,
+            readonly=readonly)
 
 
 class DateField(Field):
@@ -259,12 +282,12 @@ class DateField(Field):
             serializefn = serialize_date
 
         super(DateField, self).__init__(
-                alias=alias,
-                checkfn=checkfn,
-                preparefn=preparefn,
-                serializefn=serializefn,
-                default=default,
-                readonly=readonly)
+            alias=alias,
+            checkfn=checkfn,
+            preparefn=preparefn,
+            serializefn=serializefn,
+            default=default,
+            readonly=readonly)
 
 
 class PasswordField(Field):
@@ -285,7 +308,7 @@ class MultipleField(Field):
             *,
             alias=None,
             checkfn=lambda x: True,
-            preparefn=lambda x: x,
+            preparefn=do_nothing,
             serializefn=None,
             default=None,
             readonly=False):
@@ -301,12 +324,12 @@ class MultipleField(Field):
             default = []
 
         super(MultipleField, self).__init__(
-                alias=alias,
-                checkfn=checkfn,
-                preparefn=preparefn,
-                serializefn=serializefn,
-                default=default,
-                readonly=readonly)
+            alias=alias,
+            checkfn=checkfn,
+            preparefn=preparefn,
+            serializefn=serializefn,
+            default=default,
+            readonly=readonly)
 
 
 class FileField(Field):
@@ -319,7 +342,7 @@ class FileField(Field):
             *,
             alias=None,
             checkfn=lambda x: True,
-            preparefn=lambda x: x,
+            preparefn=do_nothing,
             serializefn=None,
             default=None,
             readonly=False):
@@ -337,12 +360,12 @@ class FileField(Field):
             serializefn = serialize_files
 
         super(FileField, self).__init__(
-                alias=alias,
-                checkfn=checkfn,
-                preparefn=preparefn,
-                serializefn=serializefn,
-                default=default,
-                readonly=readonly)
+            alias=alias,
+            checkfn=checkfn,
+            preparefn=preparefn,
+            serializefn=serializefn,
+            default=default,
+            readonly=readonly)
 
 
 class ValidationError(Exception):
@@ -358,13 +381,14 @@ class MetaSerializer(type):
     Metaclass de Serializer
     Ajoute la liste des champs déclarés dans les classes héritant de Serializer
     dans le liste de champs à traiter (__fields_list__)
-    affecte le nom de la variable déclarée dans la classe à la class attribut correspondante
+    affecte le nom de la variable déclarée dans la classe à la class attribut
+    correspondante
     '''
     def __new__(cls, name, bases, props):
         props['__fields_list__'] = []
         for parent_class in bases:
             props['__fields_list__'].extend(
-                    getattr(parent_class, '__fields_list__', []))
+                getattr(parent_class, '__fields_list__', []))
         for pname, pfield in props.items():
             if isinstance(pfield, Field):
                 pfield.name = pname
@@ -395,15 +419,18 @@ class Serializer(metaclass=MetaSerializer):
         et les méthodes de transformation/vérification associées
         '''
         errors = False
-        #for name, value in data.items():
         for name in self.__fields_list__:
             try:
                 default_val = getattr(self.__class__, name).default
                 value = data.get(name, None)
                 if not value:
-                    # si le champ n'est pas un mot de passe il est mis a jour avec la valeur par défaut
-                    # si il est de type PasswordField, il est ignoré
-                    if not isinstance(getattr(self.__class__, name), PasswordField):
+                    # si le champ n'est pas un mot de passe il est mis a jour
+                    # avec la valeur par défaut. si il est de type
+                    # PasswordField, il est ignoré
+                    if not isinstance(
+                        getattr(self.__class__, name),
+                        PasswordField
+                    ):
                         setattr(self, name, default_val)
                 else:
                     setattr(self, name, value)
@@ -441,7 +468,15 @@ class Serializer(metaclass=MetaSerializer):
     serialize = dump
 
     @classmethod
-    def export_csv(cls, data, *, fields=None, sep=',', delimiter='"', eol='\n'):
+    def export_csv(
+        cls,
+        data,
+        *,
+        fields=None,
+        sep=',',
+        delimiter='"',
+        eol='\n'
+    ):
         '''
         Exporte une liste d'objets sous la forme d'un fichier CSV
         '''
@@ -455,7 +490,7 @@ class Serializer(metaclass=MetaSerializer):
                 fname, formatter = field
             else:
                 fname = field
-                formatter = lambda x: x
+                formatter = do_nothing
             _fields.append(fname)
             _formatters[fname] = formatter
 
@@ -464,6 +499,9 @@ class Serializer(metaclass=MetaSerializer):
         for item in data:
             if not isinstance(item, cls):
                 item = cls(item)
-            lines.append(sep.join([f_template % str(_formatters[f](getattr(item, f, '')) or '').replace('"', '""') for f in _fields]))
+            lines.append(sep.join([
+                f_template % str(
+                    _formatters[f](getattr(item, f, '')) or ''
+                ).replace('"', '""') for f in _fields
+            ]))
         return eol.join(lines).encode('latin1', 'replace')
-

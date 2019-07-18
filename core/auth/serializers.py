@@ -1,10 +1,11 @@
 from core.utils.serialize import (
-        Serializer,
-        Field,
-        IntField,
-        PasswordField,
-        MultipleField
-        )
+    Serializer,
+    Field,
+    IntField,
+    PasswordField,
+    MultipleField
+)
+
 
 class UserSerializer(Serializer):
     id = IntField()

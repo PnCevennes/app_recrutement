@@ -34,22 +34,22 @@ class TravauxBatiment(db.Model):
     rea_annulation = db.Column(db.Integer)
 
     dem_fichiers = db.relationship(
-            Fichier,
-            secondary='bati_rel_travaux_fichier',
-            lazy='joined'
-            )
+        Fichier,
+        secondary='bati_rel_travaux_fichier',
+        lazy='joined'
+    )
 
     plan_fichiers = db.relationship(
-            Fichier,
-            secondary='bati_rel_plan_fichier',
-            lazy='joined'
-            )
+        Fichier,
+        secondary='bati_rel_plan_fichier',
+        lazy='joined'
+    )
 
     rea_fichiers = db.relationship(
-            Fichier,
-            secondary='bati_rel_rea_fichier',
-            lazy='joined'
-            )
+        Fichier,
+        secondary='bati_rel_rea_fichier',
+        lazy='joined'
+    )
 
 
 class TravauxFichier(db.Model):
@@ -58,13 +58,13 @@ class TravauxFichier(db.Model):
     """
     __tablename__ = 'bati_rel_travaux_fichier'
     id_demande = db.Column(
-            db.Integer,
-            db.ForeignKey('bati_travaux.id', ondelete='cascade'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('bati_travaux.id', ondelete='cascade'),
+        primary_key=True)
     id_fichier = db.Column(
-            db.Integer,
-            db.ForeignKey(Fichier.id, ondelete='cascade'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey(Fichier.id, ondelete='cascade'),
+        primary_key=True)
 
 
 class PlanFichier(db.Model):
@@ -73,13 +73,13 @@ class PlanFichier(db.Model):
     """
     __tablename__ = 'bati_rel_plan_fichier'
     id_demande = db.Column(
-            db.Integer,
-            db.ForeignKey('bati_travaux.id', ondelete='cascade'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('bati_travaux.id', ondelete='cascade'),
+        primary_key=True)
     id_fichier = db.Column(
-            db.Integer,
-            db.ForeignKey(Fichier.id, ondelete='cascade'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey(Fichier.id, ondelete='cascade'),
+        primary_key=True)
 
 
 class ReaFichier(db.Model):
@@ -88,10 +88,10 @@ class ReaFichier(db.Model):
     """
     __tablename__ = 'bati_rel_rea_fichier'
     id_demande = db.Column(
-            db.Integer,
-            db.ForeignKey('bati_travaux.id', ondelete='cascade'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey('bati_travaux.id', ondelete='cascade'),
+        primary_key=True)
     id_fichier = db.Column(
-            db.Integer,
-            db.ForeignKey(Fichier.id, ondelete='cascade'),
-            primary_key=True)
+        db.Integer,
+        db.ForeignKey(Fichier.id, ondelete='cascade'),
+        primary_key=True)

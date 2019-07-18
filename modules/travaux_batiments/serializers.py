@@ -3,7 +3,8 @@ from core.utils.serialize import (
     Field,
     IntField,
     DateField,
-    FileField)
+    FileField
+)
 
 
 class TravauxBatimentSerializer(Serializer):
@@ -17,10 +18,10 @@ class TravauxBatimentSerializer(Serializer):
     dem_designation = Field()
     rea_date = DateField()
     rea_annulation = IntField(
-            default=0,
-            serializefn = lambda x: x==1,
-            preparefn = lambda x: 1 if x else 2
-            )
+        default=0,
+        serializefn=lambda x: x == 1,
+        preparefn=lambda x: 1 if x else 2
+    )
 
 
 class TravauxBatimentFullSerializer(TravauxBatimentSerializer):
@@ -30,10 +31,10 @@ class TravauxBatimentFullSerializer(TravauxBatimentSerializer):
     dmdr_service = IntField()
     dmdr_contact_nom = Field()
     dmdr_contact_email = Field(
-            serializefn=(
-                lambda val: [item for item in val.split(',') if item]),
-            preparefn=lambda val: ','.join(val)
-            )
+        serializefn=(
+            lambda val: [item for item in val.split(',') if item]),
+        preparefn=lambda val: ','.join(val)
+    )
     dem_importance_travaux = Field()
     dem_type_travaux = Field()
     dem_description_travaux = Field()
@@ -47,6 +48,3 @@ class TravauxBatimentFullSerializer(TravauxBatimentSerializer):
     dem_fichiers = FileField()
     plan_fichiers = FileField()
     rea_fichiers = FileField()
-
-
-

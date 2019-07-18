@@ -12,21 +12,21 @@ from core.models import Fichier, prepare_fichiers
 from core.routes import upload_file, get_uploaded_file, delete_uploaded_file
 from core.thesaurus.models import Thesaurus
 from core.utils import (
-        json_resp,
-        send_mail,
-        csv_response,
-        register_module,
-        registered_funcs
-        )
+    json_resp,
+    send_mail,
+    csv_response,
+    register_module,
+    registered_funcs
+)
 from core.utils.serialize import load_ref, ValidationError
 from .models import (
-        Agent,
-        AgentDetail,
-        RelAgentFichier)
+    Agent,
+    AgentDetail,
+    RelAgentFichier)
 from .serializers import (
-        AgentSerializer,
-        AgentDetailSerializer
-        )
+    AgentSerializer,
+    AgentDetailSerializer
+)
 
 
 AgentDetailSerializer.fichiers.preparefn = prepare_fichiers(_db)
@@ -39,39 +39,39 @@ register_module('/recrutement', routes)
 check_auth = registered_funcs['check_auth']
 
 csv_fields = [
-        'id',
-        'nom',
-        'prenom',
-        'intitule_poste',
-        (
-            'service_id',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        'arrivee',
-        'depart',
-        'desc_mission',
-        (
-            'type_contrat',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        (
-            'service_id',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        (
-            'lieu',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        (
-            'categorie',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        (
-            'temps_travail',
-            load_ref(_db, Thesaurus, 'label')
-        ),
-        'temps_travail_autre'
-        ]
+    'id',
+    'nom',
+    'prenom',
+    'intitule_poste',
+    (
+        'service_id',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    'arrivee',
+    'depart',
+    'desc_mission',
+    (
+        'type_contrat',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    (
+        'service_id',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    (
+        'lieu',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    (
+        'categorie',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    (
+        'temps_travail',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    'temps_travail_autre'
+]
 
 
 def get_agents_annee(annee_deb, annee_fin, frmt='dict'):
@@ -95,13 +95,15 @@ def get_agents_presents(annee_deb, annee_fin, frmt='dict'):
     else:
         klass = AgentDetail
     qr = klass.query.filter(
-            _db.and_(
-                _db.or_(
-                    klass.depart > annee_deb,
-                    klass.depart == None),
-                klass.arrivee < annee_fin))
+        _db.and_(
+            _db.or_(
+                klass.depart >= annee_deb,
+                klass.depart == None  # noqa
+            ),
+            klass.arrivee <= annee_fin
+        )
+    )
     return qr.order_by(_db.asc(klass.arrivee)).all()
-
 
 
 @routes.route('/')
@@ -132,7 +134,13 @@ def get_agents():
         else:
             ag_list = get_agents_presents(annee_deb, annee_fin, _format)
         if _format == 'csv':
-            return csv_response(AgentDetailSerializer.export_csv(ag_list, fields=csv_fields), filename='recrutement.csv')
+            return csv_response(
+                AgentDetailSerializer.export_csv(
+                    ag_list,
+                    fields=csv_fields
+                ),
+                filename='recrutement.csv'
+            )
         else:
             return [AgentSerializer(res).serialize() for res in ag_list]
     except Exception:
@@ -164,8 +172,9 @@ def create_agent():
         ag = request.json
         ag['meta_create'] = datetime.datetime.now()
         ag['materiel'] = [
-                _db.session.query(Thesaurus).get(item_id)
-                for item_id in ag.get('materiel', [])]
+            _db.session.query(Thesaurus).get(item_id)
+            for item_id in ag.get('materiel', [])
+        ]
         notif = ag.pop('ctrl_notif', False)
 
         # agent = AgentDetail(**ag)
@@ -181,19 +190,21 @@ def create_agent():
                 'Nouvelle fiche de recrutement : %s %s' % (
                     agent.prenom or '',
                     agent.nom
-                    ),
+                ),
                 '''
                 La fiche de recrutement de %s %s a été créée le %s.
-                Vous pouvez vous connecter sur http://tizoutis.pnc.int/#/recrutement?annee=%s&fiche=%s pour voir les détails de cette fiche.
+                Vous pouvez vous connecter sur
+                http://tizoutis.pnc.int/#/recrutement?annee=%s&fiche=%s
+                pour voir les détails de cette fiche.
                 ''' % (
                     agent.prenom or '',
                     agent.nom,
                     datetime.datetime.today().strftime('%d/%m/%Y'),
                     agent.arrivee.year,
                     agent.id
-                    ),
+                ),
                 add_dests=ag['notif_list']
-                )
+            )
 
         return out
 
@@ -216,8 +227,9 @@ def update_agent(id_agent):
             return [], 404
 
         ag['materiel'] = [
-                _db.session.query(Thesaurus).get(item_id)
-                for item_id in ag.get('materiel', [])]
+            _db.session.query(Thesaurus).get(item_id)
+            for item_id in ag.get('materiel', [])
+        ]
 
         ag['meta_update'] = datetime.datetime.now()
         notif = ag.pop('ctrl_notif', False)
@@ -233,19 +245,21 @@ def update_agent(id_agent):
                 "Modification d'une fiche de recrutement : %s %s" % (
                     agent.prenom or '',
                     agent.nom
-                    ),
+                ),
                 '''
                 La fiche de recrutement de %s %s a été modifiée le %s.
-                Vous pouvez vous connecter à http://tizoutis.pnc.int/#/recrutement?annee=%s&fiche=%s pour voir les détails de cette fiche.
+                Vous pouvez vous connecter à
+                http://tizoutis.pnc.int/#/recrutement?annee=%s&fiche=%s
+                pour voir les détails de cette fiche.
                 ''' % (
                     agent.prenom or '',
                     agent.nom,
                     datetime.datetime.today().strftime('%d/%m/%Y'),
                     agent.arrivee.year,
                     agent.id
-                    ),
+                ),
                 add_dests=ag['notif_list']
-                )
+            )
 
         return out
     except Exception as exc:
@@ -266,10 +280,10 @@ def delete_agent(id_agent):
     if not agent:
         return [], 404
     rels_fichiers = _db.session.query(RelAgentFichier).filter(
-            RelAgentFichier.id_agent == id_agent).all()
+        RelAgentFichier.id_agent == id_agent
+    ).all()
     for rel in rels_fichiers:
         delete_uploaded_file(rel.id_fichier, _db)
-        #_db.session.delete(rel)
     _db.session.delete(agent)
     _db.session.commit()
     send_mail(
@@ -277,15 +291,17 @@ def delete_agent(id_agent):
         "Suppression d'une fiche de recrutement : %s %s" % (
             agent.prenom or '',
             agent.nom
-            ),
+        ),
         '''
         La fiche de recrutement de %s %s a été supprimée le %s.
-        Vous pouvez vous connecter à http://tizoutis.pnc.int/#/recrutement pour voir la liste des recrutements en cours.
+        Vous pouvez vous connecter à
+        http://tizoutis.pnc.int/#/recrutement
+        pour voir la liste des recrutements en cours.
         ''' % (
             agent.prenom or '',
             agent.nom,
             datetime.datetime.today().strftime('%d/%m/%Y')
-            ),
+        ),
         add_dests=agent.notif_list.split(',')
-        )
+    )
     return []

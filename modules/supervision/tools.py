@@ -37,9 +37,10 @@ def scan_ping(ip):
     retourne l'accessibilité de l'équipement réseau par PING
     '''
     res = subprocess.Popen(
-            ['fping', ip],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+        ['fping', ip],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
     if res.wait():
         return False
     else:
@@ -97,5 +98,8 @@ class Scanner:
             with open('./supervision.lock', 'w'):
                 # Ecriture du fichier de verrouillage lors du démarrage
                 # du process de scan
-                thr = threading.Thread(target=_scan, args=[self.app, self.session, self.evt])
+                thr = threading.Thread(
+                    target=_scan,
+                    args=[self.app, self.session, self.evt]
+                )
                 thr.start()

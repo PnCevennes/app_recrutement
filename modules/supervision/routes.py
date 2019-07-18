@@ -81,4 +81,5 @@ def delete_equip(id_equip):
     if not equip:
         return [], 404
     _db.session.delete(equip)
+    _db.session.commit()
     return {'id': equip.id}

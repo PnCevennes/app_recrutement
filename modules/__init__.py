@@ -7,10 +7,10 @@ from .travaux_batiments import routes
 from .subventions import routes
 '''
 
-import os, os.path
+import os
+import os.path
 
 here = os.path.dirname(__file__)
 for item in os.listdir(here):
     if not item.startswith('_'):
         __import__('modules.%s.routes' % item)
-
