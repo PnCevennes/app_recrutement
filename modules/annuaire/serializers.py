@@ -3,6 +3,23 @@ Classes de sérialisation des données
 '''
 from core.utils.serialize import Serializer, Field, IntField, format_phone
 
+from .models import Entite
+
+
+def prepare_relations(data):
+    return Entite.query.filter(
+        Entite.id.in_(
+            [item['id'] for item in data if item]
+        )
+    ).all()
+
+
+def serialize_relations(data):
+    return [
+        {'id':item.id, 'label': item.label}
+        for item in data if item
+    ]
+
 
 class EntiteSerializer(Serializer):
     id = IntField()
@@ -11,11 +28,13 @@ class EntiteSerializer(Serializer):
     type_entite = Field()
     observations = Field()
     parents = Field(
-        preparefn=lambda data: [item['id'] for item in data if item],
+        preparefn=prepare_relations,
+        serializefn=serialize_relations,
         default=[]
     )
     relations = Field(
-        preparefn=lambda data: [item['id'] for item in data if item],
+        preparefn=prepare_relations,
+        serializefn=serialize_relations,
         default=[]
     )
 

@@ -38,17 +38,10 @@ register_module('/annuaire', routes)
 check_auth = registered_funcs['check_auth']
 
 TYPES_E = {
-    'entite': Entite,
-    'commune': Commune,
-    'correspondant': Correspondant,
-    'entreprise': Entreprise
-}
-
-SERIALIZERS_E = {
-    'entite': EntiteSerializer,
-    'commune': CommuneSerializer,
-    'correspondant': CorrespondantSerializer,
-    'entreprise': EntrepriseSerializer
+    'entite': (Entite, EntiteSerializer),
+    'commune': (Commune, CommuneSerializer),
+    'correspondant': (Correspondant, CorrespondantSerializer),
+    'entreprise': (Entreprise, EntrepriseSerializer)
 }
 
 FIELDS_E = {
@@ -92,23 +85,6 @@ FIELDS_E = {
 }
 
 
-def get_entites_by_parent(entite_ids):
-    '''
-    retourne une liste d'entites "enfants" de la liste d'ID fournie
-    '''
-    rels = (RelationEntite.query
-            .filter(RelationEntite.id_parent.in_(entite_ids))
-            .all())
-    all_ids = [item.id_enfant for item in rels]
-    ids = set(filter(lambda x: all_ids.count(x) == len(entite_ids), all_ids))
-    ids = ids | set(entite_ids)
-    return (Entite.query
-            .filter(Entite.id.in_(ids))
-            .order_by(Entite.type_entite)
-            .order_by(Entite.label)
-            .all())
-
-
 @routes.route('/entites')
 @json_resp
 @check_auth()
@@ -120,12 +96,16 @@ def get_entites():
     _format = request.args.get('format', None)
     _etype = request.args.get('type', 'correspondant')
     if not len(entite_ids):
+        if not request.args.get('all', False):
+            return {}
         entites = Entite.query.all()
     else:
-        entites = get_entites_by_parent(entite_ids)
+        parents = Entite.query.filter(Entite.id.in_(entite_ids)).all()
+        filters = [Entite.parents.contains(z) for z in parents]
+        entites = Entite.query.filter(_db.and_(*filters)).order_by(Entite.nom).all()
     if _format in ('csv', 'tsv'):
-        serializer = SERIALIZERS_E[_etype]
-        entites = filter(lambda x: isinstance(x, TYPES_E[_etype]), entites)
+        ent_type, serializer = TYPES_E[_etype]
+        entites = filter(lambda x: isinstance(x, ent_type), entites)
         if _format == 'csv':
             csv = serializer.export_csv(entites, fields=FIELDS_E[_etype])
         else:
@@ -142,7 +122,10 @@ def get_entites():
         ])
         return vcard_response(vcards, 'annuaire.vcf')
 
-    return [SERIALIZERS_E[e.type_entite](e).serialize() for e in entites]
+    return {
+        'recherche': [TYPES_E[e.type_entite][1](e).dump() for e in parents],
+        'liste': [TYPES_E[e.type_entite][1](e).dump() for e in entites]
+    }
 
 
 @routes.route('/entite/<id_entite>')
@@ -154,14 +137,15 @@ def get_entite(id_entite):
     '''
     entite_type = request.args.get('type', 'entite')
     _format = request.args.get('format', None)
-    entite = TYPES_E[entite_type].query.get(id_entite)
+    entitecls, serializer = TYPES_E[entite_type]
+    entite = entitecls.query.get(id_entite)
     if not entite:
         return {'errmsg': 'Donnée inexistante'}, 404
     if _format == 'vcard':
         filename = entite.label.encode('ascii', 'ignore') + b'.vcf'
         vcard = format_vcard(entite)
         return vcard_response(vcard, filename)
-    out = SERIALIZERS_E[entite.type_entite](entite).serialize()
+    out = serializer(entite).dump()
     out['meta_changelog'] = load_changes(entite)
     return out
 
@@ -183,13 +167,22 @@ def get_entite_nom(nom):
 
     entite_filtre = request.args.get('filter', 'label')
     recherche = '%s%%' % '% '.join(nom.split())
-    t_entite = TYPES_E[entite_type]
-    entites = (
-        t_entite.query
-        .filter(getattr(t_entite, entite_filtre).like(recherche))
-        .order_by(getattr(t_entite, entite_filtre))
-        .all()
-    )
+    t_entite, _ = TYPES_E[entite_type]
+    try:
+        entites = (
+            t_entite.query
+            .filter(getattr(t_entite, entite_filtre).like(recherche))
+            .order_by(getattr(t_entite, entite_filtre))
+            .all()
+        )
+    except AttributeError:
+        entite_filtre = 'label'
+        entites = (
+            t_entite.query
+            .filter(getattr(t_entite, entite_filtre).like(recherche))
+            .order_by(getattr(t_entite, entite_filtre))
+            .all()
+        )
     if entite_result == 'obj':
         return [
             {
@@ -231,22 +224,21 @@ def create_entite():
     '''
     data = request.json
     entite_type = data.get('type_entite', 'entite')
-    entite = TYPES_E[entite_type]()
-    serializer = SERIALIZERS_E[entite_type](entite)
-    parents = data.pop('parents', [])
-    relations = data.pop('relations', [])
-    data['parents'] = []
-    data['relations'] = []
+    _entite, _serializer = TYPES_E[entite_type]
+    entite = _entite()
+    serializer = _serializer(entite)
     try:
         serializer.populate(data)
-        # record_changes(entite, ChangeType.CREATE, {})
+        record_changes(entite, {}, ChangeType.CREATE)
     except ValidationError as e:
         return {'errors': e.errors}, 400
     _db.session.add(entite)
+    '''
     serializer.parents = parents
     serializer.relations = relations
+    '''
     _db.session.commit()
-    return serializer.serialize()
+    return serializer.dump()
 
 
 @routes.route('/entite/<id_entite>', methods=['POST', 'PUT'])
@@ -258,14 +250,15 @@ def update_entite(id_entite):
     '''
     data = request.json
     entite = Entite.query.get(id_entite)
-    serializer = SERIALIZERS_E[entite.type_entite](entite)
+    _, _serializer = TYPES_E[entite.type_entite]
+    serializer = _serializer(entite)
     try:
-        serializer.populate(data)
-        record_changes(entite, ChangeType.UPDATE, serializer.changelog)
+        serializer.load(data)
+        record_changes(entite, serializer.changelog, ChangeType.UPDATE)
     except ValidationError as e:
         return {'errors': e.errors}, 400
     _db.session.commit()
-    return serializer.serialize()
+    return serializer.dump()
 
 
 @routes.route('/entite/<id_entite>', methods=['DELETE'])
@@ -275,12 +268,12 @@ def delete_entite(id_entite):
     entite = _db.session.query(Entite).get(id_entite)
     if not entite:
         return {'errmsg': 'Donnée inexistante'}, 404
-    serializer = SERIALIZERS_E[entite.type_entite](entite)
+    _, _serializer = TYPES_E[entite.type_entite]
+    serializer = _serializer(entite)
     try:
-        entite.delete_relations(_db.session)
         _db.session.delete(entite)
         _db.session.commit()
-        record_changes(entite, ChangeType.DELETE, serializer.dump())
+        record_changes(entite, serializer.dump(), ChangeType.DELETE)
     except InvalidRequestError as excpt:
         _db.session.rollback()
         return {
