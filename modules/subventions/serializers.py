@@ -19,7 +19,7 @@ class SubvSerializer(Serializer):
     pet_nom = Field()
     sa_massif = IntField()
     sa_commission = IntField()
-    dec_date_notif = DateField()
+    dec_date_bureau = DateField()
     dec_echeance = DateField()
     pai_reste_du = FloatField()
     meta_statut = IntField()
@@ -58,7 +58,7 @@ class SubvFullSerializer(SubvSerializer):
     sub_dem_pc = DateField()
     sub_date_ar = DateField()
     # Décision
-    dec_date_bureau = DateField()
+    dec_date_notif = DateField()
     dec_num_delib = Field()
     dec_motif_refus = Field()
     dec_conditions = Field()
