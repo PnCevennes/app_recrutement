@@ -19,14 +19,10 @@ def render(templatename, data):
     with open(tpl.path, 'r') as fp:
         template = fp.read().encode('ascii')
         for varname, value in data.items():
-            varmod = b'#%s#' % varname.encode('ascii')
-            template = (
-                template.replace(
-                    varmod,
-                    str(value).encode('rtfunicode')
-                )
-                if value and len(str(value)) else b''
-            )
+            varmod = b'#' + varname.encode('ascii') + b'#'
+            value = (str(value).encode('rtfunicode')
+                     if value and len(str(value)) else b'')
+            template = template.replace(varmod, value, -1)
 
     headers = Headers()
     headers.add('Content-Type', 'text/rtf')
