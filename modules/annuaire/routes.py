@@ -102,7 +102,7 @@ def get_entites():
     else:
         parents = Entite.query.filter(Entite.id.in_(entite_ids)).all()
         filters = [Entite.parents.contains(z) for z in parents]
-        entites = Entite.query.filter(_db.and_(*filters)).order_by(Entite.nom).all()
+        entites = Entite.query.filter(_db.and_(*filters)).order_by(Entite.type_entite).order_by(Entite.nom).all()
     if _format in ('csv', 'tsv'):
         ent_type, serializer = TYPES_E[_etype]
         entites = filter(lambda x: isinstance(x, ent_type), entites)

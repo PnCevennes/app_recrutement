@@ -3,7 +3,7 @@ mapping agent
 '''
 
 from server import db
-from core.models import Fichier, serialize_files
+from core.models import Fichier, serialize_files, file_relation
 from core.thesaurus.models import Thesaurus
 
 
@@ -65,6 +65,7 @@ class RelAgentMateriel(db.Model):
         primary_key=True)
 
 
+@file_relation('recrutement')
 class RelAgentFichier(db.Model):
     __tablename__ = 'recr_rel_agent_fichier'
     id_agent = db.Column(

@@ -3,7 +3,7 @@ mapping subventions
 '''
 
 from server import db
-from core.models import Fichier, serialize_files
+from core.models import Fichier, serialize_files, file_relation
 from core.thesaurus.models import Thesaurus
 
 
@@ -104,6 +104,7 @@ class DemandeSubvention(db.Model):
     )
 
 
+@file_relation('subv_sub')
 class RelSubFichier(db.Model):
     __tablename__ = 'subv_rel_sub_fichier'
     id_dem_sub = db.Column(
@@ -116,6 +117,7 @@ class RelSubFichier(db.Model):
         primary_key=True)
 
 
+@file_relation('subv_dec')
 class RelDecFichier(db.Model):
     __tablename__ = 'subv_rel_dec_fichier'
     id_dem_sub = db.Column(
@@ -128,6 +130,7 @@ class RelDecFichier(db.Model):
         primary_key=True)
 
 
+@file_relation('subv_pai')
 class RelPaiFichier(db.Model):
     __tablename__ = 'subv_rel_pai_fichier'
     id_dem_sub = db.Column(

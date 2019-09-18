@@ -11,7 +11,7 @@ from sqlalchemy.exc import InvalidRequestError
 from werkzeug.utils import secure_filename
 from server import db as _db
 from core.utils import json_resp
-from core.models import Fichier
+from core.models import Fichier, FILERELS
 
 
 main = Blueprint('main', __name__)
@@ -77,6 +77,15 @@ def delete_uploaded_file(fileid, path=None, db=None):
         path = current_app.config['UPLOAD_DIR']
     if db is None:
         db = _db
+    rel_table = request.args.get('refer_id', None)
+    if rel_table is not None:
+        rel_class, col_name = FILERELS.get(rel_table, None)
+        try:
+            rel_instance = db.session.query(rel_class).filter(getattr(rel_class, col_name)==fileid).one()
+            db.session.delete(rel_instance)
+        except Exception as e: #noqa
+            import traceback
+            return {'err': traceback.format_exc()}, 400
 
     try:
         fich = db.session.query(Fichier).get(fileid)

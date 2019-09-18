@@ -1,6 +1,7 @@
 import datetime
 import json
 from enum import Enum
+from functools import wraps
 
 from flask import g
 
@@ -12,6 +13,9 @@ from core.utils.serialize import (
     DateField,
     serialize_files # noqa
     )
+
+
+FILERELS = {}
 
 
 class ChangeType(Enum):
@@ -109,6 +113,22 @@ class FichierSerializer(Serializer):
     id = Field()
     filename = Field()
     file_uri = Field()
+
+
+def file_relation(label, column_name='id_fichier'):
+    '''
+    Enregistre une table de relation entre un fichier et une classe de module
+    params: 
+        label: (str) nom permettant d'identifier la classe
+        column_name: (str) colonne à utilisée pour définir la relation
+    '''
+    def _file_relation(relation_class):
+        FILERELS[label] = (relation_class, column_name)
+        @wraps(relation_class)
+        def __file_relation(*args, **kwargs):
+            return relation_class(*args, **kwargs)
+        return __file_relation
+    return _file_relation
 
 
 class Fichier(db.Model):

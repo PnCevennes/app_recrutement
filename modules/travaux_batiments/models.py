@@ -3,7 +3,7 @@ mapping intervention
 '''
 
 from server import db
-from core.models import Fichier, serialize_files
+from core.models import Fichier, serialize_files, file_relation
 
 
 class TravauxBatiment(db.Model):
@@ -52,6 +52,7 @@ class TravauxBatiment(db.Model):
     )
 
 
+@file_relation('bati_trav')
 class TravauxFichier(db.Model):
     """
     relation entre la demande de travaux et les fichiers préparatoires
@@ -67,6 +68,7 @@ class TravauxFichier(db.Model):
         primary_key=True)
 
 
+@file_relation('bati_plan')
 class PlanFichier(db.Model):
     """
     relation entre la demande de travaux et les fichiers de planification
@@ -82,6 +84,7 @@ class PlanFichier(db.Model):
         primary_key=True)
 
 
+@file_relation('bati_rea')
 class ReaFichier(db.Model):
     """
     relation entre la demande de travaux et les fichiers justificatifs

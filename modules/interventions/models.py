@@ -2,7 +2,7 @@
 mapping intervention
 '''
 from server import db
-from core.models import Fichier, serialize_files
+from core.models import Fichier, serialize_files, file_relation
 
 
 class Demande(db.Model):
@@ -46,6 +46,7 @@ class Demande(db.Model):
     )
 
 
+@file_relation('intv_dem')
 class DemandeFichier(db.Model):
     """
     relation entre la demande et les fichiers préparatoires
@@ -61,6 +62,7 @@ class DemandeFichier(db.Model):
         primary_key=True)
 
 
+@file_relation('intv_rea')
 class ReaFichier(db.Model):
     """
     relation entre la demande et les fichiers justificatifs
