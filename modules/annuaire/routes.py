@@ -14,7 +14,7 @@ from core.utils import (
     register_module,
     registered_funcs)
 from core.utils.serialize import ValidationError
-from core.models import record_changes, load_changes, ChangeType
+# from core.models import record_changes, load_changes, ChangeType
 
 from .models import (
     Entite,
@@ -146,7 +146,7 @@ def get_entite(id_entite):
         vcard = format_vcard(entite)
         return vcard_response(vcard, filename)
     out = serializer(entite).dump()
-    out['meta_changelog'] = load_changes(entite)
+    # out['meta_changelog'] = load_changes(entite)
     return out
 
 
@@ -229,7 +229,7 @@ def create_entite():
     serializer = _serializer(entite)
     try:
         serializer.populate(data)
-        record_changes(entite, {}, ChangeType.CREATE)
+        # record_changes(entite, {}, ChangeType.CREATE)
     except ValidationError as e:
         return {'errors': e.errors}, 400
     _db.session.add(entite)
@@ -254,7 +254,7 @@ def update_entite(id_entite):
     serializer = _serializer(entite)
     try:
         serializer.load(data)
-        record_changes(entite, serializer.changelog, ChangeType.UPDATE)
+        # record_changes(entite, serializer.changelog, ChangeType.UPDATE)
     except ValidationError as e:
         return {'errors': e.errors}, 400
     _db.session.commit()
@@ -273,7 +273,7 @@ def delete_entite(id_entite):
     try:
         _db.session.delete(entite)
         _db.session.commit()
-        record_changes(entite, serializer.dump(), ChangeType.DELETE)
+        # record_changes(entite, serializer.dump(), ChangeType.DELETE)
     except InvalidRequestError as excpt:
         _db.session.rollback()
         return {
