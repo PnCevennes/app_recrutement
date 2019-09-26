@@ -4,7 +4,8 @@ from core.utils.serialize import (
     Field,
     IntField,
     DateField,
-    FileField
+    FileField,
+    MultipleField
 )
 
 
@@ -45,10 +46,10 @@ class AgentDetailSerializer(AgentSerializer):
     convention_signee = Field()
     bureau = Field()
     observations = Field()
-    meta_create = DateField(default=datetime.datetime.now())
+    meta_create = DateField(default=datetime.date.today())
     meta_update = DateField(default=None)
     meta_createur_fiche = Field()
-    materiel = Field(
+    materiel = MultipleField(
         serializefn=lambda val: [item.id for item in val]
     )
     fichiers = FileField()

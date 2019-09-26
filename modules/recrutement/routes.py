@@ -170,7 +170,6 @@ def create_agent():
     '''
     try:
         ag = request.json
-        ag['meta_create'] = datetime.datetime.now()
         ag['materiel'] = [
             _db.session.query(Thesaurus).get(item_id)
             for item_id in ag.get('materiel', [])
