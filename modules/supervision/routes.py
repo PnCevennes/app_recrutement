@@ -40,7 +40,7 @@ def sup_index():
 def get_one_equip(id_equip):
     result = _db.session.query(Equipement).get(id_equip)
     if result:
-        return EquipementSerializer(result).serialize()
+        return EquipementSerializer(result).dump()
     else:
         return [], 404
 
@@ -51,10 +51,10 @@ def create_equip():
     data = request.json
     equip = Equipement()
     try:
-        EquipementSerializer(equip).populate(data)
+        EquipementSerializer(equip).load(data)
         _db.session.add(equip)
         _db.session.commit()
-        return EquipementSerializer(equip).serialize()
+        return EquipementSerializer(equip).dump()
     except ValidationError as err:
         return err.errors, 400
 
@@ -67,9 +67,9 @@ def update_equip(id_equip):
     if not equip:
         return [], 404
     try:
-        EquipementSerializer(equip).populate(data)
+        EquipementSerializer(equip).load(data)
         _db.session.commit()
-        return EquipementSerializer(equip).serialize()
+        return EquipementSerializer(equip).dump()
     except ValidationError as err:
         return err.errors, 400
 

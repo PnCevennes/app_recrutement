@@ -142,7 +142,7 @@ def get_agents():
                 filename='recrutement.csv'
             )
         else:
-            return [AgentSerializer(res).serialize() for res in ag_list]
+            return [AgentSerializer(res).dump() for res in ag_list]
     except Exception:
         import traceback
         return [{'msg': traceback.format_exc()}], 400
@@ -158,7 +158,7 @@ def get_agent(id_agent):
     agent = AgentDetail.query.get(id_agent)
     if not agent:
         return [], 404
-    return AgentDetailSerializer(agent).serialize()
+    return AgentDetailSerializer(agent).dump()
 
 
 @routes.route('/', methods=['POST', 'PUT'])
@@ -178,11 +178,11 @@ def create_agent():
 
         # agent = AgentDetail(**ag)
         agent = AgentDetail()
-        AgentDetailSerializer(agent).populate(ag)
+        AgentDetailSerializer(agent).load(ag)
         _db.session.add(agent)
         _db.session.commit()
 
-        out = AgentDetailSerializer(agent).serialize()
+        out = AgentDetailSerializer(agent).dump()
         if notif:
             send_mail(
                 ['tizoutis-recrutement', 'admin-tizoutis'],
@@ -233,11 +233,11 @@ def update_agent(id_agent):
         ag['meta_update'] = datetime.datetime.now()
         notif = ag.pop('ctrl_notif', False)
 
-        AgentDetailSerializer(agent).populate(ag)
+        AgentDetailSerializer(agent).load(ag)
 
         _db.session.commit()
 
-        out = AgentDetailSerializer(agent).serialize()
+        out = AgentDetailSerializer(agent).dump()
         if notif:
             send_mail(
                 ['tizoutis-recrutement', 'admin-tizoutis'],
@@ -278,11 +278,13 @@ def delete_agent(id_agent):
     agent = _db.session.query(AgentDetail).get(id_agent)
     if not agent:
         return [], 404
+    """
     rels_fichiers = _db.session.query(RelAgentFichier).filter(
         RelAgentFichier.id_agent == id_agent
     ).all()
     for rel in rels_fichiers:
         delete_uploaded_file(rel.id_fichier, _db)
+    """
     _db.session.delete(agent)
     _db.session.commit()
     send_mail(

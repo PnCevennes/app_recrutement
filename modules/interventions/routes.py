@@ -128,7 +128,7 @@ def get_interventions():
                 filename='interventions.csv'
             )
         else:
-            return [DemandeSerializer(res).serialize() for res in results]
+            return [DemandeSerializer(res).dump() for res in results]
     except Exception:
         import traceback
         return [{'msg': traceback.format_exc()}], 400
@@ -142,7 +142,7 @@ def get_one_intervention(id_intervention):
     retourne une demande d'intervention identifiée par id_intervention
     """
     result = _db.session.query(Demande).get(id_intervention)
-    return DemandeFullSerializer(result).serialize()
+    return DemandeFullSerializer(result).dump()
 
 
 @routes.route('/', methods=['POST', 'PUT'])
@@ -160,7 +160,7 @@ def create_intervention():
     try:
         chrono = get_chrono(ref_chrono)
         dem['num_intv'] = chrono
-        DemandeFullSerializer(demande).populate(dem)
+        DemandeFullSerializer(demande).load(dem)
         _db.session.add(demande)
         _db.session.commit()
 
@@ -202,7 +202,7 @@ def update_intervention(id_intervention):
 
     demande = _db.session.query(Demande).get(id_intervention)
     try:
-        DemandeFullSerializer(demande).populate(dem)
+        DemandeFullSerializer(demande).load(dem)
         _db.session.commit()
 
         dem_loc = _db.session.query(Thesaurus).get(

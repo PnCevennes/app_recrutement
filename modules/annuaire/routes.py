@@ -228,15 +228,11 @@ def create_entite():
     entite = _entite()
     serializer = _serializer(entite)
     try:
-        serializer.populate(data)
+        serializer.load(data)
         # record_changes(entite, {}, ChangeType.CREATE)
     except ValidationError as e:
         return {'errors': e.errors}, 400
     _db.session.add(entite)
-    '''
-    serializer.parents = parents
-    serializer.relations = relations
-    '''
     _db.session.commit()
     return serializer.dump()
 

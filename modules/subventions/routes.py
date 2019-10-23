@@ -147,13 +147,14 @@ csv_fields = [
 @check_auth()
 def get_subs():
     _format = request.args.get('format', 'dict')
+    _term = request.args.get('add_term', False)
     subs = _db.session.query(DemandeSubvention).all()
     if _format == 'csv':
         return csv_response(
             SubvFullSerializer.export_csv(subs, fields=csv_fields),
             filename='subventions.csv'
         )
-    return [SubvSerializer(sub).serialize() for sub in subs]
+    return [SubvSerializer(sub).dump() for sub in subs]
 
 
 @routes.route('/<int:id_sub>', methods=['GET'])
@@ -177,7 +178,7 @@ def get_detail_subv(id_sub):
         else:
             return _data
 
-    return SubvFullSerializer(subv).serialize()
+    return SubvFullSerializer(subv).dump()
 
 
 @routes.route('/', methods=['POST', 'PUT'])
@@ -189,7 +190,7 @@ def create_subv():
     demande = DemandeSubvention()
     try:
         dem['meta_id'] = get_chrono(ref_chrono)
-        SubvFullSerializer(demande).populate(dem)
+        SubvFullSerializer(demande).load(dem)
         _db.session.add(demande)
         _db.session.commit()
         return {'id': demande.id, 'meta_id': demande.meta_id}
@@ -207,9 +208,9 @@ def update_subv(id_sub):
     if not demande:
         return {}, 404
     try:
-        SubvFullSerializer(demande).populate(dem)
+        SubvFullSerializer(demande).load(dem)
         _db.session.commit()
-        return SubvFullSerializer(demande).serialize()
+        return SubvFullSerializer(demande).dump()
     except ValidationError as e:
         return e.errors, 400
 

@@ -10,8 +10,7 @@ from core.utils.serialize import (
     Serializer,
     Field,
     IntField,
-    DateField,
-    serialize_files # noqa
+    DateField
     )
 
 

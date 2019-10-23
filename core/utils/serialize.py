@@ -9,39 +9,6 @@ import datetime
 from collections import OrderedDict
 
 
-def do_nothing(x):
-    return x
-
-
-def prepare(cast=str, default=''):
-    '''
-    Transforme la donnée selon le type fourni si elle n'est pas nulle,
-    sinon retourne défault
-    '''
-    def _prepare_lambda(val):
-        return cast(val) if val not in (None, '') else default
-    return _prepare_lambda
-
-
-def prepare_date(data):
-    '''
-    Transforme une chaine de date en objet datetime
-    '''
-    if not data:
-        return None
-    if isinstance(data, datetime.datetime) or isinstance(data, datetime.date):
-        return data
-    if not len(data):
-        return None
-    try:
-        return datetime.datetime.strptime(data, '%Y-%m-%d').date()
-    except ValueError:
-        try:
-            return datetime.datetime.strptime(data, '%Y-%m-%dT%H:%M:%S.%fZ')
-        except ValueError:
-            return datetime.datetime.strptime(data, '%Y-%m-%d %H:%M:%S')
-
-
 def format_phone(tel):
     '''
     formate un numéro de téléphone
@@ -58,20 +25,6 @@ def format_phone(tel):
             [y for y in tel[1::2]]))
     except Exception:
         return tel
-
-
-def serialize_files(data):
-    from core.models import FichierSerializer
-    if not data:
-        return []
-    return [FichierSerializer(item).serialize() for item in data]
-
-
-def serialize_date(data):
-    '''
-    retourne une date sous forme de chaine
-    '''
-    return str(data) if data else None
 
 
 def load_ref(db, klass, attr=None):
@@ -99,9 +52,9 @@ class Field:
             self,
             *,
             alias=None,
-            checkfn=lambda x: True,
-            preparefn=do_nothing,
-            serializefn=do_nothing,
+            checkfn=None,
+            preparefn=None,
+            serializefn=None,
             default=None,
             readonly=False):
         '''
@@ -129,7 +82,10 @@ class Field:
         self.checkfn = checkfn
 
         # valeur par défaut de l'attribut lors de la sérialisation uniquement
-        self.default = default
+        if default:
+            self.default = default
+        else:
+            self.default = self.init_default
 
         # indique que la valeur est en lecture seule et qu'elle n'a pas à être
         # passée à l'instance DB
@@ -145,20 +101,31 @@ class Field:
         '''
         if not self.ro:
             try:
-                value = self.preparefn(value)
-                if not self.checkfn(value):
-                    raise ValueError
+                # Vérification de la donnée
+                if self.checkfn:
+                    if not self.checkfn(value):
+                        raise ValueError
+                else:
+                    if not self.check(value):
+                        raise ValueError
+
+                # Préparation de la donnée
+                if self.preparefn:
+                    value = self.preparefn(value)
+                else:
+                    value = self.prepare(value)
+
+                # Vérification de changement
                 old_value = getattr(
                     instance.obj,
                     self.alias or self.name,
                     None
                 )
+                # Enregistrement en cas de changement
                 if old_value != value:
                     instance.changed(self.alias or self.name, old_value)
                 setattr(instance.obj, self.alias or self.name, value)
             except Exception as exc:
-                print(exc.__class__)
-                print(exc)
                 instance.errors[self.name] = value
                 raise ValueError
 
@@ -169,7 +136,32 @@ class Field:
         if instance is None:
             return self
         val = getattr(instance.obj, self.alias or self.name, self.default)
-        return self.serializefn(val)
+        if self.serializefn:
+            return self.serializefn(val)
+        else:
+            return self.serialize(val)
+
+    @property
+    def init_default(self):
+        return None
+
+    def check(self, value):
+        '''
+        Vérification de la validité de la donnée (defaut)
+        '''
+        return True
+
+    def prepare(self, value):
+        '''
+        Préparation de la donnée avant la restitution (defaut)
+        '''
+        return value
+
+    def serialize(self, value):
+        '''
+        Préparation de la donnée pour l'export en dict
+        '''
+        return value
 
 
 class IntField(Field):
@@ -177,33 +169,10 @@ class IntField(Field):
     Attribute class
     Représente un attribut de type Int à serialiser
     '''
-    def __init__(
-            self,
-            *,
-            alias=None,
-            checkfn=lambda x: True,
-            preparefn=do_nothing,
-            serializefn=do_nothing,
-            default=None,
-            readonly=False):
-        '''
-        Constructeur
-        params (obligatoirement nommés) :
-            checkfn : fonction de vérification - doit renvoyer booleen
-            preparefn : fonction de transformation en vue de l'insertion
-            serializefn : fonction de transformation pour la serialisation
-            default : valeur par défaut lors de la serialisation
-        '''
-        if preparefn is None:
-            preparefn = prepare(int, default)
-
-        super(IntField, self).__init__(
-            alias=alias,
-            checkfn=checkfn,
-            preparefn=preparefn,
-            serializefn=serializefn,
-            default=default,
-            readonly=readonly)
+    def prepare(self, value):
+        if value is None:
+            return None
+        return int(value)
 
 
 def defaultPrepareFloat(value):
@@ -223,35 +192,15 @@ class FloatField(Field):
     Attribute class
     Représente un attribut de type Float à serialiser
     '''
-    def __init__(
-            self,
-            *,
-            alias=None,
-            checkfn=lambda x: True,
-            preparefn=do_nothing,
-            serializefn=None,
-            default=None,
-            readonly=False):
-        '''
-        Constructeur
-        params (obligatoirement nommés) :
-            checkfn : fonction de vérification - doit renvoyer booleen
-            preparefn : fonction de transformation en vue de l'insertion
-            serializefn : fonction de transformation pour la serialisation
-            default : valeur par défaut lors de la serialisation
-        '''
-        if preparefn is None:
-            preparefn = prepare(float, default)
-        if serializefn is None:
-            serializefn = defaultPrepareFloat
+    def prepare(self, value):
+        if value:
+            return float(value)
+        return 0
 
-        super(FloatField, self).__init__(
-            alias=alias,
-            checkfn=checkfn,
-            preparefn=preparefn,
-            serializefn=serializefn,
-            default=default,
-            readonly=readonly)
+    def serialize(self, value):
+        if value:
+            return float(value)
+        return 0
 
 
 class DateField(Field):
@@ -259,35 +208,22 @@ class DateField(Field):
     Attribute class
     Représente un attribut de type Date à serialiser
     '''
-    def __init__(
-            self,
-            *,
-            alias=None,
-            checkfn=lambda x: True,
-            preparefn=None,
-            serializefn=None,
-            default=None,
-            readonly=False):
-        '''
-        Constructeur
-        params (obligatoirement nommés) :
-            checkfn : fonction de vérification - doit renvoyer booleen
-            preparefn : fonction de transformation en vue de l'insertion
-            serializefn : fonction de transformation pour la serialisation
-            default : valeur par défaut lors de la serialisation
-        '''
-        if preparefn is None:
-            preparefn = prepare_date
-        if serializefn is None:
-            serializefn = serialize_date
 
-        super(DateField, self).__init__(
-            alias=alias,
-            checkfn=checkfn,
-            preparefn=preparefn,
-            serializefn=serializefn,
-            default=default,
-            readonly=readonly)
+    def prepare(self, value):
+        if not value or not len(value):
+            return None
+        if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
+            return value
+        try:
+            return datetime.datetime.strptime(value, '%Y-%m-%d').date()
+        except ValueError:
+            try:
+                return datetime.datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+            except ValueError:
+                return datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S').date()
+
+    def serialize(self, value):
+        return str(value) if value else None
 
 
 class PasswordField(Field):
@@ -303,33 +239,9 @@ class MultipleField(Field):
     Attribute class
     Représente un attribut de type list à serialiser
     '''
-    def __init__(
-            self,
-            *,
-            alias=None,
-            checkfn=lambda x: True,
-            preparefn=do_nothing,
-            serializefn=None,
-            default=None,
-            readonly=False):
-        '''
-        Constructeur
-        params (obligatoirement nommés) :
-            checkfn : fonction de vérification - doit renvoyer booleen
-            preparefn : fonction de transformation en vue de l'insertion
-            serializefn : fonction de transformation pour la serialisation
-            default : valeur par défaut lors de la serialisation
-        '''
-        if default is None:
-            default = []
-
-        super(MultipleField, self).__init__(
-            alias=alias,
-            checkfn=checkfn,
-            preparefn=preparefn,
-            serializefn=serializefn,
-            default=default,
-            readonly=readonly)
+    @property
+    def init_default(self):
+        return []
 
 
 class FileField(Field):
@@ -337,35 +249,15 @@ class FileField(Field):
     Attribute class
     Représente un attribut de type relation fichier à serialiser
     '''
-    def __init__(
-            self,
-            *,
-            alias=None,
-            checkfn=lambda x: True,
-            preparefn=do_nothing,
-            serializefn=None,
-            default=None,
-            readonly=False):
-        '''
-        Constructeur
-        params (obligatoirement nommés) :
-            checkfn : fonction de vérification - doit renvoyer booleen
-            preparefn : fonction de transformation en vue de l'insertion
-            serializefn : fonction de transformation pour la serialisation
-            default : valeur par défaut lors de la serialisation
-        '''
-        if default is None:
-            default = []
-        if serializefn is None:
-            serializefn = serialize_files
+    @property
+    def init_default(self):
+        return []
 
-        super(FileField, self).__init__(
-            alias=alias,
-            checkfn=checkfn,
-            preparefn=preparefn,
-            serializefn=serializefn,
-            default=default,
-            readonly=readonly)
+    def serialize(self, value):
+        from core.models import FichierSerializer
+        if not value:
+            return []
+        return [FichierSerializer(item).serialize() for item in value]
 
 
 class ValidationError(Exception):
@@ -400,7 +292,6 @@ class Serializer(metaclass=MetaSerializer):
     '''
     Représentation d'un modele
     '''
-
     def __init__(self, obj):
         '''
         Initialisé soit avec un objet à serialiser, soit avec
@@ -440,9 +331,6 @@ class Serializer(metaclass=MetaSerializer):
         if errors:
             raise ValidationError(self.errors)
 
-    # alias pour ancien code
-    populate = load
-
     def dump(self, fields=None):
         '''
         Sérialise un objet en passant par les attribute class Field
@@ -463,9 +351,6 @@ class Serializer(metaclass=MetaSerializer):
                 else:
                     out[field] = getattr(self, field, None)
             return out
-
-    # alias pour ancien code
-    serialize = dump
 
     @classmethod
     def export_csv(
@@ -490,7 +375,7 @@ class Serializer(metaclass=MetaSerializer):
                 fname, formatter = field
             else:
                 fname = field
-                formatter = do_nothing
+                formatter = lambda x: x
             _fields.append(fname)
             _formatters[fname] = formatter
 
@@ -505,3 +390,7 @@ class Serializer(metaclass=MetaSerializer):
                 ).replace('"', '""') for f in _fields
             ]))
         return eol.join(lines).encode('latin1', 'replace')
+
+    # alias pour ancien code
+    populate = load
+    serialize = dump

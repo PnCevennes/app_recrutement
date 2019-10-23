@@ -2,7 +2,7 @@
 mapping intervention
 '''
 from server import db
-from core.models import Fichier, serialize_files, file_relation
+from core.models import Fichier, file_relation
 
 
 class Demande(db.Model):
