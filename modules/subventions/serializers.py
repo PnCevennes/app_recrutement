@@ -46,6 +46,7 @@ class SubvFullSerializer(SubvSerializer):
     sa_axe_charte = IntField()
     sa_id_action = Field()
     sa_nature = Field()
+    sa_date_commission = DateField()
     # Subvention
     sub_objet = Field()
     sub_commune = Field()
@@ -71,6 +72,9 @@ class SubvFullSerializer(SubvSerializer):
     dec_num_ej = Field()
     dec_date_retour = DateField()
     dec_relance = DateField()
+    dec_dem_prorogation_date = DateField()
+    dec_bur_prorogation_date = DateField()
+    dec_numdel_prorogation = Field()
     dec_prorogation = DateField()
     # Paiement
     pai_date_recept_demande = DateField()

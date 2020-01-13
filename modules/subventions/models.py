@@ -33,6 +33,7 @@ class DemandeSubvention(db.Model):
     sa_tel_instr = db.Column(db.Unicode(20))
     sa_mail_instr = db.Column(db.Unicode(150))
     sa_commission = db.Column(db.Integer)
+    sa_date_commission = db.Column(db.Date)
     sa_axe_charte = db.Column(db.Integer)
     sa_id_action = db.Column(db.Unicode(10))
     sa_nature = db.Column(db.Unicode(150))
@@ -63,6 +64,9 @@ class DemandeSubvention(db.Model):
     dec_date_retour = db.Column(db.Date)
     dec_relance = db.Column(db.Date)
     dec_echeance = db.Column(db.Date)
+    dec_dem_prorogation_date = db.Column(db.Date)
+    dec_bur_prorogation_date = db.Column(db.Date)
+    dec_numdel_prorogation = db.Column(db.Unicode(20))
     dec_prorogation = db.Column(db.Date)
     # Paiement
     pai_date_recept_demande = db.Column(db.Date)

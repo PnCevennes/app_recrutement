@@ -240,7 +240,8 @@ def get_templates():
 
 @routes.route('/templates', methods=['POST'])
 @json_resp
-@check_auth(groups=['tizoutis-subventions'])
+# TODO maj requete cote client
+# @check_auth(groups=['tizoutis-subventions'])
 def add_template():
     if 'id' not in request.form:
         tpl = SubvTemplate()
@@ -271,7 +272,8 @@ def add_template():
 
 @routes.route('/templates/<id_template>', methods=['DELETE'])
 @json_resp
-@check_auth(groups=['tizoutis-subventions'])
+# TODO maj requete cote client
+# @check_auth(groups=['tizoutis-subventions'])
 def remove_template(id_template):
     tpl = _db.session.query(SubvTemplate).get(id_template)
     if not tpl:

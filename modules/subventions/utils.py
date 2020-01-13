@@ -109,14 +109,15 @@ def nb2txt(nb):
     chunks = [nb[x:x + 3] for x in range(0, len(nb), 3)]
     out = []
     for idx, chunk in enumerate(chunks):
-        out.append(_mils[idx])
+        if chunk != '000':
+            out.append(_mils[idx])
         out.append(chunk2txt(chunk))
     final = ('-'.join(list(reversed(out)))).strip()
     final = final.replace('un-mille', 'mille')
     final = final.replace('mille-un', 'mille-et-un')
-    if 'million' in final and not final.startswith('un million'):
+    if 'million' in final and not final.startswith('un-million'):
         final = final.replace('million', 'millions')
-    if 'milliard' in final and not final.startswith('un milliard'):
+    if 'milliard' in final and not final.startswith('un-milliard'):
         final = final.replace('milliard', 'milliards')
     if final.endswith('-'):
         final = final[:-1]
