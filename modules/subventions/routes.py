@@ -59,6 +59,10 @@ csv_fields = [
     'sa_instructeur',
     ('sa_tel_instr', format_phone),
     'sa_mail_instr',
+    (
+        'sa_date_commission',
+        lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''
+    ),
     ('sa_commission', load_ref(_db, Thesaurus, 'label')),
     ('sa_axe_charte', load_ref(_db, Thesaurus, 'label')),
     'sa_id_action',
@@ -107,6 +111,15 @@ csv_fields = [
     ),
     (
         'dec_echeance',
+        lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''
+    ),
+    (
+        'dec_dem_prorogation_date',
+        lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''
+    ),
+    'dec_numdel_prorogation',
+    (
+        'dec_bureau_prorogation_date',
         lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''
     ),
     (
