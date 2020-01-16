@@ -119,7 +119,7 @@ csv_fields = [
     ),
     'dec_numdel_prorogation',
     (
-        'dec_bureau_prorogation_date',
+        'dec_bur_prorogation_date',
         lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''
     ),
     (
