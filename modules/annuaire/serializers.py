@@ -1,7 +1,7 @@
 '''
 Classes de sérialisation des données
 '''
-from core.utils.serialize import Serializer, Field, IntField, format_phone
+from core.utils.serialize import Serializer, Field, IntField, DateField, format_phone
 
 from .models import Entite
 
@@ -23,6 +23,8 @@ def serialize_relations(data):
 
 class EntiteSerializer(Serializer):
     id = IntField()
+    meta_update_date = DateField()
+    meta_update_user = Field()
     nom = Field()
     label = Field(readonly=True)
     type_entite = Field()

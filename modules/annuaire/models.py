@@ -29,6 +29,8 @@ class Entite(db.Model):
         'polymorphic_on': 'type_entite'
     }
     id = db.Column(db.Integer, primary_key=True)
+    meta_update_date = db.Column(db.Date)
+    meta_update_user = db.Column(db.Unicode(length=100))
     _nom = db.Column(db.Unicode(length=255))
     _label = db.Column('nom_complet', db.Unicode(length=255))
     type_entite = db.Column(db.Unicode(50))
