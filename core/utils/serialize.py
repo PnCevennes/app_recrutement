@@ -82,7 +82,7 @@ class Field:
         self.checkfn = checkfn
 
         # valeur par défaut de l'attribut lors de la sérialisation uniquement
-        if default:
+        if default is not None:
             self.default = default
         else:
             self.default = self.init_default
