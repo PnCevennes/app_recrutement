@@ -86,7 +86,7 @@ class DemandeSubvention(db.Model):
     pai_accpt5_date = db.Column(db.Date)
     pai_accpt5_dp = db.Column(db.Unicode(30))
     pai_total_verse = db.Column(db.Numeric(10, 2))
-    pai_reste_du = db.Column(db.Integer)
+    pai_reste_du = db.Column(db.Numeric(10, 2))
     pai_mnt_annule = db.Column(db.Numeric(10, 2))
 
     sub_fichiers = db.relationship(
