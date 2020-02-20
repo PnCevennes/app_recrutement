@@ -19,6 +19,7 @@ from core.utils import (
     registered_funcs
 )
 from core.utils.serialize import load_ref, ValidationError
+from core.utils.rtf import render_rtf
 from .models import (
     Agent,
     AgentDetail,
@@ -70,7 +71,17 @@ csv_fields = [
         'temps_travail',
         load_ref(_db, Thesaurus, 'label')
     ),
-    'temps_travail_autre'
+    'referent',
+    'temps_travail_autre',
+    'residence_administrative',
+    (
+        'logement',
+        load_ref(_db, Thesaurus, 'label')
+    ),
+    'convention_signee',
+    'gratification',
+    'bureau',
+    'observations'
 ]
 
 
@@ -155,9 +166,16 @@ def get_agent(id_agent):
     '''
     retourne l'agent identifié par `id_agent`
     '''
+    _format = request.args.get('format', 'dict')
     agent = AgentDetail.query.get(id_agent)
     if not agent:
         return [], 404
+    if _format == 'document':
+        data = AgentDetailSerializer(agent).dump(csv_fields)
+        return render_rtf(
+                'recrutement_%s_%s' % (agent.nom, agent.prenom),
+                'templates/recrutement/template_recrutement.rtf',
+                data)
     return AgentDetailSerializer(agent).dump()
 
 

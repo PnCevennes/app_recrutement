@@ -1,10 +1,7 @@
 import os.path
-import rtfunicode
-
-from flask import Response, current_app
-from werkzeug.datastructures import Headers
 
 from server import db
+from core.utils.rtf import render_rtf
 from .models import SubvTemplate
 
 
@@ -16,23 +13,8 @@ def render(templatename, data):
     tpl = db.session.query(SubvTemplate).filter(
         SubvTemplate.name == templatename
     ).one()
-    with open(tpl.path, 'r') as fp:
-        template = fp.read().encode('ascii')
-        for varname, value in data.items():
-            varmod = b'#' + varname.encode('ascii') + b'#'
-            value = (str(value).encode('rtfunicode')
-                     if value and len(str(value)) else b'')
-            template = template.replace(varmod, value, -1)
 
-    headers = Headers()
-    headers.add('Content-Type', 'text/rtf')
-    headers.add(
-        'Content-Disposition',
-        'attachment',
-        filename='%s.rtf' % templatename
-    )
-    headers.add('Cache-Control', 'no-cache')
-    return Response(template, headers=headers)
+    return render_rtf(tpl.name, tpl.path, data)
 
 
 def chunk2txt(chunk):
