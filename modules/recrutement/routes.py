@@ -173,7 +173,10 @@ def get_agent(id_agent):
     if _format == 'document':
         data = AgentDetailSerializer(agent).dump(csv_fields)
         return render_rtf(
-                'recrutement_%s_%s' % (agent.nom, agent.prenom),
+                'recrutement_%s_%s' % (
+                    agent.nom.encode('ascii', errors='replace').decode('utf8'),
+                    agent.prenom.encode('ascii', errors='replace').decode('utf8')
+                    ),
                 'templates/recrutement/template_recrutement.rtf',
                 data)
     return AgentDetailSerializer(agent).dump()
