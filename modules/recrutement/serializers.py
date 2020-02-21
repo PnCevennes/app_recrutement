@@ -46,7 +46,7 @@ class AgentDetailSerializer(AgentSerializer):
     convention_signee = Field()
     bureau = Field()
     observations = Field()
-    meta_create = DateField(default=datetime.date.today())
+    meta_create = DateField(default=str(datetime.date.today()))
     meta_update = DateField(default=None)
     meta_createur_fiche = Field()
     materiel = MultipleField(
