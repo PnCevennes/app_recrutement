@@ -251,7 +251,7 @@ def update_agent(id_agent):
             for item_id in ag.get('materiel', [])
         ]
 
-        ag['meta_update'] = datetime.datetime.now()
+        ag['meta_update'] = str(datetime.date.today())
         notif = ag.pop('ctrl_notif', False)
 
         AgentDetailSerializer(agent).load(ag)
