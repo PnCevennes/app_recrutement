@@ -210,7 +210,7 @@ class DateField(Field):
     '''
 
     def prepare(self, value):
-        if not value or not len(value):
+        if not value or not len(str(value).strip()):
             return None
         if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
             return value
