@@ -3,6 +3,7 @@ from server import db
 
 '''
 DEJA EXECUTE
+'''
 
 compte_charge = Thesaurus(id_ref=0, label='compte_charge_subs')
 db.session.add(compte_charge)
@@ -31,7 +32,6 @@ db.session.add(axe_charte)
 db.session.add(service_desc)
 db.session.flush()
 db.session.commit()
-'''
 
 ope_sub = Thesaurus.query.filter(Thesaurus.label == 'operation_sub').one()
 commission = Thesaurus.query.filter(Thesaurus.label == 'commission').one()

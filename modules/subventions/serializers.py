@@ -61,6 +61,7 @@ class SubvFullSerializer(SubvSerializer):
     # Décision
     dec_date_notif = DateField()
     dec_num_delib = Field()
+    dec_refus_ajourn = IntField()
     dec_motif_refus = Field()
     dec_conditions = Field()
     dec_montant = FloatField(default=0)
@@ -76,6 +77,10 @@ class SubvFullSerializer(SubvSerializer):
     dec_bur_prorogation_date = DateField()
     dec_numdel_prorogation = Field()
     dec_prorogation = DateField()
+    dec_motif_ajourn = Field()
+    dec_bur_ajourn_date = DateField()
+    dec_numdel_ajourn = Field()
+    dec_courrier_ajourn = DateField()
     # Paiement
     pai_date_recept_demande = DateField()
     pai_accpt1_montant = FloatField()

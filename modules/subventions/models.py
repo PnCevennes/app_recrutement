@@ -51,7 +51,9 @@ class DemandeSubvention(db.Model):
     # Décision
     dec_date_bureau = db.Column(db.Date)
     dec_num_delib = db.Column(db.Unicode(20))
+    dec_refus_ajourn = db.Column(db.Integer)
     dec_motif_refus = db.Column(db.UnicodeText)
+    dec_motif_ajourn = db.Column(db.UnicodeText)
     dec_conditions = db.Column(db.UnicodeText)
     dec_montant = db.Column(db.Numeric(10, 2))
     dec_tva = db.Column(db.Integer)
@@ -68,6 +70,9 @@ class DemandeSubvention(db.Model):
     dec_bur_prorogation_date = db.Column(db.Date)
     dec_numdel_prorogation = db.Column(db.Unicode(20))
     dec_prorogation = db.Column(db.Date)
+    dec_bur_ajourn_date = db.Column(db.Date)
+    dec_numdel_ajourn = db.Column(db.Unicode(20))
+    dec_courrier_ajourn = db.Column(db.Date)
     # Paiement
     pai_date_recept_demande = db.Column(db.Date)
     pai_accpt1_montant = db.Column(db.Numeric(10, 2))
