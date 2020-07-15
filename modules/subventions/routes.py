@@ -126,6 +126,16 @@ csv_fields = [
         'dec_prorogation',
         lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''
     ),
+    'dec_motif_ajourn',
+    'dec_numdel_ajourn',
+    (
+        'dec_bur_ajourn_date',
+        lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''
+    ),
+    (
+        'dec_courrier_ajourn',
+        lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''
+    ),
     (
         'pai_date_recept_demande',
         lambda x: '/'.join(list(reversed(x.split('-')))) if x else ''
