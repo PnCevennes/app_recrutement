@@ -8,6 +8,7 @@ from server import db
 from core.utils.serialize import (
     Serializer,
     Field,
+    MultipleField,
     IntField,
     DateField
 )
@@ -35,7 +36,7 @@ class EquipementSerializer(Serializer):
     )
     last_up = DateField()
     commentaires = Field()
-    evts = Field(
+    evts = MultipleField(
         serializefn=lambda x: [
             EvtEquipementSerializer(evt).serialize()
             for evt in reversed(x)
