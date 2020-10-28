@@ -58,26 +58,25 @@ def _scan(app, session, evt):
             print('nouvelle boucle')
             if counter % app.config['SUP_INTERVAL'] == 0:
                 counter = 0
-                print('nouveau scan')
-                try:
-                    equips = session.query(Equipement).all()
-                    for equip in equips:
+                equips = session.query(Equipement).all()
+                for equip in equips:
+                    try:
                         # compat 3.4
                         if not scan_ping(equip.ip_addr):
                             if equip.status == 1:
+                                equip.status = 0
                                 eq_evt = create_evt_equip(equip.id, 0)
                                 session.add(eq_evt)
-                            equip.status = 0
                         else:
                             if equip.status == 0:
+                                equip.status = 1
                                 eq_evt = create_evt_equip(equip.id, 1)
                                 session.add(eq_evt)
-                            equip.status = 1
                             equip.last_up = datetime.datetime.now()
                         session.flush()
                         session.commit()
-                except ObjectDeletedError:
-                    print('objet supprimé rencontré')
+                    except ObjectDeletedError:
+                        session.rollback()
             counter += 1
             evt.wait(60)
 

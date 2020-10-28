@@ -1,4 +1,5 @@
 import os.path
+import datetime
 
 from server import db
 from core.utils.rtf import render_rtf
@@ -120,3 +121,17 @@ def montant2txt(nb, sep='.'):
             return '%s euros' % eurs
     except ValueError:
         return '%s euros' % nb2txt(nb)
+
+
+def calc_statut(val, ref):
+    today = datetime.date.today()
+    if ref.meta_statut == 4 or ref.dec_motif_refus:
+        return 'clos'
+    if ((ref.dec_bur_ajourn_date and ref.dec_bur_ajourn_date > today) or
+        (not ref.dec_date_bureau or ref.dec_date_bureau > today)):
+        return 'à présenter'
+    if ref.pai_reste_du == 0:
+        return 'clos'
+    if ref.dec_echeance and ref.dec_echeance < today:
+        return 'à annuler'
+    return 'en cours'

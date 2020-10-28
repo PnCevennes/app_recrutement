@@ -24,7 +24,7 @@ from .serializers import (
     SubvFullSerializer,
     SubvTemplateSerializer
 )
-from .utils import render, montant2txt
+from .utils import render, montant2txt, calc_statut
 
 
 SubvFullSerializer.sub_fichiers.preparefn = prepare_fichiers(_db)
@@ -43,7 +43,7 @@ csv_fields = [
     'meta_createur',
     'meta_createur_mail',
     'meta_id',
-    'meta_statut',
+    ('meta_statut', calc_statut),
     'meta_observations',
     'pet_nom',
     'pet_civ',
@@ -174,7 +174,9 @@ def get_subs():
     subs = _db.session.query(DemandeSubvention).all()
     if _format == 'csv':
         return csv_response(
-            SubvFullSerializer.export_csv(subs, fields=csv_fields),
+            SubvFullSerializer.export_csv(
+                subs,
+                fields=csv_fields),
             filename='subventions.csv'
         )
     return [SubvSerializer(sub).dump() for sub in subs]

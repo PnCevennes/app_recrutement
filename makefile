@@ -4,15 +4,12 @@ VENV=venv
 WORKERS=2
 BSH=/bin/bash -c
 
-superv:
-	@$(BSH) "screen -S superv -d -m python3 supervision/supervisiond.py"
-
 develop:
-	@$(BSH) "source ../$(VENV)/bin/activate&&python server.py runserver -d -r -h $(HOST) -p $(PORT)"
+	@$(BSH) "pipenv run python server.py runserver -d -r -h $(HOST) -p $(PORT)"
 
 
 prod:
-	@$(BSH) "source ../$(VENV)/bin/activate&&gunicorn --daemon --pid="tizoutis.pid" --error-log ../errors.log -w $(WORKERS) -b '$(HOST):$(PORT)' -n 'tizoutis' wsgi:app"&&echo "Serveur activé sur '$(HOST):$(PORT)'"
+	@$(BSH) "pipenv run gunicorn --daemon --pid="tizoutis.pid" --error-log ../errors.log -w $(WORKERS) -b '$(HOST):$(PORT)' -n 'tizoutis' wsgi:app"&&echo "Serveur activé sur '$(HOST):$(PORT)'"
 
 
 prod-stop:
@@ -20,4 +17,4 @@ prod-stop:
 
 
 shell:
-	@$(BSH) "source ../$(VENV)/bin/activate&&python server.py shell"
+	@$(BSH) "pipenv run python server.py shell"

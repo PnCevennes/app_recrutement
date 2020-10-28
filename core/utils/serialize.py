@@ -9,6 +9,13 @@ import datetime
 from collections import OrderedDict
 
 
+def _callfn(formatter, value, ref):
+    try:
+        return str(formatter(value) or '').replace('"', '""') 
+    except TypeError:
+        return str(formatter(value, ref) or '').replace('"', '""') 
+
+
 def format_phone(tel):
     '''
     formate un numéro de téléphone
@@ -385,9 +392,11 @@ class Serializer(metaclass=MetaSerializer):
             if not isinstance(item, cls):
                 item = cls(item)
             lines.append(sep.join([
-                f_template % str(
-                    _formatters[f](getattr(item, f, '')) or ''
-                ).replace('"', '""') for f in _fields
+                f_template % _callfn(
+                    _formatters[f],
+                    getattr(item, f, ''),
+                    item.obj
+                ) for f in _fields
             ]))
         return eol.join(lines).encode('latin1', 'replace')
 
