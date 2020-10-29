@@ -354,7 +354,7 @@ class Serializer(metaclass=MetaSerializer):
             for field in fields:
                 if isinstance(field, tuple):
                     fname, formatter = field
-                    out[fname] = formatter(getattr(self, fname, None))
+                    out[fname] = _callfn(formatter, getattr(self, fname, None), self.obj)
                 else:
                     out[field] = getattr(self, field, None)
             return out
