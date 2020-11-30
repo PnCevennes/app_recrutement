@@ -1,0 +1,11 @@
+#!/bin/bash
+
+cd $(dirname $0)
+
+if [ -e 'supervision.lock' ]
+then
+    pipenv run python supervision.py
+fi
+
+# ajouter à crontab
+# */5 * * * * username /path/to/tizoutis/supervision_cmd

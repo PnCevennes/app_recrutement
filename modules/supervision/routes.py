@@ -1,6 +1,5 @@
 import json
 import datetime
-import atexit
 
 from flask import Blueprint, request
 from server import db as _db, get_app
@@ -15,10 +14,7 @@ register_module('/supervision', routes)
 app = get_app()
 
 if app.config.get('ENABLE_SUPERVISION', False):
-    from .tools import Scanner, shutdown_fn
-    scan = Scanner()
-
-    atexit.register(shutdown_fn, scan)
+    import tools
 
 
 @routes.route('/')

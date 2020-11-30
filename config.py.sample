@@ -21,10 +21,8 @@ MAIL_USERNAME = 'foo@example.com'
 MAIL_PASSWORD = 'secret'
 MAIL_SENDER = 'recrutement<foo@example.com>'
 
-# active le thread du module de supervision
+# active le module de supervision
 ENABLE_SUPERVISION = True
-# délai entre deux scans de supervision (en minutes)
-SUP_INTERVAL = 3
 
 # dossier des fichiers uploadés
 UPLOAD_DIR = 'static/upload'
