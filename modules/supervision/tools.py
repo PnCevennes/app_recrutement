@@ -1,4 +1,5 @@
 import atexit
+import os
 
 def shutdown_fn():
     '''
@@ -9,7 +10,7 @@ def shutdown_fn():
     os.unlink('./supervision.lock')
     print('QUIT')
 
-atexit.register(shutdown_fn, scan)
+atexit.register(shutdown_fn)
 
-with open('./supervision.lock') as fp:
+with open('./supervision.lock', 'w') as fp:
     fp.write('supervision')

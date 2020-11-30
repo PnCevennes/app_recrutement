@@ -14,7 +14,7 @@ register_module('/supervision', routes)
 app = get_app()
 
 if app.config.get('ENABLE_SUPERVISION', False):
-    import tools
+    from . import tools
 
 
 @routes.route('/')
