@@ -58,7 +58,7 @@ def create_equip():
 @routes.route('/<id_equip>', methods=['POST', 'PUT'])
 @json_resp
 def update_equip(id_equip):
-    data = request.json
+    data = {k: v for k, v in request.json.items() if k != 'evts'}
     equip = _db.session.query(Equipement).get(id_equip)
     if not equip:
         return [], 404

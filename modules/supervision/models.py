@@ -9,38 +9,9 @@ from core.utils.serialize import (
     Serializer,
     Field,
     IntField,
-    DateField
+    DateField,
+    MultipleField
 )
-
-
-class EvtEquipementSerializer(Serializer):
-    id = IntField()
-    equip_id = IntField()
-    evt_type = IntField()
-    evt_date = DateField()
-
-
-class EquipementSerializer(Serializer):
-    '''
-    Serialisation d'un objet Equipement
-    '''
-    id = IntField()
-    ip_addr = Field()
-    label = Field()
-    equip_type = Field()
-    status = Field()
-    stats = Field(
-        serializefn=lambda x: json.loads(x) if x else [],
-        preparefn=json.dumps
-    )
-    last_up = DateField()
-    commentaires = Field()
-    evts = Field(
-        serializefn=lambda x: [
-            EvtEquipementSerializer(evt).serialize()
-            for evt in reversed(x)
-        ] if x else []
-    )
 
 
 class EvtEquipement(db.Model):
@@ -71,3 +42,33 @@ class Equipement(db.Model):
     last_up = db.Column(db.DateTime)
     commentaires = db.Column(db.UnicodeText)
     evts = db.relationship(EvtEquipement, lazy='joined', cascade='delete')
+
+
+class EvtEquipementSerializer(Serializer):
+    id = IntField()
+    equip_id = IntField()
+    evt_type = IntField()
+    evt_date = DateField()
+
+
+class EquipementSerializer(Serializer):
+    '''
+    Serialisation d'un objet Equipement
+    '''
+    id = IntField()
+    ip_addr = Field()
+    label = Field()
+    equip_type = Field()
+    status = Field()
+    stats = Field(
+        serializefn=lambda x: json.loads(x) if x else [],
+        preparefn=json.dumps
+    )
+    last_up = DateField()
+    commentaires = Field()
+    evts = MultipleField(
+        serializefn=lambda x: [
+            EvtEquipementSerializer(evt).serialize()
+            for evt in reversed(x)
+        ] if x else []
+    )
